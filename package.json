@@ -11,6 +11,7 @@
     "build": "node build/build.mjs",
     "build:data": "node build/build.mjs --data-only",
     "test": "node --test test/",
+    "serve": "node build/serve.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
@@ -19,6 +20,7 @@
     "hyparquet-writer": "^0.16.9"
   },
   "devDependencies": {
+    "esbuild": "^0.28.1",
     "wrangler": "^4.34.0"
   }
 }

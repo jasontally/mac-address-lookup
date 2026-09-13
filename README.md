@@ -45,6 +45,7 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 ## Tech stack
 
 - Static HTML/CSS/JavaScript — no backend at runtime; all lookup work happens in the browser
+- Single client bundle built with esbuild (engine + Hyparquet inlined): ~73 KB JS / ~14 KB CSS, gzip-served by Cloudflare
 - IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies, range-read capable) — no database or API
 - Pre-rendered per-prefix pages generated at build time for SEO
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
@@ -62,12 +63,21 @@ Early development. Roadmap:
 - [x] Address-type + randomization detection
 - [x] VM/hypervisor dictionary
 - [x] Prefix lineage ingestion (runZero mac-tracker)
+- [x] UI: search, results, batch, history, copy/share, dark mode, lineage timeline
+- [x] URL/batch deep-link handling
+- [x] SPA fallback for non-pre-rendered paths
 - [ ] Static page generator + sitemap (priority tiers, page budget)
-- [ ] SPA fallback for non-pre-rendered prefixes
 - [ ] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)
-- [ ] URL/batch deep-link handling
 - [ ] FAQ & explainer content
-- [ ] History, copy/share, dark mode
+
+## Development
+
+```bash
+npm install
+npm run build   # fetch IEEE + lineage data, build dist/
+npm run serve   # preview dist/ at http://localhost:8788 with SPA fallback
+npm test        # unit tests
+```
 
 ## License
 

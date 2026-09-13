@@ -1,0 +1,84 @@
+/*
+ * Semantic token layer, modeled on Cloudflare Kumo's role-based tokens.
+ * Monochrome base: color carries meaning, never decoration.
+ * Mode: `light-dark()` follows the OS; `data-mode` on <html> overrides.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --color-canvas: light-dark(oklch(98.5% 0 0), oklch(10.5% 0 0));
+  --color-surface: light-dark(oklch(100% 0 0), oklch(16% 0 0));
+  --color-elevated: light-dark(oklch(97.5% 0 0), oklch(19.5% 0 0));
+  --color-recessed: light-dark(oklch(95.5% 0 0), oklch(13% 0 0));
+  --color-tint: light-dark(oklch(96% 0 0), oklch(23% 0 0));
+  --color-control: light-dark(oklch(100% 0 0), oklch(21% 0 0));
+  --color-contrast: light-dark(oklch(16% 0 0), oklch(96% 0 0));
+
+  /* Lines, separators, focus */
+  --color-line: light-dark(oklch(82% 0 0), oklch(34% 0 0));
+  --color-hairline: light-dark(oklch(89% 0 0), oklch(27% 0 0));
+  --color-ring: light-dark(oklch(25% 0 0), oklch(90% 0 0));
+
+  /* Monochrome accent (high-contrast neutral, never a brand hue) */
+  --color-accent: light-dark(oklch(22% 0 0), oklch(94% 0 0));
+  --color-accent-hover: light-dark(oklch(33% 0 0), oklch(100% 0 0));
+  --color-on-accent: light-dark(oklch(100% 0 0), oklch(12% 0 0));
+
+  /* Text */
+  --text-default: light-dark(oklch(22% 0 0), oklch(94% 0 0));
+  --text-strong: light-dark(oklch(13% 0 0), oklch(99% 0 0));
+  --text-subtle: light-dark(oklch(44% 0 0), oklch(71% 0 0));
+  --text-placeholder: light-dark(oklch(54% 0 0), oklch(60% 0 0));
+  --text-link: var(--text-strong);
+  --text-inverse: light-dark(oklch(100% 0 0), oklch(10% 0 0));
+
+  /* Status: used only when the state has meaning */
+  --color-info: light-dark(oklch(42% 0.11 250), oklch(80% 0.08 250));
+  --color-info-tint: light-dark(oklch(95.5% 0.025 250), oklch(23% 0.05 250));
+  --color-success: light-dark(oklch(42% 0.1 160), oklch(82% 0.08 160));
+  --color-success-tint: light-dark(oklch(95.5% 0.03 160), oklch(21.5% 0.05 160));
+  --color-warning: light-dark(oklch(44% 0.11 75), oklch(83% 0.09 85));
+  --color-warning-tint: light-dark(oklch(96% 0.035 85), oklch(23.5% 0.05 80));
+  --color-danger: light-dark(oklch(46% 0.16 25), oklch(79% 0.1 25));
+  --color-danger-tint: light-dark(oklch(95.5% 0.035 25), oklch(22.5% 0.06 25));
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+
+  /* Space (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Radii */
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-pill: 999px;
+
+  /* Layout */
+  --content-width: 52rem;
+  --measure: 74ch;
+}
+
+:root[data-mode='light'] {
+  color-scheme: light;
+}
+
+:root[data-mode='dark'] {
+  color-scheme: dark;
+}

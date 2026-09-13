@@ -7,6 +7,7 @@ import { buildLineage } from './lineage.mjs';
 import { normalizeRegistries } from './normalize.mjs';
 import { writeLineageParquet, writeRegistryParquet } from './write-parquet.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
+import { buildStatic } from './copy-static.mjs';
 import { REGISTRIES } from './registries.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -96,6 +97,13 @@ const manifest = {
 if (lineage) manifest.lineage = lineage;
 await writeFile(path.join(dataDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 console.log('  data/manifest.json');
+
+console.log('Building static site...');
+const staticAssets = await buildStatic({ root, distDir });
+console.log(
+  `  assets/app.js ${formatBytes(staticAssets.appBytes)}, ` +
+    `assets/app.css ${formatBytes(staticAssets.cssBytes)}`,
+);
 
 const files = await walkDir(distDir);
 const budget = checkBudget({ files });

@@ -1,0 +1,81 @@
+import { strict as assert } from 'node:assert';
+import test from 'node:test';
+import {
+  addressRange,
+  colonize,
+  formatCount,
+  formatDate,
+  formatRelativeTime,
+} from '../src/ui/format.mjs';
+import { canonicalQuery, canonicalToken, parseLookup, splitBatch } from '../src/ui/router.mjs';
+
+test('splitBatch splits on commas, semicolons, and whitespace', () => {
+  assert.deepEqual(splitBatch('a, b;c\nd'), ['a', 'b', 'c', 'd']);
+  assert.deepEqual(splitBatch('  '), []);
+  assert.deepEqual(splitBatch(null), []);
+});
+
+test('canonicalToken and canonicalQuery normalize valid hex only', () => {
+  assert.equal(canonicalToken('00:1a:2b'), '001A2B');
+  assert.equal(canonicalToken('nope'), null);
+  assert.equal(canonicalQuery(['00:1a:2b', '005056', 'not-hex']), '001A2B,005056');
+});
+
+test('parseLookup handles path, encoded path, query, and non-lookup routes', () => {
+  assert.deepEqual(parseLookup({ pathname: '/001A2B' }), {
+    mode: 'single',
+    value: '001A2B',
+    tokens: ['001A2B'],
+  });
+  const encoded = parseLookup({ pathname: '/00%3A1A%3A2B' });
+  assert.equal(encoded.mode, 'single');
+  assert.equal(encoded.value, '00:1A:2B');
+
+  const batch = parseLookup({ search: '?q=001A2B,005056' });
+  assert.equal(batch.mode, 'batch');
+  assert.deepEqual(batch.tokens, ['001A2B', '005056']);
+
+  assert.deepEqual(parseLookup({ search: '?q=001A2B' }), {
+    mode: 'single',
+    value: '001A2B',
+    tokens: ['001A2B'],
+  });
+  assert.equal(parseLookup({ pathname: '/about' }), null);
+  assert.equal(parseLookup({ pathname: '/' }), null);
+  assert.equal(parseLookup({ pathname: '/001A2B/extra' }), null);
+  assert.equal(parseLookup({ pathname: '/', search: '?q=' }), null);
+});
+
+test('formatDate renders ISO dates and passes through unknown formats', () => {
+  assert.equal(formatDate('2014-01-17'), 'Jan 17, 2014');
+  assert.equal(formatDate('2000-09-08'), 'Sep 8, 2000');
+  assert.equal(formatDate(''), '');
+  assert.equal(formatDate('sometime'), 'sometime');
+});
+
+test('formatRelativeTime formats recent timestamps', () => {
+  const now = Date.parse('2026-09-12T12:00:00Z');
+  assert.equal(formatRelativeTime(now - 30_000, now), 'just now');
+  assert.equal(formatRelativeTime(now - 5 * 60_000, now), '5m ago');
+  assert.equal(formatRelativeTime(now - 3 * 3_600_000, now), '3h ago');
+  assert.equal(formatRelativeTime(now - 2 * 86_400_000, now), '2d ago');
+});
+
+test('formatCount adds thousands separators', () => {
+  assert.equal(formatCount(16_777_216), '16,777,216');
+  assert.equal(formatCount(0), '0');
+  assert.equal(formatCount(null), '');
+});
+
+test('colonize and addressRange format prefixes', () => {
+  assert.equal(colonize('001A2B'), '00:1A:2B');
+  assert.equal(colonize('8C1F64AFA'), '8C:1F:64:AF:A');
+  assert.deepEqual(addressRange('001A2B', 24), {
+    start: '00:1A:2B:00:00:00',
+    end: '00:1A:2B:FF:FF:FF',
+  });
+  assert.deepEqual(addressRange('8C1F64AFA', 36), {
+    start: '8C:1F:64:AF:A0:00',
+    end: '8C:1F:64:AF:AF:FF',
+  });
+});

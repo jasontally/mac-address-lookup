@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MAC Address Lookup — Vendor & OUI Lookup</title>
+    <meta
+      name="description"
+      content="Free, private MAC address lookup. Paste a full or partial MAC address or OUI to identify the vendor, IEEE block details, randomization, virtualization, and prefix lineage — all in your browser."
+    />
+    <link rel="canonical" href="https://mac.jasontally.com/" />
+    <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/app.css" />
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem('mal.theme');
+          if (mode === 'light' || mode === 'dark') document.documentElement.dataset.mode = mode;
+        } catch (error) {
+          /* storage unavailable; system preference applies */
+        }
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "MAC Address Lookup",
+        "url": "https://mac.jasontally.com/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "description": "Free client-side MAC address lookup: identify the vendor behind any full or partial MAC address or OUI, with IEEE block details, randomization detection, virtualization detection, and prefix lineage.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <script type="module" src="/assets/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container">
+        <a class="wordmark" href="/">MAC Address Lookup</a>
+        <button type="button" id="theme-toggle" class="button button--ghost button--icon" aria-label="Toggle theme">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="container">
+        <section class="hero">
+          <h1>MAC Address Lookup</h1>
+          <p class="lede">
+            Identify the vendor behind any full or partial MAC address. Type an OUI prefix like
+            <code>00:1B:21</code>, a full address, or paste one from your network tools — everything runs in your
+            browser.
+          </p>
+
+          <form class="lookup-form" id="lookup-form" novalidate>
+            <label class="visually-hidden" for="lookup-input">MAC address or OUI prefix</label>
+            <input
+              class="lookup-input"
+              id="lookup-input"
+              name="q"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              placeholder="e.g. 00:1A:2B or 001A2B3C4D5E"
+            />
+            <button class="button button--primary" type="submit">Look up</button>
+          </form>
+
+          <div class="examples" id="examples">
+            <span>Try:</span>
+            <button type="button" class="button button--ghost button--small example-chip" data-value="00:1B:21">
+              00:1B:21
+            </button>
+            <button type="button" class="button button--ghost button--small example-chip" data-value="005056">
+              005056
+            </button>
+            <button type="button" class="button button--ghost button--small example-chip" data-value="8C1F64AFA">
+              8C1F64AFA
+            </button>
+            <button type="button" class="button button--ghost button--small example-chip" data-value="000017">
+              000017
+            </button>
+            <button type="button" class="button button--ghost button--small example-chip" data-value="DE:AD:BE:EF:00:01">
+              DE:AD:BE:EF:00:01
+            </button>
+          </div>
+
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="result" aria-live="polite" tabindex="-1"></section>
+
+        <details class="disclosure" id="batch">
+          <summary>Batch lookup</summary>
+          <div class="disclosure-body">
+            <p>Paste up to 100 MAC addresses, separated by commas, spaces, or new lines.</p>
+            <form id="batch-form" novalidate>
+              <label class="visually-hidden" for="batch-input">MAC addresses</label>
+              <textarea
+                id="batch-input"
+                name="batch"
+                placeholder="00:1B:21:3C:4D:5E&#10;005056AABBCC&#10;DE:AD:BE:EF:00:01"
+                spellcheck="false"
+              ></textarea>
+              <div class="batch-actions">
+                <button class="button button--primary" type="submit">Look up addresses</button>
+              </div>
+            </form>
+            <p class="status" id="batch-status" role="status" aria-live="polite"></p>
+          </div>
+        </details>
+
+        <section id="history" hidden>
+          <h2>Recent lookups</h2>
+          <ul class="history-list" id="history-list"></ul>
+          <p><button type="button" class="button button--ghost button--small" id="history-clear">Clear history</button></p>
+        </section>
+
+        <section class="prose">
+          <h2>What this tool tells you</h2>
+          <p>
+            Every network interface has a MAC address, and its first three bytes — the
+            <abbr title="Organizationally Unique Identifier">OUI</abbr> — are registered with the IEEE
+            Registration Authority. This lookup resolves that prefix against the complete IEEE registries
+            (MA-L, MA-M, MA-S, IAB, and CID) using longest-prefix matching, so small blocks resolve to the
+            correct organization.
+          </p>
+          <ul>
+            <li>Vendor and registered organization, with block type and address range</li>
+            <li>Randomization detection — modern phones randomize Wi-Fi addresses, which have no vendor</li>
+            <li>Virtual-machine prefixes for VMware, VirtualBox, Hyper-V, Parallels, Xen, QEMU/KVM, and Docker</li>
+            <li>Prefix lineage — acquisitions and renames, with the dates each change was first observed</li>
+            <li>Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local</li>
+          </ul>
+
+          <h2>Frequently asked questions</h2>
+          <details class="disclosure">
+            <summary>Why does my MAC address show no vendor?</summary>
+            <div class="disclosure-body">
+              <p>
+                Phones, tablets, and laptops often randomize their Wi-Fi MAC address per network. Randomized
+                addresses set the locally administered bit and deliberately contain no manufacturer
+                information, so no vendor can be resolved. Look up the hardware address from the device
+                settings instead.
+              </p>
+            </div>
+          </details>
+          <details class="disclosure">
+            <summary>Is this lookup private?</summary>
+            <div class="disclosure-body">
+              <p>
+                Yes. The IEEE dataset is downloaded once and every lookup is computed in your browser. The
+                address you type is never sent to a server.
+              </p>
+            </div>
+          </details>
+          <details class="disclosure">
+            <summary>Does the vendor tell me the exact device?</summary>
+            <div class="disclosure-body">
+              <p>
+                No. The prefix identifies the organization that registered the block, not the device model.
+                A vendor match can also be inherited from an acquisition, which is what prefix lineage shows.
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <noscript>
+          <div class="banner banner--info">
+            <strong>JavaScript required</strong>
+            <p>The lookup runs entirely in your browser and needs JavaScript enabled.</p>
+          </div>
+        </noscript>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>
+          Data: IEEE Registration Authority registries; historical changes from
+          <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> (MIT).
+          Bundled software: <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> (MIT).
+        </p>
+        <p>
+          All lookups run in your browser — nothing is sent to a server. Data refreshed
+          <span id="last-updated">on the latest deploy</span>.
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener">Source on GitHub</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

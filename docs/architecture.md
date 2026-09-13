@@ -47,6 +47,8 @@ mac-address-lookup/
 │   ├── normalize.mjs
 │   ├── lineage.mjs         # history normalization + hand-change extraction
 │   ├── write-parquet.mjs
+│   ├── copy-static.mjs     # shell copy + esbuild client bundle
+│   ├── serve.mjs           # local preview with SPA fallback
 │   ├── generate-pages.mjs
 │   ├── generate-seo.mjs    # sitemap, robots, structured data
 │   ├── budget.mjs          # file-count and file-size assertions
@@ -103,6 +105,18 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Format conversions**: colon, hyphen, Cisco dot, plain hex, EUI-64, IPv6 link-local.
 - **Batch**: split on comma/whitespace/newline, dedupe, cap 100, results table (collapses to cards on mobile).
 
+## UI structure
+
+- `src/ui/app.mjs` — wiring: deep-link routing, lazy data loading, lookup dispatch, history, theme
+- `src/ui/result.mjs` — match / none / partial / batch / invalid renderers, lineage timeline
+- `src/ui/router.mjs` — pure URL parsing and canonicalization (`/001A2B`, `?q=a,b`)
+- `src/ui/format.mjs` — dates, counts, address ranges, colonization (pure, tested)
+- `src/ui/history.mjs` — recent lookups in localStorage (max 50)
+- `src/ui/theme.mjs` — system-aware dark mode with explicit override
+- `src/ui/clipboard.mjs` — copy buttons with insecure-context fallback
+- `public/index.html` — indexable shell (intro + FAQ); the app hydrates results on top
+- esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.js` (~73 KB); CSS is bundled into one ~14 KB file
+
 ## Page generation & SEO
 
 - Page selection follows the priority policy in [deployment-constraints.md](deployment-constraints.md).
@@ -132,7 +146,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - [x] 1. Scaffold: `package.json`, `.nvmrc`, `wrangler.jsonc`, directory skeleton.
 - [x] 2. Data pipeline (fetch → normalize → Parquet → budget checks) + tests.
 - [x] 3. Lookup engine + tests (verified against the live registry).
-- [ ] 4. UI: token layer, home/search, result (incl. lineage timeline), batch, history, theme toggle.
+- [x] 4. UI: token layer, home/search, result (incl. lineage timeline), batch, history, theme toggle.
 - [ ] 5. Page generator, sitemap/robots, JSON-LD, `_headers`.
 - [ ] 6. Deploy via Workers Builds; wire custom domain `mac.jasontally.com`.
 - [ ] 7. FAQ/explainer content and final SEO polish.

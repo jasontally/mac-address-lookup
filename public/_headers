@@ -1,0 +1,11 @@
+# Manifest must always be revalidated so new deploys are picked up.
+/data/manifest.json
+  Cache-Control: no-cache
+
+# Content-hashed Parquet files are immutable.
+/data/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Bundled app assets are versioned per deploy; revalidate with ETag.
+/assets/*
+  Cache-Control: public, max-age=0, must-revalidate
