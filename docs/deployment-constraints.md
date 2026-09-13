@@ -38,7 +38,8 @@ Behavior notes:
 
 Measured from a live build on 2026-09-12 (3 cross-registry duplicates skipped).
 
-- One pre-rendered page per assignment = **58,694 files today**: 59% of the paid budget, but 293% of the free budget.
+- One pre-rendered page per assignment = **58,694 files today**: 64% of the paid file budget, but 293% of the free budget.
+- **Measured 2026-09-12:** build output 429 MB across 58,707 files; page generation 2.6s; sitemaps 50,000 + 8,695 URLs (4.8 MB + 0.9 MB).
 - The paid plan is required to pre-render the full registry; the free plan can only pre-render a subset (dev/preview budget: 15,000 pages).
 - Growth assumption: MA-L grows ~2,000/year and MA-M/MA-S are growing faster. The registry is on a path to 100,000 assignments; device-level data (future feature) would add many more potential pages. The page budget policy below is designed for that.
 

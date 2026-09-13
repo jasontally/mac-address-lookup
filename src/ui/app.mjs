@@ -2,6 +2,7 @@
 
 import { lookup, normalizeInput } from '../engine/index.mjs';
 import { loadRegistry } from '../engine/load.mjs';
+import { wireCopyButtons } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
 import { colonize, formatRelativeTime } from './format.mjs';
 import { addHistory, clearHistory, loadHistory } from './history.mjs';
@@ -35,6 +36,7 @@ const ui = {
 };
 
 initTheme({ toggleButton: ui.themeToggle });
+wireCopyButtons();
 
 let dataPromise = null;
 
@@ -118,10 +120,12 @@ async function runBatch(text, { push = true } = {}) {
     const { registry } = await ensureData();
     const entries = limited.map((token) => ({ raw: token, result: lookup(registry, token) }));
     renderBatch(ui.result, entries);
-    ui.batchStatus.textContent =
-      tokens.length > MAX_BATCH
-        ? `Limited to the first ${MAX_BATCH} of ${tokens.length} addresses.`
-        : `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} looked up.`;
+    if (ui.batchStatus) {
+      ui.batchStatus.textContent =
+        tokens.length > MAX_BATCH
+          ? `Limited to the first ${MAX_BATCH} of ${tokens.length} addresses.`
+          : `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} looked up.`;
+    }
     document.title = `${limited.length} MAC lookups | MAC Address Lookup`;
 
     const query = canonicalQuery(limited);
@@ -154,6 +158,7 @@ function runRoute(route) {
 }
 
 function renderHistory() {
+  if (!ui.history || !ui.historyList) return;
   const entries = loadHistory();
   ui.history.hidden = entries.length === 0;
   clear(ui.historyList);
@@ -188,12 +193,12 @@ ui.form.addEventListener('submit', (event) => {
   else runSingle(value);
 });
 
-ui.batchForm.addEventListener('submit', (event) => {
+ui.batchForm?.addEventListener('submit', (event) => {
   event.preventDefault();
   runBatch(ui.batchInput.value);
 });
 
-ui.examples.addEventListener('click', (event) => {
+ui.examples?.addEventListener('click', (event) => {
   const button = event.target.closest('[data-value]');
   if (!button) return;
   const value = button.dataset.value;
@@ -201,7 +206,7 @@ ui.examples.addEventListener('click', (event) => {
   runSingle(value);
 });
 
-ui.historyClear.addEventListener('click', () => {
+ui.historyClear?.addEventListener('click', () => {
   clearHistory();
   renderHistory();
 });
@@ -212,4 +217,15 @@ window.addEventListener('popstate', () => {
 });
 
 renderHistory();
-runRoute(parseLookup(location));
+
+// Pre-rendered prefix pages already contain the result; skip the initial
+// lookup (and the data fetch) but record the visit in history.
+if (ui.result.dataset.prerendered === 'true') {
+  const hex = ui.result.dataset.hex;
+  if (hex) {
+    addHistory({ hex, label: ui.result.dataset.label || 'Vendor' });
+    renderHistory();
+  }
+} else {
+  runRoute(parseLookup(location));
+}

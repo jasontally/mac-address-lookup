@@ -16,6 +16,7 @@ const MIME = {
   '.json': 'application/json; charset=utf-8',
   '.parquet': 'application/octet-stream',
   '.svg': 'image/svg+xml',
+  '.xml': 'application/xml',
   '.txt': 'text/plain; charset=utf-8',
   '.ico': 'image/x-icon',
 };
@@ -33,7 +34,14 @@ createServer(async (req, res) => {
     const info = await stat(filePath);
     if (info.isDirectory()) filePath = path.join(filePath, 'index.html');
   } catch {
-    filePath = path.join(distDir, 'index.html'); // SPA fallback
+    // Mirror Workers Assets html_handling: /001A2B serves 001A2B.html.
+    try {
+      const htmlPath = `${filePath}.html`;
+      await stat(htmlPath);
+      filePath = htmlPath;
+    } catch {
+      filePath = path.join(distDir, 'index.html'); // SPA fallback
+    }
   }
 
   try {

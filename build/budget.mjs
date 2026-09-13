@@ -48,6 +48,7 @@ export function checkBudget({ files, limits = {} }) {
   const nonPage = files.length - pages;
   const totalBudget = pageBudget + nonPageAllowance;
   const totalBytes = files.reduce((sum, file) => sum + file.bytes, 0);
+  const warningBytes = 800 * 1024 * 1024;
 
   if (files.length > totalBudget) {
     errors.push(
@@ -55,6 +56,12 @@ export function checkBudget({ files, limits = {} }) {
     );
   } else if (files.length > totalBudget * 0.9) {
     warnings.push(`Asset count ${files.length} is above 90% of budget ${totalBudget}`);
+  }
+
+  if (totalBytes > warningBytes) {
+    warnings.push(
+      `Total output ${formatBytes(totalBytes)} is above 800 MB; deploy upload time may be long`,
+    );
   }
 
   for (const file of files) {

@@ -215,6 +215,34 @@ main {
   font-size: var(--text-sm);
 }
 
+.breadcrumb {
+  font-size: var(--text-sm);
+  color: var(--text-subtle);
+  margin-bottom: var(--space-3);
+}
+
+.breadcrumb a {
+  color: var(--text-subtle);
+}
+
+.h1-prefix {
+  font-family: var(--font-mono);
+  font-size: 0.55em;
+  font-weight: 550;
+  letter-spacing: 0;
+  color: var(--text-subtle);
+  margin-left: var(--space-2);
+  white-space: nowrap;
+}
+
+.hero--compact h1 {
+  font-size: var(--text-2xl);
+}
+
+.hero--compact .lookup-form {
+  margin-top: var(--space-4);
+}
+
 /* ---------- Buttons ---------- */
 
 .button {

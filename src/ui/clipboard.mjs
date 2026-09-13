@@ -44,3 +44,22 @@ export function copyButton(getText, { label = 'Copy', copiedLabel = 'Copied' } =
   });
   return button;
 }
+
+/**
+ * Event delegation for pre-rendered pages: any `[data-copy]` element copies
+ * its value. Dynamic result buttons use copyButton() instead.
+ */
+export function wireCopyButtons(root = document) {
+  root.addEventListener('click', async (event) => {
+    const button = event.target.closest?.('[data-copy]');
+    if (!button) return;
+    const ok = await copyText(button.dataset.copy);
+    const original = button.textContent;
+    button.textContent = ok ? 'Copied' : 'Copy failed';
+    if (ok) button.disabled = true;
+    setTimeout(() => {
+      button.textContent = original;
+      button.disabled = false;
+    }, 1200);
+  });
+}

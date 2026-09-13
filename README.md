@@ -65,9 +65,9 @@ Early development. Roadmap:
 - [x] Prefix lineage ingestion (runZero mac-tracker)
 - [x] UI: search, results, batch, history, copy/share, dark mode, lineage timeline
 - [x] URL/batch deep-link handling
+- [x] Static page generator + sitemap (priority tiers, page budget)
 - [x] SPA fallback for non-pre-rendered paths
-- [ ] Static page generator + sitemap (priority tiers, page budget)
-- [ ] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)
+- [x] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)
 - [ ] FAQ & explainer content
 
 ## Development

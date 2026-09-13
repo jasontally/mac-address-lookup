@@ -125,6 +125,8 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - `sitemap.xml` (index + 50k-URL chunks) lists pre-rendered pages initially; `robots.txt` points to it.
 - `_redirects` is not used for per-prefix canonicalization (2,100-rule cap); client-side `replaceState` normalizes case and variants instead.
 - Long-tail/full-MAC paths return the SPA shell with `200`; the engine renders them after load.
+- Pre-rendered pages hydrate without fetching the Parquet data: the app detects `data-prerendered` and only wires copy buttons and history.
+- **Measured 2026-09-12:** 58,694 pages generated in 2.6s (429 MB total output); sitemap index + 2 chunks (50,000 and 8,695 URLs; 4.8 MB and 0.9 MB).
 
 ## Build & deploy
 
@@ -147,7 +149,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - [x] 2. Data pipeline (fetch → normalize → Parquet → budget checks) + tests.
 - [x] 3. Lookup engine + tests (verified against the live registry).
 - [x] 4. UI: token layer, home/search, result (incl. lineage timeline), batch, history, theme toggle.
-- [ ] 5. Page generator, sitemap/robots, JSON-LD, `_headers`.
+- [x] 5. Page generator, sitemap/robots, JSON-LD, `_headers`.
 - [ ] 6. Deploy via Workers Builds; wire custom domain `mac.jasontally.com`.
 - [ ] 7. FAQ/explainer content and final SEO polish.
 

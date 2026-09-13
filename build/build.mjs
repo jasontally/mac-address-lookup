@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchRegistries } from './fetch-registries.mjs';
@@ -8,6 +8,7 @@ import { normalizeRegistries } from './normalize.mjs';
 import { writeLineageParquet, writeRegistryParquet } from './write-parquet.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
+import { generatePages } from './generate-pages.mjs';
 import { REGISTRIES } from './registries.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -20,6 +21,9 @@ const force = flags.has('--force');
 const skipLineage = flags.has('--no-lineage');
 
 const startedAt = Date.now();
+
+// Rebuild from a clean output so removed pages never linger in the deploy.
+await rm(distDir, { recursive: true, force: true });
 
 console.log('Fetching IEEE registries...');
 const sources = await fetchRegistries({ cacheDir, force });
@@ -45,13 +49,14 @@ const parquet = await writeRegistryParquet(records, { outDir: dataDir });
 console.log(`  ${parquet.filename} (${formatBytes(parquet.bytes)})`);
 
 let lineage = null;
+let lineageEntries = [];
 if (!skipLineage) {
   try {
     console.log(`Fetching lineage (${LINEAGE_SOURCE.name})...`);
     const historyText = await fetchLineage({ cacheDir, force });
     console.log(`  macs.json ${historyText.fromCache ? 'cached' : 'fetched'}  ${historyText.text.length} bytes`);
-    const entries = buildLineage(JSON.parse(historyText.text));
-    const lineageParquet = await writeLineageParquet(entries, { outDir: dataDir });
+    lineageEntries = buildLineage(JSON.parse(historyText.text));
+    const lineageParquet = await writeLineageParquet(lineageEntries, { outDir: dataDir });
     console.log(
       `  ${lineageParquet.filename} (${formatBytes(lineageParquet.bytes)}): ` +
         `${lineageParquet.prefixes} prefixes, ${lineageParquet.events} events`,
@@ -104,6 +109,33 @@ console.log(
   `  assets/app.js ${formatBytes(staticAssets.appBytes)}, ` +
     `assets/app.css ${formatBytes(staticAssets.cssBytes)}`,
 );
+
+const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
+if (!flags.has('--no-pages')) {
+  console.log(`Generating up to ${pageBudget.toLocaleString('en-US')} prefix pages...`);
+  const vendorPriority = JSON.parse(
+    await readFile(path.join(root, 'build', 'vendor-priority.json'), 'utf8'),
+  );
+  const pagesStartedAt = Date.now();
+  const pages = await generatePages({
+    records,
+    lineageEntries,
+    site: 'https://mac.jasontally.com',
+    outDir: distDir,
+    pageBudget,
+    vendorPriority,
+    lastmod: refreshDate,
+  });
+  console.log(
+    `  ${pages.selected.toLocaleString('en-US')} pages in ` +
+      `${((Date.now() - pagesStartedAt) / 1000).toFixed(1)}s` +
+      (pages.dropped > 0 ? `, ${pages.dropped} dropped by budget` : '') +
+      ` (${Object.entries(pages.selectedByType)
+        .map(([type, count]) => `${type} ${count}`)
+        .join(', ')})`,
+  );
+  console.log(`  sitemap: ${pages.sitemap.files.join(', ')} (${pages.sitemap.urls} URLs)`);
+}
 
 const files = await walkDir(distDir);
 const budget = checkBudget({ files });
