@@ -67,7 +67,7 @@ mac-address-lookup/
    - `https://standards-oui.ieee.org/iab/iab.csv` (IAB)
    - `https://standards-oui.ieee.org/cid/cid.csv` (CID)
 2. **Normalize**: trim and validate hex assignments; uppercase; derive `prefixLength` (24/28/36 bits), `addressCount`, and `country` (parsed from the address tail); mark `Private`/empty organizations; dedupe; sort by prefix value.
-3. **Write Parquet** (`dist/data/registry.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Columns: `prefix` (string), `prefixLen` (int8), `blockType` (dictionary), `addressCount` (uint32), `orgName`, `orgAddress`, `country`. Expected 1–3 MB.
+3. **Write Parquet** (`dist/data/registry.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Columns: `prefix` (string), `prefixLen` (int8), `blockType` (dictionary), `addressCount` (uint32), `orgName`, `orgAddress`, `country`. Expected 1–3 MB — **measured 2.82 MB / 58,694 records on 2026-09-12**.
 4. **Emit manifest** (`dist/data/manifest.json`): content-hashed data filename, `generatedAt`, counts by block type, schema version.
 5. **Budget checks** (`build/budget.mjs`): any asset > 20 MiB fails; total asset count > `PAGE_BUDGET + NON_PAGE_ALLOWANCE` fails; page budget defaults 90,000 (paid) / 15,000 (preview).
 

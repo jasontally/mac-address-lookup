@@ -55,8 +55,8 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 
 Early development. Roadmap:
 
-- [ ] IEEE registry ingestion + normalization pipeline
-- [ ] Parquet generation + file budget checks (25 MiB/file, 100k files)
+- [x] IEEE registry ingestion + normalization pipeline
+- [x] Parquet generation + file budget checks (25 MiB/file, 100k files)
 - [ ] Client-side lookup engine (longest-prefix match, bit analysis)
 - [ ] Address-type + randomization detection
 - [ ] VM/hypervisor dictionary

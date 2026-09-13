@@ -29,14 +29,16 @@ Behavior notes:
 
 | Registry | Prefix length | Assignments |
 | --- | --- | --- |
-| MA-L (OUI) | 24-bit (6 hex) | 40,133 |
+| MA-L (OUI) | 24-bit (6 hex) | 40,130 |
 | MA-M | 28-bit (7 hex) | 6,584 |
 | MA-S | 36-bit (9 hex) | 7,186 |
 | IAB | 36-bit (9 hex) | 4,575 |
 | CID | 24-bit (6 hex) | 219 |
-| **Total** | | **58,697** |
+| **Total** | | **58,694** |
 
-- One pre-rendered page per assignment = **58,697 files today**: 59% of the paid budget, but 293% of the free budget.
+Measured from a live build on 2026-09-12 (3 cross-registry duplicates skipped).
+
+- One pre-rendered page per assignment = **58,694 files today**: 59% of the paid budget, but 293% of the free budget.
 - The paid plan is required to pre-render the full registry; the free plan can only pre-render a subset (dev/preview budget: 15,000 pages).
 - Growth assumption: MA-L grows ~2,000/year and MA-M/MA-S are growing faster. The registry is on a path to 100,000 assignments; device-level data (future feature) would add many more potential pages. The page budget policy below is designed for that.
 
