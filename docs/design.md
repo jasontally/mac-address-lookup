@@ -67,7 +67,7 @@ Instead: neutral surfaces, hairline structure, color reserved for meaning, real 
 
 ## Proposed semantic token layer
 
-Our token names map 1:1 to Kumo's roles so the reference is obvious. Values will be defined with `light-dark()` in CSS custom properties; mode toggles via `data-mode` on `<html>`.
+Our token names map 1:1 to Kumo's roles so the reference is obvious. Values are defined with `light-dark()` in CSS custom properties; mode toggles via `data-mode` on `<html>`.
 
 | Kumo reference | Our token | Role |
 | --- | --- | --- |

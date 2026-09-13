@@ -1,8 +1,8 @@
 # MAC Address Lookup
 
-Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial MAC address (OUI prefix, MA-M, MA-S, IAB, or CID block) and instantly identify the organization behind it — everything runs in your browser with no backend and no tracking.
+Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial MAC address (OUI prefix, MA-M, MA-S, IAB, or CID block) and instantly identify the organization behind it — everything runs in your browser with no backend, and the addresses you look up never leave it.
 
-**[mac.jasontally.com](https://mac.jasontally.com)** _(coming soon)_
+**[mac.jasontally.com](https://mac.jasontally.com)**
 
 ## Features
 
@@ -15,7 +15,7 @@ Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial M
 - **Prefix lineage** — for prefixes that changed hands (acquisitions, renames), a timeline of organizations and when each change was first observed
 - **Format conversions** — see the address in every common notation
 - **URL-driven lookups** — no pasting required: `mac.jasontally.com/001A2B` renders the result directly. Batch lookups work the same way.
-- **Static & private** — the IEEE dataset loads once in the browser; all searching, processing, and presentation happen locally. Nothing is sent anywhere.
+- **Static & private** — the IEEE dataset loads once in the browser; all searching, processing, and presentation happen locally. The addresses you look up are never sent to a server, and the site sets no cookies.
 - **Dark mode** — follows your system preference by default, with a manual toggle
 - **History, copy & share** — recent lookups are stored locally; results are copyable and permalinked
 
@@ -55,28 +55,19 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 
 ## Status
 
-Early development. Roadmap:
+All core milestones are complete and the site is live at [mac.jasontally.com](https://mac.jasontally.com): 58,694 pre-rendered prefix pages, a client-side lookup engine, prefix lineage, and a full FAQ.
 
-- [x] IEEE registry ingestion + normalization pipeline
-- [x] Parquet generation + file budget checks (25 MiB/file, 100k files)
-- [x] Client-side lookup engine (longest-prefix match, bit analysis)
-- [x] Address-type + randomization detection
-- [x] VM/hypervisor dictionary
-- [x] Prefix lineage ingestion (runZero mac-tracker)
-- [x] UI: search, results, batch, history, copy/share, dark mode, lineage timeline
-- [x] URL/batch deep-link handling
-- [x] Static page generator + sitemap (priority tiers, page budget)
-- [x] SPA fallback for non-pre-rendered paths
-- [x] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)
-- [x] FAQ & explainer content
+Possible future work: demand-driven page prioritization from privacy-friendly analytics, reverse vendor search, and device-type hints.
 
 ## Development
 
 ```bash
 npm install
-npm run build   # fetch IEEE + lineage data, build dist/
-npm run serve   # preview dist/ at http://localhost:8788 with SPA fallback
-npm test        # unit tests
+npm run build                  # fetch data, build dist/ (all pages)
+npm run build -- --no-pages    # data + assets only, for quick iteration
+PAGE_BUDGET=500 npm run build  # limit pre-rendered pages
+npm run serve                  # preview dist/ at http://localhost:8788 (SPA fallback)
+npm test                       # unit tests
 ```
 
 ## License

@@ -120,13 +120,16 @@ Dropping only removes a pre-rendered HTML page — never data or functionality.
 - **Risk — build duration:** **measured ~5 minutes end-to-end** for 58,707 files / ~448 MB (2026-09-12), comfortably inside the 20-minute timeout. If the file set grows, the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.
 - **No analytics initially:** page-priority demand comes from the seed vendor list. Note: the Cloudflare zone currently injects a Web Analytics beacon; decide whether to keep it (cookieless) or disable it.
 
+## Production verification (2026-09-12)
+
+- Build + deploy: 58,701 assets uploaded; ~5 minutes end-to-end.
+- Security headers applied; `/data/manifest.json` served `no-cache`; Parquet served immutable.
+- `.html` and trailing-slash variants return `307` to canonical URLs; unmatched paths return `200` + SPA shell.
+- Pre-rendered pages fetch only `app.css` + `app.js` (no Parquet); dynamic paths load the hashed Parquet files.
+- Sitemap and robots live; sitemap accepted by Google Search Console.
+
 ## Open items
 
-1. ~~Confirm SPA fallback in production~~ **Verified 2026-09-12:** unmatched paths return `200` + shell; full-MAC deep links render client-side.
-2. ~~Confirm redirect handling~~ **Verified:** `/001B21.html` and `/001B21/` both return `307` to `/001B21`.
-3. ~~Decide the fallback architecture~~ **Resolved:** static pre-render + SPA fallback; assets-only deployment (no Worker script).
-4. ~~Confirm Workers Paid plan and Builds wiring~~ **Verified:** build + deploy succeeded (58,701 assets), Node pinned via `.nvmrc`, Wrangler from `package.json`.
-5. CID assignments get pages while they fit the budget (219 files).
-6. ~~Measure full build time~~ **Measured:** ~5 minutes end-to-end.
-7. **Cloudflare Web Analytics beacon:** the zone injects `static.cloudflareinsights.com/beacon.min.js` and `/cdn-cgi/rum`. Keep (cookieless, aggregate) or disable in the dashboard; site copy now says addresses are never sent to a server and no cookies are set.
-8. Monitor Search Console indexing and re-evaluate the provisional sitemap policy (pre-rendered pages only).
+1. **Cloudflare Web Analytics beacon:** the zone injects `static.cloudflareinsights.com/beacon.min.js` and `/cdn-cgi/rum`. Keep (cookieless, aggregate) or disable in the dashboard; site copy says addresses are never sent to a server and no cookies are set.
+2. Monitor Search Console indexing; re-evaluate the provisional sitemap policy if the page budget ever trims long-tail pages.
+3. CID pages are included while they fit the budget (219 files); revisit only if the budget binds.

@@ -4,10 +4,10 @@
 # Dependencies
 node_modules/
 
-# Build output
+# Build output (regenerable)
 dist/
 build/.cache/
-.cache/
+.wrangler/
 
 # Environment
 .env
@@ -21,9 +21,5 @@ npm-debug.log*
 .vscode/
 .idea/
 
-# Generated site/data (build-time artifacts)
-public/data/
-site/
-
-# Playwright artifacts
+# Test artifacts
 .playwright-mcp/

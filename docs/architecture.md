@@ -1,12 +1,12 @@
 # Architecture
 
-Consolidated architecture for the MAC Address Lookup project. Core decisions are locked; milestones 1–3 are implemented.
+Consolidated architecture for the MAC Address Lookup project. All core milestones are complete and deployed; this document records how the system works for future changes.
 
 Related docs: [design language](design.md) · [deployment constraints & capacity](deployment-constraints.md) · [README](../README.md)
 
 ## Overview
 
-A static, assets-only Cloudflare Worker serving a client-side MAC address lookup tool. Pre-rendered HTML pages cover the largest and most-searched IEEE prefixes for SEO; everything else (trimmed long-tail prefixes, full-MAC deep links, batch) is resolved in the browser via the SPA fallback. The registry and its prefix-lineage history ship as two small Parquet files read with Hyparquet. No server code, no API, no analytics.
+A static, assets-only Cloudflare Worker serving a client-side MAC address lookup tool. Pre-rendered HTML pages cover the largest and most-searched IEEE prefixes for SEO; everything else (trimmed long-tail prefixes, full-MAC deep links, batch) is resolved in the browser via the SPA fallback. The registry and its prefix-lineage history ship as two small Parquet files read with Hyparquet. No server code, no API, no in-app analytics.
 
 ```
 Build (Workers Builds)                          Runtime (Cloudflare edge)
@@ -42,18 +42,21 @@ mac-address-lookup/
 │   ├── ui/                 # rendering, deep links, batch, history, theme
 │   └── styles/             # token layer + component CSS
 ├── build/                  # Node build pipeline (committed)
-│   ├── fetch-registries.mjs
-│   ├── fetch-lineage.mjs   # runZero mac-tracker history (MIT)
-│   ├── normalize.mjs
-│   ├── lineage.mjs         # history normalization + hand-change extraction
+│   ├── build.mjs           # orchestrator
+│   ├── fetch-registries.mjs  fetch-lineage.mjs
+│   ├── normalize.mjs         lineage.mjs
 │   ├── write-parquet.mjs
+│   ├── select-pages.mjs    # budget + priority scoring
+│   ├── page-template.mjs   # static prefix page HTML
+│   ├── generate-pages.mjs  # page writes + sitemaps
+│   ├── generate-seo.mjs    # sitemap renderers
+│   ├── generate-home.mjs   # FAQ injection into the home page
+│   ├── faq.mjs             # FAQ content + schema (single source)
 │   ├── copy-static.mjs     # shell copy + esbuild client bundle
 │   ├── serve.mjs           # local preview with SPA fallback
-│   ├── generate-pages.mjs
-│   ├── generate-seo.mjs    # sitemap, robots, structured data
 │   ├── budget.mjs          # file-count and file-size assertions
 │   └── vendor-priority.json
-├── public/                 # hand-authored static files (icons, _headers, 404)
+├── public/                 # hand-authored static files (icons, robots, headers)
 ├── data/refresh.txt        # manual refresh trigger (bump date + push)
 ├── docs/
 ├── dist/                   # build output (gitignored — never commit 58k files)
@@ -141,21 +144,14 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 
 ## Testing
 
-- Unit tests for normalization, longest-prefix matching, partial listing, bit flags, VM mapping, batch parsing (Node's built-in `node:test` to avoid dependencies).
-- Fixtures: a small synthetic Parquet file plus a trimmed real-registry subset.
-- Build tests: parquet size, budget assertions, page count per tier, sitemap validity.
-- Manual verification: Lighthouse on a pre-rendered page and the SPA shell; mobile viewport checks.
+- Unit tests for normalization, longest-prefix matching, partial listing, bit flags, VM mapping, batch parsing, page selection/scoring, template escaping, sitemap chunking, and FAQ injection (Node's built-in `node:test`, no dependencies).
+- Synthetic fixtures only; no network access in tests.
+- Browser verification during development with Playwright against the local preview server (deep links, hydration skip, batch indexing rules, mobile overflow).
 
 ## Milestones
 
-- [x] 1. Scaffold: `package.json`, `.nvmrc`, `wrangler.jsonc`, directory skeleton.
-- [x] 2. Data pipeline (fetch → normalize → Parquet → budget checks) + tests.
-- [x] 3. Lookup engine + tests (verified against the live registry).
-- [x] 4. UI: token layer, home/search, result (incl. lineage timeline), batch, history, theme toggle.
-- [x] 5. Page generator, sitemap/robots, JSON-LD, `_headers`.
-- [ ] 6. Deploy via Workers Builds; wire custom domain `mac.jasontally.com`.
-- [x] 7. FAQ/explainer content and final SEO polish.
+All milestones are complete (2026-09-12): scaffold, data pipeline, lookup engine, UI, pre-rendered pages + sitemaps, deployment, and FAQ/SEO polish.
 
 ## Open items
 
-Tracked in [deployment-constraints.md](deployment-constraints.md#open-items): production SPA-fallback verification, crawler rendering of long-tail pages, Workers/Builds setup confirmation, CID page inclusion, and measured build time against the 20-minute timeout.
+Tracked in [deployment-constraints.md](deployment-constraints.md#open-items): the Cloudflare Web Analytics beacon decision (keep or disable) and Search Console monitoring.
