@@ -35,7 +35,7 @@ The page consumes the address from the URL path or query string and displays the
 
 ## SEO architecture
 
-The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [deployment constraints and capacity plan](docs/deployment-constraints.md)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via the client-side SPA fallback (assets-only deployment, no server code). Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`.
+The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [deployment constraints and capacity plan](docs/deployment-constraints.md)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via the client-side SPA fallback (assets-only deployment, no server code). Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
 
 ## Data sources
 

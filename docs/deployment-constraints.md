@@ -22,6 +22,7 @@ Behavior notes:
 - **Static assets are served directly and free** when a request matches a file. There is no Worker script: requests that do not match an asset are handled by the SPA fallback.
 - **Range requests**: requests carrying `Range` or `Authorization` do not receive the default `Cache-Control: public, max-age=0, must-revalidate`, and Cloudflare's edge cache treats partial (206) responses as non-cacheable by default. Design for whole-file fetches with content-hashed filenames; treat byte-range reads (Hyparquet over HTTP) as an escape hatch for future large datasets, and verify cache behavior before depending on it.
 - **HTML routing** (default `html_handling: auto-trailing-slash`): `/001A2B` serves `001A2B.html` with `200`; `/001A2B.html` and `/001A2B/` redirect to `/001A2B` with `307`. Flat `.html` files are the canonical layout — one file per prefix, no directories.
+- **`_headers` rules all apply.** Cloudflare merges the headers of every matching `_headers` rule, so patterns must be non-overlapping — for example `/data/manifest.json` plus `/data/*.parquet`, never a broad `/data/*` alongside. Production testing caught `immutable, no-cache` merged onto the manifest before this was corrected.
 - **`not_found_handling`**: options are `none` (default), `404-page`, and `single-page-application`. **Decision: `single-page-application`** — Cloudflare returns `200 OK` with `index.html` for any unmatched path, and the client renders the lookup result. There is no Worker script; the deployment is assets-only (see below).
 - **No Worker script.** The deployment is static assets only. Requests that match an asset are served directly and free; everything else falls back to the SPA shell. Unmatched-prefix pages therefore depend on client-side JavaScript for content.
 
@@ -116,14 +117,16 @@ Dropping only removes a pre-rendered HTML page — never data or functionality.
 - **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. A manual build can also be triggered through the Workers Builds API if needed later.
 - **Limits:** 3,000 build min/month free, 6,000 paid (+$0.005/min after); 20-minute build timeout; concurrent builds 1 free / 6 paid; paid build environment: 4 vCPU / 8 GB RAM / 20 GB disk.
 - **Runtime cost:** static asset requests are free and unlimited; an assets-only deployment has no billed Worker invocations.
-- **Risk — build duration:** deploying ~58,000 small files may take several minutes of upload time. The tiered page budget bounds this; if the 20-minute timeout is approached, reduce pre-rendered tiers first.
-- **No analytics initially:** page-priority demand comes from the seed vendor list. Add privacy-friendly analytics later only if observed demand data is needed.
+- **Risk — build duration:** **measured ~5 minutes end-to-end** for 58,707 files / ~448 MB (2026-09-12), comfortably inside the 20-minute timeout. If the file set grows, the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.
+- **No analytics initially:** page-priority demand comes from the seed vendor list. Note: the Cloudflare zone currently injects a Web Analytics beacon; decide whether to keep it (cookieless) or disable it.
 
 ## Open items
 
-1. Confirm `not_found_handling: "single-page-application"` behavior (200 + shell) in production and verify how long-tail pages render for crawlers via Search Console URL inspection.
-2. Confirm redirect handling of `.html` / trailing-slash URL variants in Search Console once live.
+1. ~~Confirm SPA fallback in production~~ **Verified 2026-09-12:** unmatched paths return `200` + shell; full-MAC deep links render client-side.
+2. ~~Confirm redirect handling~~ **Verified:** `/001B21.html` and `/001B21/` both return `307` to `/001B21`.
 3. ~~Decide the fallback architecture~~ **Resolved:** static pre-render + SPA fallback; assets-only deployment (no Worker script).
-4. Confirm Workers Paid plan, connect Workers Builds, and pin Wrangler ≥ 4.34.0 plus Node via `.nvmrc`.
-5. Decide whether CID assignments get pages (not NIC hardware) — default: include while they fit the budget (219 files).
-6. Measure full build time (fetch + generate + upload) against the 20-minute build timeout; trim page tiers if needed.
+4. ~~Confirm Workers Paid plan and Builds wiring~~ **Verified:** build + deploy succeeded (58,701 assets), Node pinned via `.nvmrc`, Wrangler from `package.json`.
+5. CID assignments get pages while they fit the budget (219 files).
+6. ~~Measure full build time~~ **Measured:** ~5 minutes end-to-end.
+7. **Cloudflare Web Analytics beacon:** the zone injects `static.cloudflareinsights.com/beacon.min.js` and `/cdn-cgi/rum`. Keep (cookieless, aggregate) or disable in the dashboard; site copy now says addresses are never sent to a server and no cookies are set.
+8. Monitor Search Console indexing and re-evaluate the provisional sitemap policy (pre-rendered pages only).

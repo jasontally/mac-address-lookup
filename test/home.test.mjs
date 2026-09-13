@@ -3,8 +3,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { FAQ, renderFaqList, renderFaqSchema } from '../build/faq.mjs';
-import { buildHomePage } from '../build/generate-home.mjs';
+import { FAQ, renderFaqList, renderFaqSchema } from '../build/faq.mjs';import { buildHomePage } from '../build/generate-home.mjs';
 
 test('renderFaqList renders every question as a disclosure', () => {
   const html = renderFaqList();

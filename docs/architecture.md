@@ -137,7 +137,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - Build: `npm ci && npm run build` → `npx wrangler deploy` (default deploy command).
 - Node pinned via `.nvmrc` (build image default is 24.18.0).
 - Manual data refresh: bump `data/refresh.txt`, commit, push. (Workers Builds has no cron trigger for assets-only Workers.)
-- Budgets: paid plan allows 6,000 build min/month, 20-minute timeout; see constraints doc for the upload-time risk.
+- Budgets: paid plan allows 6,000 build min/month, 20-minute timeout; measured ~5 minutes end-to-end for the full page set (2026-09-12).
 
 ## Testing
 

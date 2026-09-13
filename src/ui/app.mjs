@@ -101,6 +101,7 @@ async function runSingle(raw, { push = true } = {}) {
 
     updateSingleUrl(result.input.hex, { push });
     setRobotsMeta(false);
+    setCanonical(`${location.origin}${location.pathname}`);
     ui.result.focus({ preventScroll: true });
   } catch (error) {
     console.error(error);
@@ -131,6 +132,7 @@ async function runBatch(text, { push = true } = {}) {
     const query = canonicalQuery(limited);
     if (query) updateUrl(`/?q=${encodeURIComponent(query)}`, { push });
     setRobotsMeta(true);
+    setCanonical(`${location.origin}/`);
     ui.result.focus({ preventScroll: true });
   } catch (error) {
     console.error(error);
@@ -160,6 +162,20 @@ function setRobotsMeta(noindex) {
   } else if (meta) {
     meta.remove();
   }
+}
+
+/** Keep the canonical link in step with dynamically rendered lookups. */
+function setCanonical(href) {
+  let link = document.querySelector('link[rel="canonical"]');
+  if (!href) {
+    link?.remove();
+    return;
+  }
+  if (!link) {
+    link = el('link', { rel: 'canonical' });
+    document.head.append(link);
+  }
+  link.setAttribute('href', href);
 }
 
 function runRoute(route) {
@@ -242,5 +258,12 @@ if (ui.result.dataset.prerendered === 'true') {
     renderHistory();
   }
 } else {
-  runRoute(parseLookup(location));
+  const route = parseLookup(location);
+  if (route) {
+    runRoute(route);
+  } else if (location.pathname !== '/' || location.search !== '') {
+    // Unknown path or non-lookup query: this is a soft 404 served by the SPA shell.
+    setRobotsMeta(true);
+    setCanonical(`${location.origin}/`);
+  }
 }
