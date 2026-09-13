@@ -1,6 +1,7 @@
 /** Application wiring: routing, data loading, lookups, search, history, theme. */
 
 import {
+  classifyInput,
   extractMacs,
   lookup,
   normalizeInput,
@@ -68,32 +69,16 @@ function ensureData() {
 
 /** Route any user input: address/prefix, pasted text, or free-text search. */
 async function handleInput(text, options = {}) {
-  const value = String(text ?? '').trim();
-  if (value === '') {
-    renderInvalid(ui.result, { error: 'empty' });
-    return;
+  const decision = classifyInput(text);
+  if (decision.mode === 'single') {
+    await runSingle(decision.value, options);
+  } else if (decision.mode === 'batch') {
+    await runBatch(text, options);
+  } else if (decision.mode === 'invalid') {
+    renderInvalid(ui.result, { error: decision.error });
+  } else {
+    await runSearch(decision.value, options);
   }
-
-  const extracted = extractMacs(value);
-  if (extracted.length > 0) {
-    await runBatch(value, options);
-    return;
-  }
-
-  const tokens = splitBatch(value);
-  if (tokens.length > 0 && tokens.every((token) => normalizeInput(token).ok)) {
-    if (tokens.length > 1) await runBatch(value, options);
-    else await runSingle(tokens[0], options);
-    return;
-  }
-
-  // MAC-shaped typo (for example "00:1G"): report the parse error.
-  if (/^[0-9a-fA-F]{2}[:\-.]/.test(value) || /^[0-9a-fA-F]{4}\./.test(value)) {
-    renderInvalid(ui.result, { error: normalizeInput(value).error ?? 'invalid_chars' });
-    return;
-  }
-
-  await runSearch(value, options);
 }
 
 async function runSingle(raw, { push = true } = {}) {
@@ -156,9 +141,20 @@ async function runSingle(raw, { push = true } = {}) {
 }
 
 async function runBatch(text, { push = true } = {}) {
-  const extracted = extractMacs(text);
-  const fromText = extracted.length > 0;
-  const tokens = fromText ? extracted : splitBatch(text);
+  const listTokens = splitBatch(text);
+  const allValid =
+    listTokens.length > 0 && listTokens.every((token) => normalizeInput(token).ok);
+
+  let tokens = listTokens;
+  let fromText = false;
+  if (!allValid) {
+    const discovered = extractMacs(text);
+    if (discovered.length > 0) {
+      tokens = discovered;
+      fromText = true;
+    }
+  }
+
   if (tokens.length === 0) {
     renderInvalid(ui.result, { error: 'empty' });
     return;

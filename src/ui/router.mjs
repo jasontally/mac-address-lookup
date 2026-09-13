@@ -1,16 +1,11 @@
 /** URL routing for deep links. Pure functions over path/search strings. */
 
 import { normalizeInput } from '../engine/input.mjs';
+import { splitBatch } from '../engine/route.mjs';
 
 const LOOKUP_PATH = /^[0-9a-fA-F][0-9a-fA-F\s:.-]*$/;
 
-/** Split batch input on commas, semicolons, and whitespace. */
-export function splitBatch(text) {
-  return String(text ?? '')
-    .split(/[,;\s]+/)
-    .map((token) => token.trim())
-    .filter(Boolean);
-}
+export { splitBatch };
 
 /** Canonical uppercase hex for a token, or null when it is not a valid address. */
 export function canonicalToken(token) {
