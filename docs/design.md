@@ -45,7 +45,7 @@ Explicitly banned:
 - Auto-playing animations, parallax, scroll-jacking, gratuitous motion.
 - Dark navy + violet "AI startup" default theme; unstyled default Tailwind/SaaS look.
 
-Instead: neutral surfaces, hairline structure, one accent used sparingly, real data density, utilitarian clarity (Cloudflare-docs/Kumo-like), strong typographic hierarchy.
+Instead: neutral surfaces, hairline structure, color reserved for meaning, real data density, utilitarian clarity (Cloudflare-docs/Kumo-like), strong typographic hierarchy.
 
 ## Readability requirements
 
