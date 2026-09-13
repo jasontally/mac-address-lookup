@@ -1,8 +1,8 @@
 # Architecture
 
-Consolidated architecture for the MAC Address Lookup project. All core milestones are complete and deployed; this document records how the system works for future changes.
+Consolidated architecture, platform constraints, and capacity plan for the MAC Address Lookup project. All core milestones are complete and deployed (2026-09-12); this document records how the system works and the limits it must stay within.
 
-Related docs: [design language](design.md) · [deployment constraints & capacity](deployment-constraints.md) · [README](../README.md)
+Related docs: [design language](design.md) · [README](../README.md)
 
 ## Overview
 
@@ -31,7 +31,7 @@ Build (Workers Builds)                          Runtime (Cloudflare edge)
 | Deep links | Path (`/001A2B`) or query (`?q=001A2B`); batch via `?q=a,b,c` (cap 100) |
 | Partials | < 6 hex lists matching prefixes, capped at 200 with total count |
 | Build/deploy | Cloudflare Workers Builds, push-triggered; manual data refresh by bumping `data/refresh.txt` |
-| Analytics | None initially; seed vendor-demand list drives page priority |
+| Analytics | None in the app; seed vendor-demand list drives page priority |
 
 ## Repository layout
 
@@ -76,9 +76,9 @@ mac-address-lookup/
 2. **Fetch lineage** (`build/fetch-lineage.mjs`): the runZero mac-tracker history JSON (MIT, updated twice daily) — dated `add`/`change` records per prefix going back to ~1998.
 3. **Normalize registries**: trim and validate hex assignments; uppercase; derive `prefixLength` (24/28/36 bits), `addressCount`, and `country` (parsed from the address tail); mark `Private`/empty organizations; dedupe; sort by prefix value.
 4. **Build lineage** (`build/lineage.mjs`): normalize organization names (case, punctuation), drop `Private`/empty glitches, collapse consecutive identical organizations, and keep prefixes with at least two distinct organizations. **Measured 2026-09-12: 5,665 prefixes / 14,350 events.**
-5. **Write Parquet** (`dist/data/registry.<hash>.parquet` and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`. Lineage columns: `prefix`, `prefixLen`, `seq`, `firstSeen`, `lastSeen`, `date`, `orgName`, `source`. **Measured 2026-09-12: registry 2.82 MB / 58,694 records; lineage 232 KB.**
+5. **Write Parquet** (`dist/data/registry.<hash>.parquet` and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`. Lineage columns: `prefix`, `prefixLen`, `seq`, `firstSeen`, `lastSeen`, `date`, `orgName`, `source`. **Measured: registry 2.82 MB / 58,694 records; lineage 232 KB.**
 6. **Emit manifest** (`dist/data/manifest.json`): content-hashed filenames, `generatedAt`, counts by block type, schema version, and lineage source attribution (name, homepage, license, retrieval time).
-7. **Budget checks** (`build/budget.mjs`): any asset > 20 MiB fails; total asset count > `PAGE_BUDGET + NON_PAGE_ALLOWANCE` fails; page budget defaults 90,000 (paid) / 15,000 (preview).
+7. **Budget checks** (`build/budget.mjs`): file-count and file-size assertions — see [Capacity & page budget](#capacity--page-budget).
 
 Caching: `data/manifest.json` → `no-cache`; `data/*.parquet` → `public, max-age=31536000, immutable` (content-hashed). Generated pages keep the platform default (`max-age=0, must-revalidate` + ETag).
 
@@ -86,7 +86,7 @@ Caching: `data/manifest.json` → `no-cache`; `data/*.parquet` → `public, max-
 
 Provenance: [runZero mac-tracker](https://github.com/runZeroInc/mac-tracker) (MIT), which bootstrapped IEEE assignment history from the DeepMAC snapshot and Wireshark/Ethereal archives (~1998 onward) and updates twice daily. Dates are **observation dates** — when a change first appeared in the tracked snapshots — not authoritative legal transfer dates.
 
-Display rules:
+Display rules (visual details in [design.md](design.md#prefix-lineage-display)):
 
 - Lineage appears **only for the exact matched prefix**, and only when it has at least two distinct organizations after normalization.
 - History is **never inherited from parent or child prefixes**. A /28 carved out of a /24 shows its own history or none; the /24's past is not presented as the /28's lineage. Rationale: allocation/split events do not imply a shared corporate lineage, and inherited history would be misleading.
@@ -104,43 +104,149 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Lookup**: longest-prefix match over 9-hex (MA-S/IAB), 7-hex (MA-M), 6-hex (MA-L/CID), using a first-byte index over sorted prefix arrays.
 - **Partials**: 1–5 hex digits return all matching assignments, capped at 200 rows plus a total count.
 - **Bit analysis**: I/G bit (multicast), U/L bit (locally administered → likely randomized when unregistered); broadcast (`FF:FF:FF:FF:FF:FF`) and all-zero special cases.
-- **VM/hypervisor detection**: organization-name map (VMware, Oracle/VirtualBox, Microsoft, Parallels, XenSource/Citrix) plus the Docker `02:42:xx` convention.
+- **VM/hypervisor detection**: known prefix map (VMware, VirtualBox, Microsoft Hyper-V/Virtual PC, Parallels, Xen, QEMU/KVM, Docker).
 - **Format conversions**: colon, hyphen, Cisco dot, plain hex, EUI-64, IPv6 link-local.
 - **Batch**: split on comma/whitespace/newline, dedupe, cap 100, results table (collapses to cards on mobile).
 
 ## UI structure
 
-- `src/ui/app.mjs` — wiring: deep-link routing, lazy data loading, lookup dispatch, history, theme
+- `src/ui/app.mjs` — wiring: deep-link routing, lazy data loading, lookup dispatch, history, theme, canonical/robots meta management
 - `src/ui/result.mjs` — match / none / partial / batch / invalid renderers, lineage timeline
 - `src/ui/router.mjs` — pure URL parsing and canonicalization (`/001A2B`, `?q=a,b`)
 - `src/ui/format.mjs` — dates, counts, address ranges, colonization (pure, tested)
 - `src/ui/history.mjs` — recent lookups in localStorage (max 50)
 - `src/ui/theme.mjs` — system-aware dark mode with explicit override
 - `src/ui/clipboard.mjs` — copy buttons with insecure-context fallback
-- `public/index.html` — indexable shell (intro + FAQ); the app hydrates results on top
+- `public/index.html` — indexable shell (search + FAQ); the app hydrates results on top
 - esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.js` (~73 KB); CSS is bundled into one ~14 KB file
+
+## Platform constraints
+
+Verified September 2026 for **Cloudflare Workers Static Assets** (paid plan), custom domain `mac.jasontally.com`.
+
+| Limit | Workers Free | Workers Paid | Notes |
+| --- | --- | --- | --- |
+| Static asset files per Worker version | 20,000 | **100,000** | Increased Sep 2025; requires Wrangler ≥ 4.34.0 |
+| Individual static asset file size | 25 MiB | **25 MiB** | All plans |
+| Worker script size | 3 MB | 10 MB | Not used: deployment is assets-only |
+| Worker CPU time per request | 10 ms | up to 5 min (configurable) | Static asset requests do not invoke the Worker |
+| Requests to static assets | Free, unlimited | Free, unlimited | Worker script invocations are billed |
+| `_headers` rules | 100 | 100 | 2,000 characters per line |
+| `_redirects` static / dynamic / total | 2,000 / 100 / 2,100 | same | 1,000 characters per rule |
+| `run_worker_first` entries | 100 | 100 | Glob patterns; `!` negation supported |
+
+Behavior notes:
+
+- **Static assets are served directly and free** when a request matches a file. There is no Worker script: requests that do not match an asset are handled by the SPA fallback.
+- **Range requests**: requests carrying `Range` or `Authorization` do not receive the default `Cache-Control: public, max-age=0, must-revalidate`, and Cloudflare's edge cache treats partial (206) responses as non-cacheable by default. Design for whole-file fetches with content-hashed filenames; treat byte-range reads (Hyparquet over HTTP) as an escape hatch for future large datasets, and verify cache behavior before depending on it.
+- **HTML routing** (default `html_handling: auto-trailing-slash`): `/001A2B` serves `001A2B.html` with `200`; `/001A2B.html` and `/001A2B/` redirect to `/001A2B` with `307`. Flat `.html` files are the canonical layout — one file per prefix, no directories.
+- **`_headers` rules all apply.** Cloudflare merges the headers of every matching `_headers` rule, so patterns must be non-overlapping — for example `/data/manifest.json` plus `/data/*.parquet`, never a broad `/data/*` alongside. Production testing caught `immutable, no-cache` merged onto the manifest before this was corrected.
+- **SPA fallback**: `not_found_handling: "single-page-application"` returns `200 OK` with `index.html` for any unmatched path; the client then decides what to render (lookup result, or `noindex` for unrecognized paths).
+
+## Capacity & page budget
+
+### Current registry scale (September 2026)
+
+| Registry | Prefix length | Assignments |
+| --- | --- | --- |
+| MA-L (OUI) | 24-bit (6 hex) | 40,130 |
+| MA-M | 28-bit (7 hex) | 6,584 |
+| MA-S | 36-bit (9 hex) | 7,186 |
+| IAB | 36-bit (9 hex) | 4,575 |
+| CID | 24-bit (6 hex) | 219 |
+| **Total** | | **58,694** |
+
+Measured from a live build on 2026-09-12 (3 cross-registry duplicates skipped).
+
+- One pre-rendered page per assignment = **58,694 files today**: 64% of the paid file budget, but 293% of the free budget.
+- Build output: **~448 MB across 58,707 files**; page generation 2.5s; sitemaps 50,000 + 8,695 URLs (4.8 MB + 0.9 MB).
+- The paid plan is required to pre-render the full registry; the free plan can only pre-render a subset (dev/preview budget: 15,000 pages).
+- Growth assumption: MA-L grows ~2,000/year and MA-M/MA-S are growing faster. The registry is on a path to 100,000 assignments; device-level data (future feature) would add many more potential pages. The page budget policy below is designed for that.
+
+### File budget policy
+
+**Hard budget: 90,000 pre-rendered pages** (10% headroom under the 100,000 limit), plus an allowance of up to ~2,000 non-page files.
+
+Expected non-page files:
+
+| Category | Count |
+| --- | --- |
+| App shell, CSS/JS, icons, manifest | ~30 |
+| Parquet data (registry + lineage, or 256 shards if ever needed) | 2–256 |
+| Sitemaps (chunked at 50,000 URLs) | 2–3 |
+| `robots.txt`, `_headers`, `_redirects` | ~5 |
+
+Page priority (highest first):
+
+1. **MA-L (all)** — classic OUIs, the overwhelming majority of searches; largest blocks (16.7M addresses each).
+2. **MA-M** — 7-hex lookups; 1.0M addresses each.
+3. **CID** — only 219 files; 24-bit company IDs (not NIC hardware, but cheap to include).
+4. **IAB** — 4,575 files; 36-bit reserved-range blocks (4,096 addresses each).
+5. **MA-S** — 7,186 files; 36-bit niche blocks (4,096 addresses each), least likely to be searched directly.
+
+Priority adjustments:
+
+- **Vendor demand**: popular vendors (Apple, Samsung, Intel, Cisco, Espressif, TP-Link, Xiaomi, Raspberry Pi, etc.) rank above block size alone; the seed list lives in `build/vendor-priority.json`.
+- **Data quality**: assignments with empty or "Private" organization names are trimmed first.
+- **Observed demand**: if analytics are ever added, never drop a prefix whose page received traffic recently while a lower-demand page remains.
+
+Eviction order (budget exceeded): drop pages in reverse priority order — lowest-demand MA-S first, then low-demand IAB, then low-demand MA-M — while never dropping a page with recent traffic and never dropping every page of a registry type.
+
+**Enforcement**: the build fails when the output would exceed `PAGE_BUDGET + NON_PAGE_ALLOWANCE` files, prints the trim list, and expects the priority weights to be reviewed. Default `PAGE_BUDGET` is 90,000 (paid) / 15,000 (free preview), overridable per environment.
+
+Dropped prefixes still work: the client-side engine resolves every assignment, and the SPA fallback serves those URLs with the same UI. Dropping only removes a pre-rendered HTML page — never data or functionality.
+
+**Sitemap policy (provisional):** include only pre-rendered pages in `sitemap.xml`. Non-pre-rendered URLs return the app shell for non-JS crawlers, so listing all of them risks soft-duplicate signals. Re-evaluate once Search Console shows how the long-tail pages render and index.
+
+### 25 MiB file-size strategy
+
+- Full-registry Parquet measured at 2.82 MB + 232 KB, well under 25 MiB. Measure at build time.
+- **Build-time assertion**: any single asset > 20 MiB (5 MiB safety margin) fails the build and triggers sharding instead of shipping.
+- **Sharding plan** (only if a dataset outgrows 25 MiB, e.g. device-level data): shard by the first byte of the prefix (`00`–`FF`) with a small `manifest.json` mapping byte range → shard. The client fetches only the shard(s) needed; each shard is content-hashed for long-lived caching.
+- **Sitemaps** chunk at 50,000 URLs (Google limit), targeting < 10 MiB per file.
+- **Never bundle data into the Worker script** (10 MB script limit, cold-start cost). Serve it as a content-hashed static asset fetched directly by the browser.
+
+### Capacity accounting (worst case at 100,000 assignments)
+
+| Item | Files |
+| --- | --- |
+| Pre-rendered pages (budget capped) | 90,000 |
+| Parquet data (registry + lineage) | 2 |
+| Sitemaps (100k URLs) | 3 |
+| App shell + static assets | ~30 |
+| Reserved headroom | 9,966 |
+| **Total** | **100,000** |
 
 ## Page generation & SEO
 
-- Page selection follows the priority policy in [deployment-constraints.md](deployment-constraints.md).
-- Each page is a flat `<PREFIX>.html` file; Cloudflare's default `html_handling` serves it at `/<PREFIX>` and 307-redirects `.html`/trailing-slash variants to the canonical URL.
+- Page selection follows the page budget policy above.
+- Each page is a flat `<PREFIX>.html` file; Cloudflare's `html_handling` serves it at `/<PREFIX>` and 307-redirects `.html`/trailing-slash variants to the canonical URL.
 - Page content: unique vendor record (name, block type, range, address count, country), lineage timeline when present, all format conversions, randomization/VM notes, canonical link, JSON-LD (`WebPage`, vendor `Organization`, `BreadcrumbList`).
 - The home page is generated at build time with ten FAQ entries; the visible content and `FAQPage` schema come from a single source (`build/faq.mjs`), and a `WebSite` + `SearchAction` node covers `?q=` deep links.
-- Batch (`?q=`) results set `noindex, follow` client-side; single lookups remove it once the URL is canonicalized to `/<prefix>`.
+- Batch (`?q=`) results set `noindex, follow` client-side; single lookups remove it once the URL is canonicalized to `/<prefix>`; unrecognized paths are `noindex` too.
 - Security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) ship via the `_headers` catch-all rule.
-- `sitemap.xml` (index + 50k-URL chunks) lists pre-rendered pages initially; `robots.txt` points to it.
+- `sitemap.xml` (index + 50k-URL chunks) lists pre-rendered pages; `robots.txt` points to it.
 - `_redirects` is not used for per-prefix canonicalization (2,100-rule cap); client-side `replaceState` normalizes case and variants instead.
 - Long-tail/full-MAC paths return the SPA shell with `200`; the engine renders them after load.
 - Pre-rendered pages hydrate without fetching the Parquet data: the app detects `data-prerendered` and only wires copy buttons and history.
-- **Measured 2026-09-12:** 58,694 pages generated in 2.6s (429 MB total output); sitemap index + 2 chunks (50,000 and 8,695 URLs; 4.8 MB and 0.9 MB).
 
-## Build & deploy
+## Build & deployment
 
-- Cloudflare Workers Builds connected to `jasontally/mac-address-lookup`; push to `main` triggers build + deploy.
-- Build: `npm ci && npm run build` → `npx wrangler deploy` (default deploy command).
-- Node pinned via `.nvmrc` (build image default is 24.18.0).
-- Manual data refresh: bump `data/refresh.txt`, commit, push. (Workers Builds has no cron trigger for assets-only Workers.)
-- Budgets: paid plan allows 6,000 build min/month, 20-minute timeout; measured ~5 minutes end-to-end for the full page set (2026-09-12).
+- **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → SEO artifacts → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
+- **Node version:** build image defaults to Node 24.18.0; pin with `.nvmrc` (`24`).
+- **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. A manual build can also be triggered through the Workers Builds API if needed later.
+- **Limits:** 3,000 build min/month free, 6,000 paid (+$0.005/min after); 20-minute build timeout; concurrent builds 1 free / 6 paid; paid build environment: 4 vCPU / 8 GB RAM / 20 GB disk.
+- **Runtime cost:** static asset requests are free and unlimited; an assets-only deployment has no billed Worker invocations.
+- **Measured duration:** ~5 minutes end-to-end for 58,707 files / ~448 MB (2026-09-12), comfortably inside the 20-minute timeout. If the file set grows, the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.
+- **No in-app analytics:** page-priority demand comes from the seed vendor list. Note: the Cloudflare zone injects a Web Analytics beacon — see open items.
+
+## Production verification (2026-09-12)
+
+- Build + deploy: 58,701 assets uploaded; ~5 minutes end-to-end.
+- Security headers applied; `/data/manifest.json` served `no-cache`; Parquet served immutable.
+- `.html` and trailing-slash variants return `307` to canonical URLs; unmatched paths return `200` + SPA shell.
+- Pre-rendered pages fetch only `app.css` + `app.js` (no Parquet); dynamic paths load the hashed Parquet files.
+- Sitemap and robots live; sitemap accepted by Google Search Console.
 
 ## Testing
 
@@ -148,10 +254,8 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - Synthetic fixtures only; no network access in tests.
 - Browser verification during development with Playwright against the local preview server (deep links, hydration skip, batch indexing rules, mobile overflow).
 
-## Milestones
-
-All milestones are complete (2026-09-12): scaffold, data pipeline, lookup engine, UI, pre-rendered pages + sitemaps, deployment, and FAQ/SEO polish.
-
 ## Open items
 
-Tracked in [deployment-constraints.md](deployment-constraints.md#open-items): the Cloudflare Web Analytics beacon decision (keep or disable) and Search Console monitoring.
+1. **Cloudflare Web Analytics beacon:** the zone injects `static.cloudflareinsights.com/beacon.min.js` and `/cdn-cgi/rum`. Keep (cookieless, aggregate) or disable in the dashboard; site copy says addresses are never sent to a server and no cookies are set.
+2. Monitor Search Console indexing; re-evaluate the provisional sitemap policy if the page budget ever trims long-tail pages.
+3. CID pages are included while they fit the budget (219 files); revisit only if the budget binds.

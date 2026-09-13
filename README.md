@@ -35,7 +35,7 @@ The page consumes the address from the URL path or query string and displays the
 
 ## SEO architecture
 
-The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [deployment constraints and capacity plan](docs/deployment-constraints.md)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via the client-side SPA fallback (assets-only deployment, no server code). Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
+The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [platform constraints and page budget](docs/architecture.md#capacity--page-budget)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via the client-side SPA fallback (assets-only deployment, no server code). Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
 
 ## Data sources
 
@@ -49,8 +49,7 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 - IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies, range-read capable) — no database or API
 - Pre-rendered per-prefix pages generated at build time for SEO
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
-- Deployment constraints and capacity planning: [`docs/deployment-constraints.md`](docs/deployment-constraints.md)
-- Architecture decisions and pipeline: [`docs/architecture.md`](docs/architecture.md)
+- Architecture, platform constraints, and capacity planning: [`docs/architecture.md`](docs/architecture.md)
 - Design language and UX requirements: [`docs/design.md`](docs/design.md)
 
 ## Status

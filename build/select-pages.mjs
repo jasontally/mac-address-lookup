@@ -1,7 +1,7 @@
 /**
  * Page-budget selection for pre-rendered prefix pages.
  *
- * Priority follows docs/deployment-constraints.md: block type first
+ * Priority follows the page budget policy in docs/architecture.md: block type first
  * (MA-L → MA-M → CID → IAB → MA-S), then vendor demand, with private or
  * empty organizations deprioritized. Ties break on prefix for determinism.
  */

@@ -65,7 +65,7 @@ Instead: neutral surfaces, hairline structure, color reserved for meaning, real 
 - Search field stays at top on mobile (not hidden behind menus); the URL-driven result renders without any interaction at every size.
 - No layout shift when data hydrates (reserve space for result regions).
 
-## Proposed semantic token layer
+## Semantic token layer
 
 Our token names map 1:1 to Kumo's roles so the reference is obvious. Values are defined with `light-dark()` in CSS custom properties; mode toggles via `data-mode` on `<html>`.
 
@@ -137,12 +137,10 @@ Typography scale (px): 12 / 13 / 14 / 16 / 18 / 20 / 24 / 30 with paired line he
 
 ## Prefix lineage display
 
-When the resolved prefix has lineage (see [architecture](architecture.md#prefix-lineage)):
+When a prefix has lineage (scope and provenance: [architecture](architecture.md#prefix-lineage)):
 
-- Render a neutral, ordered timeline: organization name + observed date, oldest first. No color coding; this is information, not status.
-- Show the timeline **only for the exact matched prefix**. Never display a parent prefix's history on a more specific prefix, and never merge child histories into a parent page.
-- Label dates as observed ("first observed in public registration data"), with source credit to runZero mac-tracker (MIT).
-- If the prefix has no recorded changes, render nothing — no empty timeline, no placeholder text.
+- Neutral, ordered timeline: organization name + observed date, oldest first. No color coding; this is information, not status.
+- Dates labeled as observed, with source credit to runZero mac-tracker (MIT).
 - Timeline entries are plain text using the default text token; dates use the subtle token and tabular figures.
 
 ## Resolved design decisions
