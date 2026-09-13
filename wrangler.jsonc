@@ -1,5 +1,5 @@
 {
-  "name": "mac-address-lookup",
+  "name": "mac",
   "compatibility_date": "2026-09-12",
   "assets": {
     "directory": "./dist",

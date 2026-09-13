@@ -57,9 +57,9 @@ Early development. Roadmap:
 
 - [x] IEEE registry ingestion + normalization pipeline
 - [x] Parquet generation + file budget checks (25 MiB/file, 100k files)
-- [ ] Client-side lookup engine (longest-prefix match, bit analysis)
-- [ ] Address-type + randomization detection
-- [ ] VM/hypervisor dictionary
+- [x] Client-side lookup engine (longest-prefix match, bit analysis)
+- [x] Address-type + randomization detection
+- [x] VM/hypervisor dictionary
 - [ ] Static page generator + sitemap (priority tiers, page budget)
 - [ ] SPA fallback for non-pre-rendered prefixes
 - [ ] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)

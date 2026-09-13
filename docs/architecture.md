@@ -110,13 +110,13 @@ Caching: `data/manifest.json` → `no-cache`; `data/*.parquet` → `public, max-
 
 ## Milestones
 
-1. Scaffold: `package.json`, `.nvmrc`, `wrangler.jsonc`, directory skeleton.
-2. Data pipeline (fetch → normalize → Parquet → budget checks) + tests.
-3. Lookup engine + tests.
-4. UI: token layer, home/search, result, batch, history, theme toggle.
-5. Page generator, sitemap/robots, JSON-LD, `_headers`.
-6. Deploy via Workers Builds; wire custom domain `mac.jasontally.com`.
-7. FAQ/explainer content and final SEO polish.
+- [x] 1. Scaffold: `package.json`, `.nvmrc`, `wrangler.jsonc`, directory skeleton.
+- [x] 2. Data pipeline (fetch → normalize → Parquet → budget checks) + tests.
+- [x] 3. Lookup engine + tests (verified against the live registry).
+- [ ] 4. UI: token layer, home/search, result, batch, history, theme toggle.
+- [ ] 5. Page generator, sitemap/robots, JSON-LD, `_headers`.
+- [ ] 6. Deploy via Workers Builds; wire custom domain `mac.jasontally.com`.
+- [ ] 7. FAQ/explainer content and final SEO polish.
 
 ## Open items
 
