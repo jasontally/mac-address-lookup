@@ -34,7 +34,7 @@ The page consumes the address from the URL path or query string and displays the
 
 ## SEO architecture
 
-The site is fully static. A build step generates a pre-rendered HTML page for every registered IEEE prefix, so crawlers get real content without executing JavaScript. Once loaded, the page hydrates into the interactive tool and can resolve arbitrary full or partial addresses. Unmatched paths are served by a `404.html` fallback that runs the lookup client-side. Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`.
+The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [deployment constraints and capacity plan](docs/deployment-constraints.md)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via a Worker fallback. Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`.
 
 ## Data sources
 
@@ -43,20 +43,23 @@ The site is fully static. A build step generates a pre-rendered HTML page for ev
 
 ## Tech stack
 
-- Static HTML/CSS/JavaScript — no backend, no build server required at runtime
-- IEEE dataset bundled for local search in the browser
+- Static HTML/CSS/JavaScript — no backend at runtime; all lookup work happens in the browser
+- IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies, range-read capable) — no database or API
 - Pre-rendered per-prefix pages generated at build time for SEO
-- Designed for GitHub Pages (custom domain: `mac.jasontally.com`)
+- Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
+- Deployment constraints and capacity planning: [`docs/deployment-constraints.md`](docs/deployment-constraints.md)
 
 ## Status
 
 Early development. Roadmap:
 
 - [ ] IEEE registry ingestion + normalization pipeline
+- [ ] Parquet generation + file budget checks (25 MiB/file, 100k files)
 - [ ] Client-side lookup engine (longest-prefix match, bit analysis)
 - [ ] Address-type + randomization detection
 - [ ] VM/hypervisor dictionary
-- [ ] Static page generator + sitemap
+- [ ] Static page generator + sitemap (priority tiers, page budget)
+- [ ] Worker fallback for non-pre-rendered prefixes
 - [ ] URL/batch deep-link handling
 - [ ] FAQ & explainer content
 - [ ] History, copy/share, dark mode
