@@ -11,6 +11,15 @@
     <link rel="canonical" href="https://mac.jasontally.com/" />
     <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MAC Address Lookup" />
+    <meta property="og:title" content="MAC Address Lookup — Vendor & OUI Lookup" />
+    <meta
+      property="og:description"
+      content="Identify the vendor behind any full or partial MAC address. IEEE block details, randomization detection, virtualization, and prefix lineage — all in your browser."
+    />
+    <meta property="og:url" content="https://mac.jasontally.com/" />
+    <meta name="twitter:card" content="summary" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/assets/app.css" />
     <script>
@@ -26,14 +35,35 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "MAC Address Lookup",
-        "url": "https://mac.jasontally.com/",
-        "applicationCategory": "UtilitiesApplication",
-        "operatingSystem": "Any",
-        "description": "Free client-side MAC address lookup: identify the vendor behind any full or partial MAC address or OUI, with IEEE block details, randomization detection, virtualization detection, and prefix lineage.",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://mac.jasontally.com/#website",
+            "url": "https://mac.jasontally.com/",
+            "name": "MAC Address Lookup",
+            "description": "Free client-side MAC address vendor lookup for full and partial addresses.",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://mac.jasontally.com/?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "WebApplication",
+            "name": "MAC Address Lookup",
+            "url": "https://mac.jasontally.com/",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "Any",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+          }
+        ]
       }
+    </script>
+    <script type="application/ld+json">
+      {{FAQ_SCHEMA}}
     </script>
     <script type="module" src="/assets/app.js"></script>
   </head>
@@ -133,8 +163,8 @@
             Every network interface has a MAC address, and its first three bytes — the
             <abbr title="Organizationally Unique Identifier">OUI</abbr> — are registered with the IEEE
             Registration Authority. This lookup resolves that prefix against the complete IEEE registries
-            (MA-L, MA-M, MA-S, IAB, and CID) using longest-prefix matching, so small blocks resolve to the
-            correct organization.
+            using longest-prefix matching, so small blocks resolve to the correct organization rather than a
+            generic parent block.
           </p>
           <ul>
             <li>Vendor and registered organization, with block type and address range</li>
@@ -144,36 +174,60 @@
             <li>Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local</li>
           </ul>
 
+          <h2>How MAC address lookup works</h2>
+          <p>
+            A MAC address is 48 bits, usually written as six hex pairs such as <code>00:1B:21:3C:4D:5E</code>.
+            The IEEE assigns the leading bits to organizations as registered blocks: MA-L blocks are 24 bits,
+            MA-M blocks are 28 bits, and MA-S and IAB blocks are 36 bits. A lookup tries the longest
+            registered prefix first, so a device inside an MA-S block is attributed to the company that holds
+            that block, not the parent MA-L. The first octet also carries two flag bits: the I/G bit marks
+            multicast addresses, and the U/L bit marks locally administered addresses such as randomized
+            privacy addresses and virtual machines.
+          </p>
+
+          <h2>MAC address block types</h2>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Registry</th>
+                  <th scope="col">Prefix length</th>
+                  <th scope="col">Addresses per block</th>
+                  <th scope="col">Typical use</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>MA-L</td><td>24 bits (6 hex)</td><td>16,777,216</td><td>Classic OUI; the vast majority of network hardware</td></tr>
+                <tr><td>MA-M</td><td>28 bits (7 hex)</td><td>1,048,576</td><td>Mid-size allocations, common for newer vendors</td></tr>
+                <tr><td>MA-S</td><td>36 bits (9 hex)</td><td>4,096</td><td>Small allocations; IoT modules and niche hardware</td></tr>
+                <tr><td>IAB</td><td>36 bits (9 hex)</td><td>4,096</td><td>Legacy Individual Address Blocks from reserved ranges</td></tr>
+                <tr><td>CID</td><td>24 bits (6 hex)</td><td>—</td><td>Company identifiers, not assigned to network interfaces</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>How to find your own MAC address</h2>
+          <ul>
+            <li><strong>Windows:</strong> run <code>getmac /v</code>, or open Settings → Network &amp; internet → Hardware properties.</li>
+            <li><strong>macOS:</strong> open System Settings → Network → Details, or run <code>ifconfig en0 | grep ether</code>.</li>
+            <li><strong>Linux:</strong> run <code>ip link</code> and read the <code>link/ether</code> value.</li>
+            <li><strong>iPhone / Android:</strong> open the Wi-Fi network details. The "private Wi-Fi address" shown there is randomized and will not resolve to a vendor.</li>
+          </ul>
+
           <h2>Frequently asked questions</h2>
-          <details class="disclosure">
-            <summary>Why does my MAC address show no vendor?</summary>
-            <div class="disclosure-body">
-              <p>
-                Phones, tablets, and laptops often randomize their Wi-Fi MAC address per network. Randomized
-                addresses set the locally administered bit and deliberately contain no manufacturer
-                information, so no vendor can be resolved. Look up the hardware address from the device
-                settings instead.
-              </p>
-            </div>
-          </details>
-          <details class="disclosure">
-            <summary>Is this lookup private?</summary>
-            <div class="disclosure-body">
-              <p>
-                Yes. The IEEE dataset is downloaded once and every lookup is computed in your browser. The
-                address you type is never sent to a server.
-              </p>
-            </div>
-          </details>
-          <details class="disclosure">
-            <summary>Does the vendor tell me the exact device?</summary>
-            <div class="disclosure-body">
-              <p>
-                No. The prefix identifies the organization that registered the block, not the device model.
-                A vendor match can also be inherited from an acquisition, which is what prefix lineage shows.
-              </p>
-            </div>
-          </details>
+          <div class="faq-list">
+{{FAQ_LIST}}
+          </div>
+
+          <h2>Data sources and accuracy</h2>
+          <p>
+            Current assignments come from the IEEE Registration Authority's MA-L, MA-M, MA-S, IAB, and CID
+            registries, refreshed on every deploy. Historical changes come from
+            <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> (MIT),
+            which records when an organization name changed in the public data. Those dates are observation
+            dates, not legal transfer dates, and the registries do not reassign most prefixes — an
+            acquisition usually leaves the old vendor name on existing hardware forever.
+          </p>
         </section>
 
         <noscript>

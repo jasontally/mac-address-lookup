@@ -9,3 +9,10 @@
 # Bundled app assets are versioned per deploy; revalidate with ETag.
 /assets/*
   Cache-Control: public, max-age=0, must-revalidate
+
+# Security headers (catch-all last so specific cache rules apply first).
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: DENY

@@ -65,7 +65,6 @@ async function runSingle(raw, { push = true } = {}) {
     renderInvalid(ui.result, { error: normalized.error });
     return;
   }
-
   try {
     const { registry, lineage } = await ensureData();
     const result = lookup(registry, raw);
@@ -101,6 +100,7 @@ async function runSingle(raw, { push = true } = {}) {
         : `${colonize(result.input.hex)} | MAC Address Lookup`;
 
     updateSingleUrl(result.input.hex, { push });
+    setRobotsMeta(false);
     ui.result.focus({ preventScroll: true });
   } catch (error) {
     console.error(error);
@@ -130,6 +130,7 @@ async function runBatch(text, { push = true } = {}) {
 
     const query = canonicalQuery(limited);
     if (query) updateUrl(`/?q=${encodeURIComponent(query)}`, { push });
+    setRobotsMeta(true);
     ui.result.focus({ preventScroll: true });
   } catch (error) {
     console.error(error);
@@ -145,6 +146,20 @@ function updateUrl(url, { push }) {
   if (location.pathname + location.search === url) return;
   const method = push ? 'pushState' : 'replaceState';
   history[method]({}, '', url);
+}
+
+/** Batch results live at `?q=` URLs and should not be indexed standalone. */
+function setRobotsMeta(noindex) {
+  let meta = document.querySelector('meta[name="robots"]');
+  if (noindex) {
+    if (!meta) {
+      meta = el('meta', { name: 'robots' });
+      document.head.append(meta);
+    }
+    meta.setAttribute('content', 'noindex, follow');
+  } else if (meta) {
+    meta.remove();
+  }
 }
 
 function runRoute(route) {

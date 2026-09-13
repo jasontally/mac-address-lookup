@@ -204,6 +204,15 @@ export function renderPrefixPage({ record, lineage = null, site = SITE }) {
       : {}),
   }).replace(/</g, '\\u003c');
 
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'MAC Address Lookup', item: `${site}/` },
+      { '@type': 'ListItem', position: 2, name: colon, item: canonical },
+    ],
+  }).replace(/</g, '\\u003c');
+
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -225,6 +234,9 @@ export function renderPrefixPage({ record, lineage = null, site = SITE }) {
     </script>
     <script type="application/ld+json">
       ${jsonLd}
+    </script>
+    <script type="application/ld+json">
+      ${breadcrumbLd}
     </script>
     <script type="module" src="/assets/app.js"></script>
   </head>

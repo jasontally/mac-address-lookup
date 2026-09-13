@@ -68,7 +68,7 @@ Early development. Roadmap:
 - [x] Static page generator + sitemap (priority tiers, page budget)
 - [x] SPA fallback for non-pre-rendered paths
 - [x] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)
-- [ ] FAQ & explainer content
+- [x] FAQ & explainer content
 
 ## Development
 

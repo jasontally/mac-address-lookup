@@ -121,7 +121,10 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 
 - Page selection follows the priority policy in [deployment-constraints.md](deployment-constraints.md).
 - Each page is a flat `<PREFIX>.html` file; Cloudflare's default `html_handling` serves it at `/<PREFIX>` and 307-redirects `.html`/trailing-slash variants to the canonical URL.
-- Page content: unique vendor record (name, block type, range, address count, country), lineage timeline when present, all format conversions, randomization/VM notes, FAQ snippets, canonical link, JSON-LD (`WebPage` + vendor `Organization` where known; `FAQPage` only on pages with genuine Q&A).
+- Page content: unique vendor record (name, block type, range, address count, country), lineage timeline when present, all format conversions, randomization/VM notes, canonical link, JSON-LD (`WebPage`, vendor `Organization`, `BreadcrumbList`).
+- The home page is generated at build time with ten FAQ entries; the visible content and `FAQPage` schema come from a single source (`build/faq.mjs`), and a `WebSite` + `SearchAction` node covers `?q=` deep links.
+- Batch (`?q=`) results set `noindex, follow` client-side; single lookups remove it once the URL is canonicalized to `/<prefix>`.
+- Security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) ship via the `_headers` catch-all rule.
 - `sitemap.xml` (index + 50k-URL chunks) lists pre-rendered pages initially; `robots.txt` points to it.
 - `_redirects` is not used for per-prefix canonicalization (2,100-rule cap); client-side `replaceState` normalizes case and variants instead.
 - Long-tail/full-MAC paths return the SPA shell with `200`; the engine renders them after load.
@@ -151,7 +154,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - [x] 4. UI: token layer, home/search, result (incl. lineage timeline), batch, history, theme toggle.
 - [x] 5. Page generator, sitemap/robots, JSON-LD, `_headers`.
 - [ ] 6. Deploy via Workers Builds; wire custom domain `mac.jasontally.com`.
-- [ ] 7. FAQ/explainer content and final SEO polish.
+- [x] 7. FAQ/explainer content and final SEO polish.
 
 ## Open items
 

@@ -8,6 +8,7 @@ import { normalizeRegistries } from './normalize.mjs';
 import { writeLineageParquet, writeRegistryParquet } from './write-parquet.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
+import { buildHomePage } from './generate-home.mjs';
 import { generatePages } from './generate-pages.mjs';
 import { REGISTRIES } from './registries.mjs';
 
@@ -109,6 +110,9 @@ console.log(
   `  assets/app.js ${formatBytes(staticAssets.appBytes)}, ` +
     `assets/app.css ${formatBytes(staticAssets.cssBytes)}`,
 );
+
+const home = await buildHomePage({ root, distDir });
+console.log(`  index.html ${formatBytes(home.bytes)} (FAQ content + schema injected)`);
 
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
 if (!flags.has('--no-pages')) {

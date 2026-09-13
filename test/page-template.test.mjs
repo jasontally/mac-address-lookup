@@ -34,6 +34,20 @@ test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JS
   assert.equal(jsonLd.about.name, 'Intel Corporate');
 });
 
+test('renderPrefixPage adds breadcrumb JSON-LD', () => {
+  const masRecord = { ...record, prefix: '001A2B0C1', prefixLen: 36, blockType: 'MA-S' };
+  const html = renderPrefixPage({ record: masRecord, site: 'https://example.test' });
+
+  const scripts = [
+    ...html.matchAll(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/g),
+  ].map((match) => JSON.parse(match[1]));
+  const breadcrumb = scripts.find((entry) => entry['@type'] === 'BreadcrumbList');
+  assert.ok(breadcrumb, 'breadcrumb JSON-LD is present');
+  assert.equal(breadcrumb.itemListElement.length, 2);
+  assert.equal(breadcrumb.itemListElement[0].item, 'https://example.test/');
+  assert.equal(breadcrumb.itemListElement[1].name, '00:1A:2B:0C:1');
+});
+
 test('renderPrefixPage escapes HTML in registry data', () => {
   const html = renderPrefixPage({
     record: {

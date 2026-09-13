@@ -470,6 +470,10 @@ main {
   margin-bottom: var(--space-3);
 }
 
+.faq-list .disclosure {
+  margin: var(--space-3) 0;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr;
