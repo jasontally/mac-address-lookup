@@ -2,8 +2,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchRegistries } from './fetch-registries.mjs';
+import { fetchLineage, LINEAGE_SOURCE } from './fetch-lineage.mjs';
+import { buildLineage } from './lineage.mjs';
 import { normalizeRegistries } from './normalize.mjs';
-import { writeRegistryParquet } from './write-parquet.mjs';
+import { writeLineageParquet, writeRegistryParquet } from './write-parquet.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { REGISTRIES } from './registries.mjs';
 
@@ -14,6 +16,7 @@ const cacheDir = path.join(root, 'build', '.cache');
 
 const flags = new Set(process.argv.slice(2));
 const force = flags.has('--force');
+const skipLineage = flags.has('--no-lineage');
 
 const startedAt = Date.now();
 
@@ -40,6 +43,37 @@ console.log('Writing Parquet...');
 const parquet = await writeRegistryParquet(records, { outDir: dataDir });
 console.log(`  ${parquet.filename} (${formatBytes(parquet.bytes)})`);
 
+let lineage = null;
+if (!skipLineage) {
+  try {
+    console.log(`Fetching lineage (${LINEAGE_SOURCE.name})...`);
+    const historyText = await fetchLineage({ cacheDir, force });
+    console.log(`  macs.json ${historyText.fromCache ? 'cached' : 'fetched'}  ${historyText.text.length} bytes`);
+    const entries = buildLineage(JSON.parse(historyText.text));
+    const lineageParquet = await writeLineageParquet(entries, { outDir: dataDir });
+    console.log(
+      `  ${lineageParquet.filename} (${formatBytes(lineageParquet.bytes)}): ` +
+        `${lineageParquet.prefixes} prefixes, ${lineageParquet.events} events`,
+    );
+    lineage = {
+      file: `data/${lineageParquet.filename}`,
+      bytes: lineageParquet.bytes,
+      sha256: lineageParquet.sha256,
+      prefixes: lineageParquet.prefixes,
+      events: lineageParquet.events,
+      source: {
+        name: LINEAGE_SOURCE.name,
+        url: LINEAGE_SOURCE.url,
+        homepage: LINEAGE_SOURCE.homepage,
+        license: LINEAGE_SOURCE.license,
+        retrievedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.warn(`  warning: lineage unavailable, continuing without it (${error.message})`);
+  }
+}
+
 const refreshDate = (await readFile(path.join(root, 'data', 'refresh.txt'), 'utf8')).trim();
 const manifest = {
   schemaVersion: 1,
@@ -59,6 +93,7 @@ const manifest = {
   },
   sources: REGISTRIES.map((registry) => registry.url),
 };
+if (lineage) manifest.lineage = lineage;
 await writeFile(path.join(dataDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 console.log('  data/manifest.json');
 

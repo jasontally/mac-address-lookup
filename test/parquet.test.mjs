@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { parquetReadObjects } from 'hyparquet';
-import { writeRegistryParquet } from '../build/write-parquet.mjs';
+import { writeLineageParquet, writeRegistryParquet } from '../build/write-parquet.mjs';
+import { createLineageIndex } from '../src/engine/lineage.mjs';
 
 test('writeRegistryParquet round-trips records through hyparquet', async () => {
   const outDir = await mkdtemp(path.join(tmpdir(), 'registry-'));
@@ -52,4 +53,37 @@ test('writeRegistryParquet round-trips records through hyparquet', async () => {
   assert.equal(second.prefix_len, 28);
   assert.equal(second.is_private, true);
   assert.equal(second.country, null);
+});
+
+test('writeLineageParquet round-trips events through hyparquet', async () => {
+  const outDir = await mkdtemp(path.join(tmpdir(), 'lineage-'));
+  const entries = [
+    {
+      prefix: '000017',
+      prefixLen: 24,
+      firstSeen: '2000-09-08',
+      lastSeen: '2014-01-17',
+      events: [
+        { date: '2000-09-08', orgName: 'TEKELEC', source: null },
+        { date: '2014-01-17', orgName: 'Oracle', source: 'ieee-oui.csv' },
+      ],
+    },
+  ];
+
+  const result = await writeLineageParquet(entries, { outDir });
+  assert.match(result.filename, /^lineage\.[0-9a-f]{12}\.parquet$/);
+  assert.equal(result.prefixes, 1);
+  assert.equal(result.events, 2);
+
+  const buffer = await readFile(path.join(outDir, result.filename));
+  const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  const rows = await parquetReadObjects({ file: arrayBuffer });
+  assert.equal(rows.length, 2);
+
+  const entry = createLineageIndex(rows).forPrefix('000017');
+  assert.equal(entry.events.length, 2);
+  assert.equal(entry.events[0].orgName, 'TEKELEC');
+  assert.equal(entry.events[1].source, 'ieee-oui.csv');
+  assert.equal(entry.firstSeen, '2000-09-08');
+  assert.equal(entry.lastSeen, '2014-01-17');
 });

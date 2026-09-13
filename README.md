@@ -12,6 +12,7 @@ Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial M
 - **Randomized MAC detection** — flags locally administered / privacy-randomized addresses instead of returning a misleading "unknown vendor"
 - **VM & hypervisor detection** — recognizes VMware, VirtualBox, Hyper-V, KVM, Docker, Xen, and similar ranges
 - **IEEE block details** — assignment type, block size, address range, registered country, and organization details
+- **Prefix lineage** — for prefixes that changed hands (acquisitions, renames), a timeline of organizations and when each change was first observed
 - **Format conversions** — see the address in every common notation
 - **URL-driven lookups** — no pasting required: `mac.jasontally.com/001A2B` renders the result directly. Batch lookups work the same way.
 - **Static & private** — the IEEE dataset loads once in the browser; all searching, processing, and presentation happen locally. Nothing is sent anywhere.
@@ -38,8 +39,8 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 
 ## Data sources
 
-- IEEE Registration Authority — MA-L, MA-M, MA-S, IAB, and CID CSV registries
-- [Wireshark manufacturer database](https://gitlab.com/wireshark/wireshark/-/blob/master/manuf) — supplementary vendor info
+- IEEE Registration Authority — MA-L, MA-M, MA-S, IAB, and CID CSV registries (current assignments)
+- [runZero mac-tracker](https://github.com/runZeroInc/mac-tracker) — historical assignment changes back to ~1998, derived from IEEE snapshots and Wireshark/Ethereal archives (MIT)
 
 ## Tech stack
 
@@ -60,6 +61,7 @@ Early development. Roadmap:
 - [x] Client-side lookup engine (longest-prefix match, bit analysis)
 - [x] Address-type + randomization detection
 - [x] VM/hypervisor dictionary
+- [x] Prefix lineage ingestion (runZero mac-tracker)
 - [ ] Static page generator + sitemap (priority tiers, page budget)
 - [ ] SPA fallback for non-pre-rendered prefixes
 - [ ] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)

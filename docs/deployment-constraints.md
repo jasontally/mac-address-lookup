@@ -51,7 +51,7 @@ Expected non-page files:
 | Category | Count |
 | --- | --- |
 | App shell, CSS/JS, icons, manifest | ~30 |
-| Parquet data (single file, or 256 shards if ever needed) | 1–256 |
+| Parquet data (registry + lineage, or 256 shards if ever needed) | 2–256 |
 | Sitemaps (chunked at 50,000 URLs) | 2–3 |
 | `robots.txt`, `_headers`, `_redirects`, `404.html` | ~5 |
 
@@ -91,7 +91,7 @@ Dropping only removes a pre-rendered HTML page — never data or functionality.
 
 ## 25 MiB file-size strategy
 
-- Estimated full-registry Parquet: **1–3 MB** (dictionary-encoded, snappy/zstd), well under 25 MiB. Measure at build time.
+- Estimated full-registry Parquet: **1–3 MB** (dictionary-encoded, snappy/zstd), well under 25 MiB. Measured 2026-09-12: registry 2.82 MB, lineage 232 KB. Measure at build time.
 - **Build-time assertion**: any single asset > 20 MiB (5 MiB safety margin) fails the build and triggers sharding instead of shipping.
 - **Sharding plan** (only if a dataset outgrows 25 MiB, e.g. device-level data): shard by the first byte of the prefix (`00`–`FF`) with a small `manifest.json` mapping byte range → shard. The client fetches only the shard(s) needed; each shard is content-hashed for long-lived caching.
 - **Sitemaps** chunk at 50,000 URLs (Google limit), targeting < 10 MiB per file.
@@ -102,7 +102,7 @@ Dropping only removes a pre-rendered HTML page — never data or functionality.
 | Item | Files |
 | --- | --- |
 | Pre-rendered pages (budget capped) | 90,000 |
-| Parquet data | 1 |
+| Parquet data (registry + lineage) | 2 |
 | Sitemaps (100k URLs) | 3 |
 | App shell + static assets | ~30 |
 | Reserved headroom | 9,966 |

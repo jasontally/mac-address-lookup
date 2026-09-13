@@ -30,3 +30,47 @@ export async function writeRegistryParquet(records, { outDir }) {
 
   return { filename, sha256, bytes: buffer.byteLength };
 }
+
+/**
+ * Write lineage events to a content-hashed Parquet file, one row per event.
+ * Fields such as `first_seen` are repeated per prefix for simple client grouping.
+ */
+export async function writeLineageParquet(entries, { outDir }) {
+  await mkdir(outDir, { recursive: true });
+  const tmpPath = path.join(outDir, 'lineage.parquet');
+
+  const rows = [];
+  for (const entry of entries) {
+    entry.events.forEach((event, seq) => {
+      rows.push({
+        prefix: entry.prefix,
+        prefixLen: entry.prefixLen,
+        seq,
+        firstSeen: entry.firstSeen,
+        lastSeen: entry.lastSeen,
+        date: event.date,
+        orgName: event.orgName,
+        source: event.source,
+      });
+    });
+  }
+
+  const columnData = [
+    { name: 'prefix', data: rows.map((row) => row.prefix), type: 'STRING' },
+    { name: 'prefix_len', data: rows.map((row) => row.prefixLen), type: 'INT32' },
+    { name: 'seq', data: rows.map((row) => row.seq), type: 'INT32' },
+    { name: 'first_seen', data: rows.map((row) => row.firstSeen), type: 'STRING' },
+    { name: 'last_seen', data: rows.map((row) => row.lastSeen), type: 'STRING' },
+    { name: 'date', data: rows.map((row) => row.date), type: 'STRING' },
+    { name: 'org_name', data: rows.map((row) => row.orgName), type: 'STRING' },
+    { name: 'source', data: rows.map((row) => row.source), type: 'STRING' },
+  ];
+
+  await parquetWriteFile({ filename: tmpPath, columnData });
+  const buffer = await readFile(tmpPath);
+  const sha256 = createHash('sha256').update(buffer).digest('hex');
+  const filename = `lineage.${sha256.slice(0, 12)}.parquet`;
+  await rename(tmpPath, path.join(outDir, filename));
+
+  return { filename, sha256, bytes: buffer.byteLength, prefixes: entries.length, events: rows.length };
+}
