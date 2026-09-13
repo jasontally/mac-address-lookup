@@ -34,7 +34,7 @@ The page consumes the address from the URL path or query string and displays the
 
 ## SEO architecture
 
-The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [deployment constraints and capacity plan](docs/deployment-constraints.md)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via a Worker fallback. Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`.
+The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [deployment constraints and capacity plan](docs/deployment-constraints.md)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via the client-side SPA fallback (assets-only deployment, no server code). Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`.
 
 ## Data sources
 
@@ -48,6 +48,7 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 - Pre-rendered per-prefix pages generated at build time for SEO
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
 - Deployment constraints and capacity planning: [`docs/deployment-constraints.md`](docs/deployment-constraints.md)
+- Design language and UX requirements: [`docs/design.md`](docs/design.md)
 
 ## Status
 
@@ -59,7 +60,7 @@ Early development. Roadmap:
 - [ ] Address-type + randomization detection
 - [ ] VM/hypervisor dictionary
 - [ ] Static page generator + sitemap (priority tiers, page budget)
-- [ ] Worker fallback for non-pre-rendered prefixes
+- [ ] SPA fallback for non-pre-rendered prefixes
 - [ ] URL/batch deep-link handling
 - [ ] FAQ & explainer content
 - [ ] History, copy/share, dark mode

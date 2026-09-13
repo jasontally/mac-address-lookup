@@ -19,10 +19,11 @@ This document tracks the platform limits the architecture must stay within, the 
 
 Behavior notes:
 
-- **Static assets are served directly and free** when a request matches a file. Requests that do not match an asset fall through to the Worker script (if one is present) — this is the hook for long-tail pages without spending a `run_worker_first` pattern.
+- **Static assets are served directly and free** when a request matches a file. There is no Worker script: requests that do not match an asset are handled by the SPA fallback.
 - **Range requests**: requests carrying `Range` or `Authorization` do not receive the default `Cache-Control: public, max-age=0, must-revalidate`, and Cloudflare's edge cache treats partial (206) responses as non-cacheable by default. Design for whole-file fetches with content-hashed filenames; treat byte-range reads (Hyparquet over HTTP) as an escape hatch for future large datasets, and verify cache behavior before depending on it.
 - **HTML routing** (default `html_handling: auto-trailing-slash`): `/001A2B` serves `001A2B.html` with `200`; `/001A2B.html` and `/001A2B/` redirect to `/001A2B` with `307`. Flat `.html` files are the canonical layout — one file per prefix, no directories.
-- **`not_found_handling`** options are `none` (default), `404-page`, and `single-page-application`. With a Worker script present, unmatched routes can be handled by Worker code instead.
+- **`not_found_handling`**: options are `none` (default), `404-page`, and `single-page-application`. **Decision: `single-page-application`** — unmatched paths serve the SPA shell and the client renders the lookup result. There is no Worker script; the deployment is assets-only (see below).
+- **No Worker script.** The deployment is static assets only. Requests that match an asset are served directly and free; everything else falls back to the SPA shell. Unmatched-prefix pages therefore depend on client-side JavaScript for content.
 
 ## Current registry scale (September 2026)
 
@@ -80,9 +81,11 @@ Drop pages in reverse priority order — lowest-demand MA-S first, then low-dema
 A prefix without a pre-rendered page remains fully functional:
 
 - the client-side lookup engine resolves every assignment in the dataset, and
-- the Worker fallback (or SPA fallback) serves those URLs with the same UI.
+- the SPA fallback serves those URLs with the same UI.
 
 Dropping only removes a pre-rendered HTML page — never data or functionality.
+
+**Sitemap policy (provisional):** include only pre-rendered pages in `sitemap.xml` initially. Non-pre-rendered URLs return the app shell for non-JS crawlers, so listing all of them risks soft-duplicate signals. Re-evaluate once Search Console shows how the long-tail pages render and index.
 
 ## 25 MiB file-size strategy
 
@@ -90,7 +93,7 @@ Dropping only removes a pre-rendered HTML page — never data or functionality.
 - **Build-time assertion**: any single asset > 20 MiB (5 MiB safety margin) fails the build and triggers sharding instead of shipping.
 - **Sharding plan** (only if a dataset outgrows 25 MiB, e.g. device-level data): shard by the first byte of the prefix (`00`–`FF`) with a small `manifest.json` mapping byte range → shard. The client fetches only the shard(s) needed; each shard is content-hashed for long-lived caching.
 - **Sitemaps** chunk at 50,000 URLs (Google limit), targeting < 10 MiB per file.
-- **Never bundle data into the Worker script** (10 MB script limit, cold-start cost). Serve it as a content-hashed static asset and fetch it via the `ASSETS` binding or directly.
+- **Never bundle data into the Worker script** (10 MB script limit, cold-start cost). Serve it as a content-hashed static asset fetched directly by the browser.
 
 ## Capacity accounting (worst case at 100,000 assignments)
 
@@ -105,8 +108,8 @@ Dropping only removes a pre-rendered HTML page — never data or functionality.
 
 ## Open items
 
-1. Test whether `env.ASSETS.fetch()` honors `Range` requests from Worker code and how 206 responses interact with caching.
+1. Confirm `not_found_handling: "single-page-application"` behavior (status code, crawler handling) for unmatched prefix paths after deployment, via Search Console URL inspection.
 2. Confirm redirect handling of `.html` / trailing-slash URL variants in Search Console once live.
-3. Decide the fallback architecture (pre-render + Worker SSR vs. pre-render + SPA fallback).
+3. ~~Decide the fallback architecture~~ **Resolved:** static pre-render + SPA fallback; assets-only deployment (no Worker script).
 4. Confirm Workers Paid plan and pin Wrangler ≥ 4.34.0.
-5. Decide whether CID assignments get pages (not NIC hardware).
+5. Decide whether CID assignments get pages (not NIC hardware) — default: include while they fit the budget (219 files).
