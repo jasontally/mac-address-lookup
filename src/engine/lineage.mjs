@@ -39,5 +39,9 @@ export function createLineageIndex(rows) {
       if (typeof prefix !== 'string') return null;
       return map.get(prefix.toUpperCase()) ?? null;
     },
+    /** All lineage entries (used by free-text search). */
+    all() {
+      return [...map.values()];
+    },
   };
 }

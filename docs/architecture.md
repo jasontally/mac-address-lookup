@@ -75,8 +75,8 @@ mac-address-lookup/
    - `https://standards-oui.ieee.org/cid/cid.csv` (CID)
 2. **Fetch lineage** (`build/fetch-lineage.mjs`): the runZero mac-tracker history JSON (MIT, updated twice daily) — dated `add`/`change` records per prefix going back to ~1998.
 3. **Normalize registries**: trim and validate hex assignments; uppercase; derive `prefixLength` (24/28/36 bits), `addressCount`, and `country` (parsed from the address tail); mark `Private`/empty organizations; dedupe; sort by prefix value.
-4. **Build lineage** (`build/lineage.mjs`): normalize organization names (case, punctuation), drop `Private`/empty glitches, collapse consecutive identical organizations, and keep prefixes with at least two distinct organizations. **Measured 2026-09-12: 5,665 prefixes / 14,350 events.**
-5. **Write Parquet** (`dist/data/registry.<hash>.parquet` and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`. Lineage columns: `prefix`, `prefixLen`, `seq`, `firstSeen`, `lastSeen`, `date`, `orgName`, `source`. **Measured: registry 2.82 MB / 58,694 records; lineage 232 KB.**
+4. **Build lineage** (`build/lineage.mjs`): normalize organization names (case, punctuation), drop `Private`/empty glitches, collapse consecutive identical organizations, and keep prefixes with at least two distinct organizations. `buildFirstSeen` also derives the earliest observed date for every tracked prefix. **Measured 2026-09-12: 5,665 changed prefixes / 14,350 events.**
+5. **Write Parquet** (`dist/data/registry.<hash>.parquet` and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`, `firstSeen`. Lineage columns: `prefix`, `prefixLen`, `seq`, `firstSeen`, `lastSeen`, `date`, `orgName`, `source`. **Measured: registry 2.91 MB / 58,694 records; lineage 232 KB.**
 6. **Emit manifest** (`dist/data/manifest.json`): content-hashed filenames, `generatedAt`, counts by block type, schema version, and lineage source attribution (name, homepage, license, retrieval time).
 7. **Budget checks** (`build/budget.mjs`): file-count and file-size assertions — see [Capacity & page budget](#capacity--page-budget).
 
@@ -106,19 +106,24 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Bit analysis**: I/G bit (multicast), U/L bit (locally administered → likely randomized when unregistered); broadcast (`FF:FF:FF:FF:FF:FF`) and all-zero special cases.
 - **VM/hypervisor detection**: known prefix map (VMware, VirtualBox, Microsoft Hyper-V/Virtual PC, Parallels, Xen, QEMU/KVM, Docker).
 - **Format conversions**: colon, hyphen, Cisco dot, plain hex, EUI-64, IPv6 link-local.
+- **Input routing**: a valid address/prefix is looked up directly; otherwise full MACs are extracted from pasted text; if none are found, the input is treated as a free-text search.
+- **Text extraction** (`extractMacs`): colon, hyphen, Cisco-dot, space-separated, and bare 12-hex formats; bare matches require clean boundaries so UUID tails and longer identifiers are ignored; deduped, capped at 100.
+- **Free-text search** (`searchRegistry`): matches current organizations, former organizations from lineage, country names and codes, registry types, prefixes, and registration years; all tokens must match; ranked by match quality; capped at 200; results are `noindex`.
+- **Summaries** (`summarizeLookups`): batch and extraction views show counts by vendor, randomized addresses, virtual machines, unregistered prefixes, and invalid inputs.
+- **Vendor portfolios** (`registry.portfolio`): registered block count and total address space per organization, shown on results with a "View all prefixes" action.
 - **Batch**: split on comma/whitespace/newline, dedupe, cap 100, results table (collapses to cards on mobile).
 
 ## UI structure
 
-- `src/ui/app.mjs` — wiring: deep-link routing, lazy data loading, lookup dispatch, history, theme, canonical/robots meta management
-- `src/ui/result.mjs` — match / none / partial / batch / invalid renderers, lineage timeline
+- `src/ui/app.mjs` — wiring: deep-link routing, input routing (address / pasted text / search), lazy data loading, lookup dispatch, history, theme, canonical/robots meta management
+- `src/ui/result.mjs` — match / none / partial / batch / search / invalid renderers, summaries, lineage timeline
 - `src/ui/router.mjs` — pure URL parsing and canonicalization (`/001A2B`, `?q=a,b`)
 - `src/ui/format.mjs` — dates, counts, address ranges, colonization (pure, tested)
 - `src/ui/history.mjs` — recent lookups in localStorage (max 50)
 - `src/ui/theme.mjs` — system-aware dark mode with explicit override
 - `src/ui/clipboard.mjs` — copy buttons with insecure-context fallback
 - `public/index.html` — indexable shell (search + FAQ); the app hydrates results on top
-- esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.js` (~73 KB); CSS is bundled into one ~14 KB file
+- esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.js` (~84 KB); CSS is bundled into one ~14 KB file
 
 ## Platform constraints
 
@@ -159,7 +164,7 @@ Behavior notes:
 Measured from a live build on 2026-09-12 (3 cross-registry duplicates skipped).
 
 - One pre-rendered page per assignment = **58,694 files today**: 64% of the paid file budget, but 293% of the free budget.
-- Build output: **~448 MB across 58,707 files**; page generation 2.5s; sitemaps 50,000 + 8,695 URLs (4.8 MB + 0.9 MB).
+- Build output: **~451 MB across 58,707 files**; page generation 2.8s; sitemaps 50,000 + 8,695 URLs (4.8 MB + 0.9 MB).
 - The paid plan is required to pre-render the full registry; the free plan can only pre-render a subset (dev/preview budget: 15,000 pages).
 - Growth assumption: MA-L grows ~2,000/year and MA-M/MA-S are growing faster. The registry is on a path to 100,000 assignments; device-level data (future feature) would add many more potential pages. The page budget policy below is designed for that.
 
@@ -250,7 +255,7 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 
 ## Testing
 
-- Unit tests for normalization, longest-prefix matching, partial listing, bit flags, VM mapping, batch parsing, page selection/scoring, template escaping, sitemap chunking, and FAQ injection (Node's built-in `node:test`, no dependencies).
+- Unit tests for normalization, longest-prefix matching, partial listing, bit flags, VM mapping, batch parsing, MAC extraction (including newline-collapsed text and UUID tails), free-text search, summaries, vendor portfolios, country names, page selection/scoring, template escaping, sitemap chunking, and FAQ injection (Node's built-in `node:test`, no dependencies).
 - Synthetic fixtures only; no network access in tests.
 - Browser verification during development with Playwright against the local preview server (deep links, hydration skip, batch indexing rules, mobile overflow).
 

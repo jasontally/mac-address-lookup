@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchRegistries } from './fetch-registries.mjs';
 import { fetchLineage, LINEAGE_SOURCE } from './fetch-lineage.mjs';
-import { buildLineage } from './lineage.mjs';
+import { buildFirstSeen, buildLineage } from './lineage.mjs';
 import { normalizeRegistries } from './normalize.mjs';
 import { writeLineageParquet, writeRegistryParquet } from './write-parquet.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
@@ -45,18 +45,19 @@ if (stats.duplicates.length > 0) {
 }
 
 await mkdir(dataDir, { recursive: true });
-console.log('Writing Parquet...');
-const parquet = await writeRegistryParquet(records, { outDir: dataDir });
-console.log(`  ${parquet.filename} (${formatBytes(parquet.bytes)})`);
 
 let lineage = null;
 let lineageEntries = [];
+let firstSeen = new Map();
 if (!skipLineage) {
   try {
     console.log(`Fetching lineage (${LINEAGE_SOURCE.name})...`);
     const historyText = await fetchLineage({ cacheDir, force });
     console.log(`  macs.json ${historyText.fromCache ? 'cached' : 'fetched'}  ${historyText.text.length} bytes`);
-    lineageEntries = buildLineage(JSON.parse(historyText.text));
+    const history = JSON.parse(historyText.text);
+    lineageEntries = buildLineage(history);
+    firstSeen = buildFirstSeen(history);
+    console.log(`  first-seen dates for ${firstSeen.size.toLocaleString('en-US')} prefixes`);
     const lineageParquet = await writeLineageParquet(lineageEntries, { outDir: dataDir });
     console.log(
       `  ${lineageParquet.filename} (${formatBytes(lineageParquet.bytes)}): ` +
@@ -80,6 +81,15 @@ if (!skipLineage) {
     console.warn(`  warning: lineage unavailable, continuing without it (${error.message})`);
   }
 }
+
+// Join the earliest observed date for every prefix into the registry table.
+for (const record of records) {
+  record.firstSeen = firstSeen.get(record.prefix) ?? null;
+}
+
+console.log('Writing Parquet...');
+const parquet = await writeRegistryParquet(records, { outDir: dataDir });
+console.log(`  ${parquet.filename} (${formatBytes(parquet.bytes)})`);
 
 const refreshDate = (await readFile(path.join(root, 'data', 'refresh.txt'), 'utf8')).trim();
 const manifest = {

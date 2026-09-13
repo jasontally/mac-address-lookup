@@ -12,6 +12,7 @@ const record = {
   orgAddress: 'Lot 8, Jalan Hi-Tech 2/3 Kulim Kedah MY 09000',
   country: 'MY',
   isPrivate: false,
+  firstSeen: '2003-09-08',
 };
 
 test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JSON-LD', () => {
@@ -24,6 +25,8 @@ test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JS
   assert.match(html, /Intel Corporate/);
   assert.match(html, /00:1A:2B:00:00:00 – 00:1A:2B:FF:FF:FF/);
   assert.match(html, /16,777,216/);
+  assert.match(html, /First registered/);
+  assert.match(html, /Sep 8, 2003/);
   assert.match(html, /data-copy="00:1A:2B"/);
 
   const jsonMatch = /<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/.exec(html);

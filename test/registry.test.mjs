@@ -13,6 +13,7 @@ const rows = [
     org_address: '1 A St US 10001',
     country: 'US',
     is_private: false,
+    first_seen: '2003-09-08',
   },
   {
     prefix: '001A2B0',
@@ -120,6 +121,15 @@ test('listPartials matches ranges, caps rows, and counts the total', () => {
     capped.matches.map((record) => record.prefix),
     ['001A2B', '001A2B0'],
   );
+});
+
+test('portfolio aggregates blocks and address space by organization', () => {
+  const registry = createRegistry(rows);
+  assert.deepEqual(registry.portfolio('Vendor A'), { blocks: 1, addresses: 16_777_216 });
+  assert.deepEqual(registry.portfolio('vendor a'), { blocks: 1, addresses: 16_777_216 });
+  assert.equal(registry.portfolio('Nonexistent'), null);
+  assert.equal(registry.records().length, 5);
+  assert.equal(registry.records()[0].firstSeen, '2003-09-08');
 });
 
 test('lookup returns a full result for registered addresses', () => {

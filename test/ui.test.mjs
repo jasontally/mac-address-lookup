@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   addressRange,
   colonize,
+  formatAddresses,
   formatCount,
   formatDate,
   formatRelativeTime,
@@ -65,6 +66,16 @@ test('formatCount adds thousands separators', () => {
   assert.equal(formatCount(16_777_216), '16,777,216');
   assert.equal(formatCount(0), '0');
   assert.equal(formatCount(null), '');
+});
+
+test('formatAddresses humanizes large counts', () => {
+  assert.equal(formatAddresses(16_777_216), '16.8 million');
+  assert.equal(formatAddresses(1_048_576), '1 million');
+  assert.equal(formatAddresses(1_000_000_000), '1 billion');
+  assert.equal(formatAddresses(2_100_000_000_000), '2.1 trillion');
+  assert.equal(formatAddresses(4_096), '4.1 thousand');
+  assert.equal(formatAddresses(999), '999');
+  assert.equal(formatAddresses(null), '');
 });
 
 test('colonize and addressRange format prefixes', () => {

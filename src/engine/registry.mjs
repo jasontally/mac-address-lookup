@@ -12,7 +12,17 @@ function toRecord(row) {
     orgAddress: row.org_address ?? '',
     country: row.country ?? null,
     isPrivate: Boolean(row.is_private),
+    firstSeen: row.first_seen ?? null,
   };
+}
+
+/** Case/punctuation-insensitive key for grouping vendor portfolios. */
+function portfolioKey(name) {
+  return String(name ?? '')
+    .toUpperCase()
+    .replace(/[.,'"()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function lowerBound(values, target) {
@@ -47,8 +57,32 @@ export function createRegistry(rows) {
     for (const record of bucket.records) bucket.map.set(record.prefix, record);
   }
 
+  const allRecords = [];
+  const portfolios = new Map();
+  for (const bucket of buckets.values()) {
+    for (const record of bucket.records) {
+      allRecords.push(record);
+      const key = portfolioKey(record.orgName);
+      if (key === '') continue;
+      const entry = portfolios.get(key) ?? { orgName: record.orgName, blocks: 0, addresses: 0 };
+      entry.blocks += 1;
+      entry.addresses += record.addressCount ?? 0;
+      portfolios.set(key, entry);
+    }
+  }
+  allRecords.sort((a, b) => (a.prefix < b.prefix ? -1 : a.prefix > b.prefix ? 1 : 0));
+
   return {
-    size: [...buckets.values()].reduce((total, bucket) => total + bucket.records.length, 0),
+    size: allRecords.length,
+
+    /** All records, sorted by prefix (used by free-text search). */
+    records: () => allRecords,
+
+    /** Registered blocks and total address space for an organization. */
+    portfolio(orgName) {
+      const entry = portfolios.get(portfolioKey(orgName));
+      return entry ? { blocks: entry.blocks, addresses: entry.addresses } : null;
+    },
 
     /**
      * Resolve a hex string of 6+ characters against the longest registered prefix.

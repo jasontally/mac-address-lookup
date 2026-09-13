@@ -25,6 +25,22 @@ function prefixFromKey(key) {
   return { prefix: hex.slice(0, mask / 4).toUpperCase(), prefixLen: mask };
 }
 
+/** Earliest observed date for every tracked prefix (not just changed ones). */
+export function buildFirstSeen(history) {
+  const map = new Map();
+  for (const [key, records] of Object.entries(history)) {
+    const parsed = prefixFromKey(key);
+    if (!parsed || !Array.isArray(records)) continue;
+    let earliest = null;
+    for (const record of records) {
+      const date = typeof record.d === 'string' && record.d !== '' ? record.d : null;
+      if (date && (earliest === null || date < earliest)) earliest = date;
+    }
+    if (earliest) map.set(parsed.prefix, earliest);
+  }
+  return map;
+}
+
 /**
  * Build lineage entries keyed by prefix. A prefix qualifies only when it has
  * at least two distinct organizations after normalization.

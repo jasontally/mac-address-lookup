@@ -20,6 +20,7 @@ export async function writeRegistryParquet(records, { outDir }) {
     { name: 'org_address', data: records.map((record) => record.orgAddress), type: 'STRING' },
     { name: 'country', data: records.map((record) => record.country), type: 'STRING' },
     { name: 'is_private', data: records.map((record) => record.isPrivate), type: 'BOOLEAN' },
+    { name: 'first_seen', data: records.map((record) => record.firstSeen ?? null), type: 'STRING' },
   ];
 
   await parquetWriteFile({ filename: tmpPath, columnData });

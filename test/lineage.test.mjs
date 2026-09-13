@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { buildLineage, normalizeOrgName } from '../build/lineage.mjs';
+import { buildFirstSeen, buildLineage, normalizeOrgName } from '../build/lineage.mjs';
 import { createLineageIndex } from '../src/engine/lineage.mjs';
 
 test('normalizeOrgName folds case, punctuation, and whitespace', () => {
@@ -67,6 +67,17 @@ test('buildLineage sorts entries and handles missing dates', () => {
   assert.equal(entries[0].firstSeen, '2005-05-05');
   assert.equal(entries[0].lastSeen, '2005-05-05');
   assert.equal(entries[0].events[0].date, null);
+});
+
+test('buildFirstSeen picks the earliest observation date per prefix', () => {
+  const map = buildFirstSeen({
+    '000017000000/24': [{ d: '2014-01-17' }, { d: '2000-09-08' }],
+    '000001000000/24': [{ d: null }],
+    nonsense: [{ d: '2000-01-01' }],
+  });
+  assert.equal(map.get('000017'), '2000-09-08');
+  assert.equal(map.has('000001'), false);
+  assert.equal(map.size, 1);
 });
 
 test('createLineageIndex groups events chronologically and looks up case-insensitively', () => {

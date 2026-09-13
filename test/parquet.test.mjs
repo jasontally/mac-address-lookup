@@ -19,6 +19,7 @@ test('writeRegistryParquet round-trips records through hyparquet', async () => {
       orgAddress: '1 Test Road, Testville US 12345',
       country: 'US',
       isPrivate: false,
+      firstSeen: '2003-09-08',
     },
     {
       prefix: '741AE09',
@@ -49,6 +50,7 @@ test('writeRegistryParquet round-trips records through hyparquet', async () => {
   assert.equal(first.org_address, '1 Test Road, Testville US 12345');
   assert.equal(first.country, 'US');
   assert.equal(first.is_private, false);
+  assert.equal(first.first_seen, '2003-09-08');
   assert.equal(second.prefix, '741AE09');
   assert.equal(second.prefix_len, 28);
   assert.equal(second.is_private, true);

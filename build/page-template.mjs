@@ -111,6 +111,7 @@ function renderResult(record, lineage) {
   const randomization = classifyRandomization({ bits, match: record, hypervisor });
   const range = addressRange(record.prefix, record.prefixLen);
   const colon = colonize(record.prefix);
+  const firstSeen = record.firstSeen ?? lineage?.firstSeen ?? null;
 
   const badges = [
     badge(`${record.blockType} · ${record.prefixLen}-bit`),
@@ -137,7 +138,7 @@ function renderResult(record, lineage) {
     ['Addresses in block', formatCount(record.addressCount)],
     ['Country', record.country],
     ['Organization address', record.orgAddress || null],
-    ['First observed', lineage?.firstSeen ? formatDate(lineage.firstSeen) : null],
+    ['First registered', firstSeen ? formatDate(firstSeen) : null],
   ]);
 
   return `    <article class="card result-card">

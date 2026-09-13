@@ -95,7 +95,7 @@
               autocomplete="off"
               autocapitalize="characters"
               spellcheck="false"
-              placeholder="e.g. 00:1A:2B or 001A2B3C4D5E"
+              placeholder="MAC address, prefix, vendor, or paste text"
             />
             <button class="button button--primary" type="submit">Look up</button>
           </form>
@@ -127,13 +127,13 @@
         <details class="disclosure" id="batch">
           <summary>Batch lookup</summary>
           <div class="disclosure-body">
-            <p>Paste up to 100 MAC addresses, separated by commas, spaces, or new lines.</p>
+            <p>Paste MAC addresses or CLI output — up to 100 addresses, commas, spaces, and new lines all work.</p>
             <form id="batch-form" novalidate>
               <label class="visually-hidden" for="batch-input">MAC addresses</label>
               <textarea
                 id="batch-input"
                 name="batch"
-                placeholder="00:1B:21:3C:4D:5E&#10;005056AABBCC&#10;DE:AD:BE:EF:00:01"
+                placeholder="00:1B:21:3C:4D:5E&#10;arp -a output&#10;DE:AD:BE:EF:00:01"
                 spellcheck="false"
               ></textarea>
               <div class="batch-actions">

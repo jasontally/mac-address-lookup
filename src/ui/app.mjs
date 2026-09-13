@@ -1,6 +1,12 @@
-/** Application wiring: routing, data loading, lookups, history, theme. */
+/** Application wiring: routing, data loading, lookups, search, history, theme. */
 
-import { lookup, normalizeInput } from '../engine/index.mjs';
+import {
+  extractMacs,
+  lookup,
+  normalizeInput,
+  searchRegistry,
+  summarizeLookups,
+} from '../engine/index.mjs';
 import { loadRegistry } from '../engine/load.mjs';
 import { wireCopyButtons } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
@@ -13,6 +19,7 @@ import {
   renderMatch,
   renderNone,
   renderPartial,
+  renderSearchResults,
 } from './result.mjs';
 import { canonicalQuery, parseLookup, splitBatch } from './router.mjs';
 import { initTheme } from './theme.mjs';
@@ -59,19 +66,58 @@ function ensureData() {
   return dataPromise;
 }
 
+/** Route any user input: address/prefix, pasted text, or free-text search. */
+async function handleInput(text, options = {}) {
+  const value = String(text ?? '').trim();
+  if (value === '') {
+    renderInvalid(ui.result, { error: 'empty' });
+    return;
+  }
+
+  const extracted = extractMacs(value);
+  if (extracted.length > 0) {
+    await runBatch(value, options);
+    return;
+  }
+
+  const tokens = splitBatch(value);
+  if (tokens.length > 0 && tokens.every((token) => normalizeInput(token).ok)) {
+    if (tokens.length > 1) await runBatch(value, options);
+    else await runSingle(tokens[0], options);
+    return;
+  }
+
+  // MAC-shaped typo (for example "00:1G"): report the parse error.
+  if (/^[0-9a-fA-F]{2}[:\-.]/.test(value) || /^[0-9a-fA-F]{4}\./.test(value)) {
+    renderInvalid(ui.result, { error: normalizeInput(value).error ?? 'invalid_chars' });
+    return;
+  }
+
+  await runSearch(value, options);
+}
+
 async function runSingle(raw, { push = true } = {}) {
   const normalized = normalizeInput(raw);
   if (!normalized.ok) {
     renderInvalid(ui.result, { error: normalized.error });
     return;
   }
+
   try {
     const { registry, lineage } = await ensureData();
     const result = lookup(registry, raw);
     const lineageEntry = result.kind === 'match' ? lineage?.forPrefix(result.match.prefix) : null;
 
     if (result.kind === 'match') {
-      renderMatch(ui.result, result, { lineage: lineageEntry });
+      const portfolio = registry.portfolio(result.match.orgName);
+      renderMatch(ui.result, result, {
+        lineage: lineageEntry,
+        portfolio,
+        onViewAll: () => {
+          ui.input.value = result.match.orgName;
+          runSearch(result.match.orgName);
+        },
+      });
     } else if (result.kind === 'none') {
       renderNone(ui.result, result);
     } else if (result.kind === 'partial') {
@@ -110,7 +156,9 @@ async function runSingle(raw, { push = true } = {}) {
 }
 
 async function runBatch(text, { push = true } = {}) {
-  const tokens = splitBatch(text);
+  const extracted = extractMacs(text);
+  const fromText = extracted.length > 0;
+  const tokens = fromText ? extracted : splitBatch(text);
   if (tokens.length === 0) {
     renderInvalid(ui.result, { error: 'empty' });
     return;
@@ -120,23 +168,56 @@ async function runBatch(text, { push = true } = {}) {
   try {
     const { registry } = await ensureData();
     const entries = limited.map((token) => ({ raw: token, result: lookup(registry, token) }));
-    renderBatch(ui.result, entries);
+    renderBatch(ui.result, entries, {
+      summary: summarizeLookups(entries),
+      extracted: fromText,
+    });
+
     if (ui.batchStatus) {
       ui.batchStatus.textContent =
         tokens.length > MAX_BATCH
           ? `Limited to the first ${MAX_BATCH} of ${tokens.length} addresses.`
-          : `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} looked up.`;
+          : fromText
+            ? `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} extracted from pasted text.`
+            : `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} looked up.`;
     }
-    document.title = `${limited.length} MAC lookups | MAC Address Lookup`;
 
     const query = canonicalQuery(limited);
     if (query) updateUrl(`/?q=${encodeURIComponent(query)}`, { push });
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
+    document.title = `${limited.length} MAC lookups | MAC Address Lookup`;
     ui.result.focus({ preventScroll: true });
   } catch (error) {
     console.error(error);
     renderDataError(ui.result, { onRetry: () => runBatch(text) });
+  }
+}
+
+async function runSearch(query, { push = true } = {}) {
+  try {
+    const { registry, lineage } = await ensureData();
+    const outcome = searchRegistry(registry, lineage, query, { limit: 200 });
+    renderSearchResults(ui.result, {
+      query,
+      matches: outcome.matches,
+      total: outcome.total,
+      truncated: outcome.truncated,
+      portfolio: outcome.portfolio,
+      onSelect: (prefix) => {
+        ui.input.value = prefix;
+        runSingle(prefix);
+      },
+    });
+
+    if (push) updateUrl(`/?q=${encodeURIComponent(query)}`, { push: true });
+    setRobotsMeta(true);
+    setCanonical(`${location.origin}/`);
+    document.title = `${query} — MAC Address Lookup`;
+    ui.result.focus({ preventScroll: true });
+  } catch (error) {
+    console.error(error);
+    renderDataError(ui.result, { onRetry: () => runSearch(query) });
   }
 }
 
@@ -150,7 +231,7 @@ function updateUrl(url, { push }) {
   history[method]({}, '', url);
 }
 
-/** Batch results live at `?q=` URLs and should not be indexed standalone. */
+/** Query-driven results should not be indexed standalone. */
 function setRobotsMeta(noindex) {
   let meta = document.querySelector('meta[name="robots"]');
   if (noindex) {
@@ -184,7 +265,7 @@ function runRoute(route) {
     runBatch(route.tokens.join(','), { push: false });
   } else {
     ui.input.value = route.value;
-    runSingle(route.value, { push: false });
+    handleInput(route.value, { push: false });
   }
 }
 
@@ -219,9 +300,7 @@ function renderHistory() {
 
 ui.form.addEventListener('submit', (event) => {
   event.preventDefault();
-  const value = ui.input.value.trim();
-  if (splitBatch(value).length > 1) runBatch(value);
-  else runSingle(value);
+  handleInput(ui.input.value);
 });
 
 ui.batchForm?.addEventListener('submit', (event) => {

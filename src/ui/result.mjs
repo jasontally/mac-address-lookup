@@ -1,8 +1,10 @@
 /** Result renderers. All external data goes through textContent. */
 
+import { countryName } from '../engine/countries.mjs';
+import { reasonLabel } from '../engine/search.mjs';
 import { copyButton } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
-import { addressRange, colonize, formatCount, formatDate } from './format.mjs';
+import { addressRange, colonize, formatAddresses, formatCount, formatDate } from './format.mjs';
 
 const FORMATS = [
   ['Plain hex', 'plain'],
@@ -14,7 +16,7 @@ const FORMATS = [
 ];
 
 const INVALID_MESSAGES = {
-  empty: 'Enter a MAC address or at least one hex character.',
+  empty: 'Enter a MAC address, a prefix, a vendor name, or paste some text.',
   invalid_chars: 'Use hex characters only (0–9, A–F), with optional colons, hyphens, dots, or spaces.',
   too_long: 'A MAC address has at most 12 hex characters.',
 };
@@ -85,6 +87,46 @@ function macLine(value) {
   ]);
 }
 
+function prefixCell(prefix, onSelect) {
+  return onSelect
+    ? el(
+        'button',
+        {
+          type: 'button',
+          class: 'prefix-button',
+          title: `Look up ${colonize(prefix)}`,
+          onClick: () => onSelect(prefix),
+        },
+        [colonize(prefix)],
+      )
+    : el('code', { text: colonize(prefix) });
+}
+
+function resultsTable(columns, rows) {
+  return el('div', { class: 'table-wrap' }, [
+    el('table', { class: 'data-table stack-table' }, [
+      el(
+        'thead',
+        {},
+        [
+          el(
+            'tr',
+            {},
+            columns.map((label) => el('th', { scope: 'col', text: label })),
+          ),
+        ],
+      ),
+      el('tbody', {}, rows),
+    ]),
+  ]);
+}
+
+function countryLabel(code) {
+  if (!code) return null;
+  const name = countryName(code);
+  return name ? `${name} (${code})` : code;
+}
+
 /** Chronological lineage timeline, or null when there is nothing to show. */
 export function lineageTimeline(entry) {
   if (!entry || !Array.isArray(entry.events) || entry.events.length < 2) return null;
@@ -107,10 +149,11 @@ export function lineageTimeline(entry) {
   ]);
 }
 
-export function renderMatch(container, result, { lineage = null } = {}) {
+export function renderMatch(container, result, { lineage = null, portfolio = null, onViewAll = null } = {}) {
   clear(container);
   const { match, bits, formats, randomization, hypervisor } = result;
   const range = addressRange(match.prefix, match.prefixLen);
+  const firstSeen = match.firstSeen ?? lineage?.firstSeen ?? null;
 
   container.append(
     el('article', { class: 'card result-card' }, [
@@ -137,10 +180,23 @@ export function renderMatch(container, result, { lineage = null } = {}) {
         ],
         ['Address range', el('code', { text: `${range.start} – ${range.end}` })],
         ['Addresses in block', formatCount(match.addressCount)],
-        ['Country', match.country],
+        ['Country', countryLabel(match.country)],
         ['Organization address', match.orgAddress || null],
-        ['First observed', lineage?.firstSeen ? formatDate(lineage.firstSeen) : null],
+        ['First registered', firstSeen ? formatDate(firstSeen) : null],
       ]),
+      portfolio && portfolio.blocks > 1
+        ? el('p', { class: 'summary-line' }, [
+            `Vendor portfolio: ${formatCount(portfolio.blocks)} blocks · ${formatAddresses(portfolio.addresses)} addresses`,
+            onViewAll
+              ? el('button', {
+                  type: 'button',
+                  class: 'button button--ghost button--small',
+                  text: 'View all prefixes',
+                  onClick: onViewAll,
+                })
+              : null,
+          ])
+        : null,
       el('section', { class: 'result-section' }, [
         el('h3', { text: 'Formats' }),
         formatList(formats),
@@ -184,20 +240,7 @@ export function renderPartial(container, result, { onSelect } = {}) {
 
   const rows = matches.map((record) =>
     el('tr', {}, [
-      el('td', { 'data-label': 'Prefix', class: 'mono' }, [
-        onSelect
-          ? el(
-              'button',
-              {
-                type: 'button',
-                class: 'prefix-button',
-                title: `Look up ${colonize(record.prefix)}`,
-                onClick: () => onSelect(record.prefix),
-              },
-              [colonize(record.prefix)],
-            )
-          : el('code', { text: colonize(record.prefix) }),
-      ]),
+      el('td', { 'data-label': 'Prefix', class: 'mono' }, [prefixCell(record.prefix, onSelect)]),
       el('td', { 'data-label': 'Block' }, [record.blockType]),
       el('td', { 'data-label': 'Organization', class: 'org' }, [record.orgName || '—']),
     ]),
@@ -213,25 +256,25 @@ export function renderPartial(container, result, { onSelect } = {}) {
           (truncated ? `, showing the first ${formatCount(matches.length)}` : '') +
           '. Select a prefix for full details.',
       }),
-      el('div', { class: 'table-wrap' }, [
-        el('table', { class: 'data-table stack-table' }, [
-          el('thead', {}, [
-            el('tr', {}, [
-              el('th', { scope: 'col', text: 'Prefix' }),
-              el('th', { scope: 'col', text: 'Block' }),
-              el('th', { scope: 'col', text: 'Organization' }),
-            ]),
-          ]),
-          el('tbody', {}, rows),
-        ]),
-      ]),
+      resultsTable(['Prefix', 'Block', 'Organization'], rows),
     ]),
   );
 }
 
-export function renderBatch(container, entries) {
+function summaryLine(summary) {
+  if (!summary) return null;
+  const parts = [`${formatCount(summary.total)} ${summary.total === 1 ? 'address' : 'addresses'}`];
+  for (const vendor of summary.vendors) parts.push(`${vendor.name} ×${vendor.count}`);
+  if (summary.randomized) parts.push(`${formatCount(summary.randomized)} randomized`);
+  if (summary.hypervisor) parts.push(`${formatCount(summary.hypervisor)} virtual machine`);
+  if (summary.unregistered) parts.push(`${formatCount(summary.unregistered)} unregistered`);
+  if (summary.partial) parts.push(`${formatCount(summary.partial)} partial`);
+  if (summary.invalid) parts.push(`${formatCount(summary.invalid)} invalid`);
+  return el('p', { class: 'summary-line', text: parts.join(' · ') });
+}
+
+export function renderBatch(container, entries, { summary = null, extracted = false } = {}) {
   clear(container);
-  const matched = entries.filter((entry) => entry.result.kind === 'match').length;
 
   const rows = entries.map(({ raw, result }) => {
     let label;
@@ -257,22 +300,60 @@ export function renderBatch(container, entries) {
   container.append(
     el('article', { class: 'card result-card' }, [
       el('h2', { text: `${formatCount(entries.length)} ${entries.length === 1 ? 'lookup' : 'lookups'}` }),
+      summaryLine(summary),
+      extracted
+        ? el('p', {
+            class: 'section-note',
+            text: 'Extracted from pasted text; non-address content was ignored.',
+          })
+        : null,
+      resultsTable(['Input', 'Result', 'Flags'], rows),
+    ]),
+  );
+}
+
+export function renderSearchResults(
+  container,
+  { query, matches = [], total = 0, truncated = false, portfolio = null, onSelect } = {},
+) {
+  clear(container);
+
+  const rows = matches.map(({ record, reason }) =>
+    el('tr', {}, [
+      el('td', { 'data-label': 'Prefix', class: 'mono' }, [prefixCell(record.prefix, onSelect)]),
+      el('td', { 'data-label': 'Block' }, [record.blockType]),
+      el('td', { 'data-label': 'Organization', class: 'org' }, [record.orgName || '—']),
+      el('td', { 'data-label': 'Match' }, [
+        `${reasonLabel(reason)}${reason?.detail ? `: ${reason.detail}` : ''}`,
+      ]),
+    ]),
+  );
+
+  container.append(
+    el('article', { class: 'card result-card' }, [
+      el('h2', {
+        text:
+          total === 0
+            ? 'No matching prefixes'
+            : `${formatCount(total)} matching ${total === 1 ? 'prefix' : 'prefixes'}`,
+      }),
+      portfolio
+        ? el('p', {
+            class: 'summary-line',
+            text:
+              `${portfolio.orgName} — ${formatCount(portfolio.blocks)} ` +
+              `${portfolio.blocks === 1 ? 'block' : 'blocks'} · ` +
+              `${formatAddresses(portfolio.addresses)} addresses`,
+          })
+        : null,
       el('p', {
         class: 'section-note',
-        text: `${formatCount(matched)} matched a registered vendor.`,
+        text:
+          `Results for “${query}”. Searches vendors, former owners, countries, registries, ` +
+          `prefixes, and registration years.` +
+          (truncated ? ` Showing the first ${formatCount(matches.length)}.` : ''),
       }),
-      el('div', { class: 'table-wrap' }, [
-        el('table', { class: 'data-table stack-table' }, [
-          el('thead', {}, [
-            el('tr', {}, [
-              el('th', { scope: 'col', text: 'Input' }),
-              el('th', { scope: 'col', text: 'Result' }),
-              el('th', { scope: 'col', text: 'Flags' }),
-            ]),
-          ]),
-          el('tbody', {}, rows),
-        ]),
-      ]),
+      matches.length ? resultsTable(['Prefix', 'Block', 'Organization', 'Match'], rows) : null,
     ]),
   );
 }

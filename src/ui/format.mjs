@@ -33,6 +33,21 @@ export function formatCount(value) {
   return typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString('en-US') : '';
 }
 
+/** Humanize very large address counts (16,777,216 → "16.8 million"). */
+export function formatAddresses(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '';
+  const scaled = (divisor, suffix) => {
+    const result = value / divisor;
+    const text = result >= 100 ? String(Math.round(result)) : result.toFixed(1).replace(/\.0$/, '');
+    return `${text} ${suffix}`;
+  };
+  if (value >= 1e12) return scaled(1e12, 'trillion');
+  if (value >= 1e9) return scaled(1e9, 'billion');
+  if (value >= 1e6) return scaled(1e6, 'million');
+  if (value >= 1e3) return scaled(1e3, 'thousand');
+  return formatCount(value);
+}
+
 /** Uppercase hex to colon-separated octets (`001A2B` → `00:1A:2B`). */
 export function colonize(hex) {
   return String(hex).toUpperCase().match(/.{1,2}/g)?.join(':') ?? '';
