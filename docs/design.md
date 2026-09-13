@@ -45,7 +45,7 @@ Explicitly banned:
 - Auto-playing animations, parallax, scroll-jacking, gratuitous motion.
 - Dark navy + violet "AI startup" default theme; unstyled default Tailwind/SaaS look.
 
-Instead: neutral surfaces, hairline structure, one accent used sparingly, real data density, utilitarian clarity (Clouflare-docs/Kumo-like), strong typographic hierarchy.
+Instead: neutral surfaces, hairline structure, one accent used sparingly, real data density, utilitarian clarity (Cloudflare-docs/Kumo-like), strong typographic hierarchy.
 
 ## Readability requirements
 
@@ -91,6 +91,19 @@ Our token names map 1:1 to Kumo's roles so the reference is obvious. Values will
 | `text-kumo-link` | `--text-link` | Links |
 | `text-kumo-inverse` | `--text-inverse` | Text on inverted surfaces |
 
+### Resolved palette & type policy
+
+- **Monochrome base.** `--color-accent` resolves to the high-contrast neutral (near-black in light mode, near-white in dark mode). Primary buttons, links, and focus rings use it. No brand hue.
+- **Color only carries meaning.** Status colors are reserved for semantics:
+  - `warning` (amber): locally administered / likely randomized address notices.
+  - `danger` (red): invalid input, failed parse.
+  - `success` (green): transient confirmations (e.g., "copied").
+  - `info` (blue): explanatory notes that are neither errors nor warnings.
+  - Everything else — block-type badges, VM badges, buttons, links, cards — stays neutral.
+- **High contrast first.** Body text targets near-maximum contrast against its surface in both modes (light: near-black on white; dark: near-white on near-black). Structural borders meet ≥ 3:1, and status tints are backgrounds only, always paired with text that meets 4.5:1.
+- **Links are identifiable without color**: underline plus the neutral accent; never color alone.
+- **Typography (system stack).** Sans: `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`. Mono: `ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace`.
+
 Typography scale (px): 12 / 13 / 14 / 16 / 18 / 20 / 24 / 30 with paired line heights. Spacing: 4px base scale. Radii: 6px (controls), 10px (cards), 999px (pills).
 
 ## Component inventory (hand-rolled)
@@ -121,10 +134,10 @@ Typography scale (px): 12 / 13 / 14 / 16 / 18 / 20 / 24 / 30 with paired line he
 3. Hard-coded system-follow behavior is the fallback if JS is unavailable.
 4. No flash of wrong theme: tiny inline script sets `data-mode` before first paint.
 
-## Pending design decisions
+## Resolved design decisions
 
-- [ ] Styling implementation (vanilla token CSS vs Tailwind + Kumo token layer vs React + Kumo)
-- [ ] Accent palette direction (non-Cloudflare; token values TBD)
-- [ ] Typography (system stack vs open-source webfont)
-- [ ] Short partial-prefix behavior (< 6 hex characters)
-- [ ] Data refresh cadence and analytics (privacy-friendly) for page prioritization
+- [x] Styling: vanilla CSS + semantic token layer (no Tailwind, no React).
+- [x] Palette: monochrome base + status colors only when meaningful; high contrast in both modes.
+- [x] Typography: system UI stack; system monospace for addresses.
+- [x] Short partials (< 6 hex): list matching prefixes, capped at 200, with total count.
+- [x] Data ops: Cloudflare Workers Builds triggered by push; manual refresh via a committed refresh date; no analytics initially.

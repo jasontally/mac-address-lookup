@@ -48,6 +48,7 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 - Pre-rendered per-prefix pages generated at build time for SEO
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
 - Deployment constraints and capacity planning: [`docs/deployment-constraints.md`](docs/deployment-constraints.md)
+- Architecture decisions and pipeline: [`docs/architecture.md`](docs/architecture.md)
 - Design language and UX requirements: [`docs/design.md`](docs/design.md)
 
 ## Status
@@ -61,6 +62,7 @@ Early development. Roadmap:
 - [ ] VM/hypervisor dictionary
 - [ ] Static page generator + sitemap (priority tiers, page budget)
 - [ ] SPA fallback for non-pre-rendered prefixes
+- [ ] Cloudflare Workers Builds pipeline (push-triggered, manual data refresh)
 - [ ] URL/batch deep-link handling
 - [ ] FAQ & explainer content
 - [ ] History, copy/share, dark mode
