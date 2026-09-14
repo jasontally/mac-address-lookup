@@ -10,6 +10,7 @@
   "scripts": {
     "build": "node build/build.mjs",
     "test": "node --test test/",
+    "test:e2e": "playwright test",
     "serve": "node build/serve.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
@@ -22,6 +23,7 @@
     "hyparquet": "$hyparquet"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
     "esbuild": "^0.28.1",
     "wrangler": "^4.34.0"
   }

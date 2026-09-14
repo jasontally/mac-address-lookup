@@ -47,29 +47,33 @@
     <script type="module" src="{{APP_JS}}"></script>
   </head>
   <body data-static-page="true">
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>
 
     <header class="site-header">
       <div class="container">
         <a class="wordmark" href="/">MAC Address Lookup</a>
-        <button type="button" id="theme-toggle" class="button button--ghost button--icon" aria-label="Toggle theme">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
-          </svg>
-        </button>
+        <div class="header-actions">
+          <select id="locale-picker" class="locale-picker" aria-label="Language">
+          </select>
+          <button type="button" id="theme-toggle" class="button button--ghost button--icon" data-i18n-title="nav.theme" aria-label="Toggle theme">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
     <main id="main">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="/">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>Help</span>
+          <a href="/">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span data-i18n="help.breadcrumb">Help</span>
         </nav>
 
         <section class="prose">
-          <h1>Help &amp; documentation</h1>
+          <h1 data-i18n="help.title">Help &amp; documentation</h1>
 
-          <h2>What this tool tells you</h2>
+          <h2 data-i18n="help.whatThisTells">What this tool tells you</h2>
           <p>
             Every network interface has a MAC address, and its first three bytes — the
             <abbr title="Organizationally Unique Identifier">OUI</abbr> — are registered with the IEEE
@@ -85,7 +89,7 @@
             <li>Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local</li>
           </ul>
 
-          <h2>How MAC address lookup works</h2>
+          <h2 data-i18n="help.howItWorks">How MAC address lookup works</h2>
           <p>
             A MAC address is 48 bits, usually written as six hex pairs such as <code>00:1B:21:3C:4D:5E</code>.
             The IEEE assigns the leading bits to organizations as registered blocks: MA-L blocks are 24 bits,
@@ -96,15 +100,15 @@
             privacy addresses and virtual machines.
           </p>
 
-          <h2>MAC address block types</h2>
+          <h2 data-i18n="help.blockTypes">MAC address block types</h2>
           <div class="table-wrap">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th scope="col">Registry</th>
-                  <th scope="col">Prefix length</th>
-                  <th scope="col">Addresses per block</th>
-                  <th scope="col">Typical use</th>
+                  <th scope="col" data-i18n="table.registry">Registry</th>
+                  <th scope="col" data-i18n="table.prefixLength">Prefix length</th>
+                  <th scope="col" data-i18n="table.addressesPerBlock">Addresses per block</th>
+                  <th scope="col" data-i18n="table.typicalUse">Typical use</th>
                 </tr>
               </thead>
               <tbody>
@@ -117,7 +121,7 @@
             </table>
           </div>
 
-          <h2>How to find your own MAC address</h2>
+          <h2 data-i18n="help.findYourMac">How to find your own MAC address</h2>
           <ul>
             <li><strong>Windows:</strong> run <code>getmac /v</code>, or open Settings → Network &amp; internet → Hardware properties.</li>
             <li><strong>macOS:</strong> open System Settings → Network → Details, or run <code>ifconfig en0 | grep ether</code>.</li>
@@ -125,12 +129,12 @@
             <li><strong>iPhone / Android:</strong> open the Wi-Fi network details. The "private Wi-Fi address" shown there is randomized and will not resolve to a vendor.</li>
           </ul>
 
-          <h2>Frequently asked questions</h2>
+          <h2 data-i18n="help.faq">Frequently asked questions</h2>
           <div class="faq-list">
 {{FAQ_LIST}}
           </div>
 
-          <h2>Data sources and accuracy</h2>
+          <h2 data-i18n="help.dataSources">Data sources and accuracy</h2>
           <p>
             Current assignments come from the IEEE Registration Authority's MA-L, MA-M, MA-S, IAB, and CID
             registries, refreshed on every deploy. Historical changes come from
@@ -151,8 +155,8 @@
           Bundled software: <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> (MIT).
         </p>
         <p>
-          All lookups run in your browser — the addresses you look up are never sent to a server.
-          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener">Source on GitHub</a>.
+          <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>.
         </p>
       </div>
     </footer>

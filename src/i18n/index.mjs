@@ -16,11 +16,17 @@ export const LOCALE_NAMES = { en: 'English', ...localeNames };
 let active = 'en';
 let table = en;
 
+/** All locale tables including English. */
+function allTables() {
+  return { en, ...locales };
+}
+
 /** Resolve the best available locale for a BCP 47 tag. */
 export function resolveLocale(tag) {
   if (!tag) return null;
   const base = tag.split('-')[0].toLowerCase();
-  if (locales[base]) return base;
+  const all = allTables();
+  if (all[base]) return base;
   if (tag.startsWith('zh')) {
     if (/hant|hk|tw|mo/i.test(tag)) return 'zh-Hant';
     return 'zh-Hans';
@@ -56,9 +62,9 @@ export function getLocale() {
 
 /** Switch locale, persist, and re-apply DOM translations. */
 export function setLocale(locale) {
-  if (!locales[locale]) return;
+  if (!allTables()[locale]) return;
   active = locale;
-  table = locales[locale] ?? en;
+  table = allTables()[locale] ?? en;
   try {
     localStorage.setItem('mal.locale', locale);
   } catch {

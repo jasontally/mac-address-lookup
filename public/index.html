@@ -153,7 +153,7 @@
     <script type="module" src="{{APP_JS}}"></script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>
 
     <header class="site-header">
       <div class="container">
@@ -217,19 +217,20 @@
 
         <div id="below-result">
         <details class="disclosure" id="batch">
-          <summary>Batch lookup</summary>
+          <summary data-i18n="batch.title">Batch lookup</summary>
           <div class="disclosure-body">
-            <p>Paste MAC addresses or CLI output — up to 100 addresses, commas, spaces, and new lines all work.</p>
+            <p data-i18n="batch.description">Paste MAC addresses or CLI output — up to 100 addresses, commas, spaces, and new lines all work.</p>
             <form id="batch-form" novalidate>
-              <label class="visually-hidden" for="batch-input">MAC addresses</label>
+              <label class="visually-hidden" for="batch-input" data-i18n="batch.label">MAC addresses</label>
               <textarea
                 id="batch-input"
                 name="batch"
                 placeholder="00:1B:21:3C:4D:5E&#10;arp -a output&#10;DE:AD:BE:EF:00:01"
                 spellcheck="false"
+                data-i18n-placeholder="batch.placeholder"
               ></textarea>
               <div class="batch-actions">
-                <button class="button button--primary" type="submit">Look up addresses</button>
+                <button class="button button--primary" type="submit" data-i18n="batch.submit">Look up addresses</button>
               </div>
             </form>
             <p class="status" id="batch-status" role="status" aria-live="polite"></p>
@@ -237,15 +238,15 @@
         </details>
 
         <section id="history" hidden>
-          <h2>Recent lookups</h2>
+          <h2 data-i18n="history.title">Recent lookups</h2>
           <ul class="history-list" id="history-list"></ul>
-          <p><button type="button" class="button button--ghost button--small" id="history-clear">Clear history</button></p>
+          <p><button type="button" class="button button--ghost button--small" id="history-clear" data-i18n="history.clear">Clear history</button></p>
         </section>
 
         <noscript>
           <div class="banner banner--info">
-            <strong>JavaScript required</strong>
-            <p>The lookup runs entirely in your browser and needs JavaScript enabled.</p>
+            <strong data-i18n="noscript.title">JavaScript required</strong>
+            <p data-i18n="noscript.body">The lookup runs entirely in your browser and needs JavaScript enabled.</p>
           </div>
         </noscript>
         </div>
@@ -260,9 +261,9 @@
           Bundled software: <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> (MIT).
         </p>
         <p>
-          All lookups run in your browser — the addresses you look up are never sent to a server.
-          <a href="/help">Help &amp; documentation</a> ·
-          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener">Source on GitHub</a>.
+          <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
+          <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>.
         </p>
       </div>
     </footer>

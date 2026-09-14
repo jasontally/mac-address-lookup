@@ -12,7 +12,7 @@ import { initI18n, t, tCount, applyDom, getLocale, setLocale, LOCALE_NAMES, SUPP
 import { loadLineage, loadManifest, loadRegistryFor } from '../engine/load.mjs';
 import { wireCopyButtons } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
-import { colonize, formatRelativeTime } from './format.mjs';
+import { colonize, formatCount, formatRelativeTime } from './format.mjs';
 import { addHistory, clearHistory, loadHistory } from './history.mjs';
 import {
   renderBatch,
@@ -49,9 +49,10 @@ initTheme({ toggleButton: ui.themeToggle });
 initI18n();
 wireCopyButtons();
 
-// Populate the language picker
+// Populate the language picker (English first)
 const localePicker = document.getElementById('locale-picker');
 if (localePicker) {
+  localePicker.append(el('option', { value: 'en' }, ['English']));
   for (const locale of SUPPORTED_LOCALES) {
     localePicker.append(el('option', { value: locale }, [LOCALE_NAMES[locale] ?? locale]));
   }
@@ -73,7 +74,7 @@ let dataReady = false;
 /** Load the manifest once, on first use. */
 function ensureManifest() {
   if (!data.manifestPromise) {
-    ui.status.textContent = 'Loading registry…';
+    ui.status.textContent = t('status.loadingRegistry');
     data.manifestPromise = loadManifest()
       .then((manifest) => {
         ui.status.textContent = '';
@@ -167,7 +168,7 @@ async function runSingle(raw, { push = true } = {}) {
     if (result.kind === 'match' || result.kind === 'none') {
       addHistory({
         hex: result.input.hex,
-        label: result.kind === 'match' ? result.match.orgName : 'No registered vendor',
+        label: result.kind === 'match' ? result.match.orgName : t('history.noVendor'),
       });
       renderHistory();
     }
@@ -221,10 +222,12 @@ async function runBatch(text, { push = true } = {}) {
     if (ui.batchStatus) {
       ui.batchStatus.textContent =
         tokens.length > MAX_BATCH
-          ? `Limited to the first ${MAX_BATCH} of ${tokens.length} addresses.`
-          : fromText
-            ? `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} extracted from pasted text.`
-            : `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} looked up.`;
+          ? t('status.limited', { max: formatCount(MAX_BATCH), total: formatCount(tokens.length) })
+          : limited.length === 1
+            ? t(fromText ? 'status.addressExtracted' : 'status.addressLookedUp', { count: 1 })
+            : t(fromText ? 'status.addressesExtracted' : 'status.addressesLookedUp', {
+                count: formatCount(limited.length),
+              });
     }
 
     const canonical = canonicalQuery(limited);

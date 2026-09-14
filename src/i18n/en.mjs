@@ -5,8 +5,10 @@ export const en = {
   'nav.brand': 'MAC Address Lookup',
   'nav.help': 'Help and documentation',
   'nav.helpTitle': 'Help and documentation',
+  'nav.theme': 'Toggle theme',
 
   // Lookup form
+  'lookup.label': 'MAC address or OUI prefix',
   'lookup.placeholder': 'MAC address, prefix, vendor, or paste text',
   'lookup.submit': 'Look up',
 

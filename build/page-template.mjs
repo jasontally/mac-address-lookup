@@ -7,18 +7,22 @@
 import { analyzeBits } from '../src/engine/input.mjs';
 import { formatAddress } from '../src/engine/formats.mjs';
 import { classifyRandomization, detectHypervisor } from '../src/engine/vendors.mjs';
+import { en } from '../src/i18n/en.mjs';
 import { addressRange, colonize, formatCount, formatDate } from '../src/ui/format.mjs';
 
 export const SITE = 'https://mac.jasontally.com';
 
+/** [i18n key, format key] — static HTML keeps the English label from en.mjs. */
 const FORMAT_LABELS = [
-  ['Plain hex', 'plain'],
-  ['Colon-separated', 'colon'],
-  ['Hyphen-separated', 'hyphen'],
-  ['Cisco dot notation', 'cisco'],
-  ['EUI-64', 'eui64'],
-  ['IPv6 link-local', 'ipv6LinkLocal'],
+  ['format.plain', 'plain'],
+  ['format.colon', 'colon'],
+  ['format.hyphen', 'hyphen'],
+  ['format.cisco', 'cisco'],
+  ['format.eui64', 'eui64'],
+  ['format.ipv6', 'ipv6LinkLocal'],
 ];
+
+const label = (key) => en[key];
 
 export function escapeHtml(value) {
   return String(value ?? '').replace(
@@ -61,8 +65,8 @@ function detailRows(rows) {
   const body = rows
     .filter(([, value]) => value !== null && value !== undefined && value !== '')
     .map(
-      ([term, value, mono]) =>
-        `      <dt>${escapeHtml(term)}</dt>\n      <dd>${mono ? `<code>${escapeHtml(value)}</code>` : escapeHtml(value)}</dd>`,
+      ([key, value, mono]) =>
+        `      <dt data-i18n="${key}">${escapeHtml(label(key))}</dt>\n      <dd>${mono ? `<code>${escapeHtml(value)}</code>` : escapeHtml(value)}</dd>`,
     )
     .join('\n');
   return `<dl class="detail-grid">\n${body}\n    </dl>`;
@@ -71,11 +75,11 @@ function detailRows(rows) {
 function formatList(formats) {
   const rows = FORMAT_LABELS.filter(([, key]) => formats[key])
     .map(
-      ([label, key]) =>
+      ([i18nKey, key]) =>
         `      <li class="format-row">\n` +
-        `        <span class="format-label">${escapeHtml(label)}</span>\n` +
+        `        <span class="format-label" data-i18n="${i18nKey}">${escapeHtml(label(i18nKey))}</span>\n` +
         `        <code class="format-value">${escapeHtml(formats[key])}</code>\n` +
-        `        ${copyButton(label, formats[key])}\n` +
+        `        ${copyButton(label(i18nKey), formats[key])}\n` +
         `      </li>`,
     )
     .join('\n');
@@ -96,8 +100,8 @@ function lineageSection(lineage) {
     )
     .join('\n');
   return `      <section class="result-section">
-        <h3>Prefix lineage</h3>
-        <p class="section-note">This prefix has changed hands. Dates are when each change was first observed in public registration data (runZero mac-tracker).</p>
+        <h3 data-i18n="result.prefixLineage">Prefix lineage</h3>
+        <p class="section-note" data-i18n="lineage.note">This prefix has changed hands. Dates are when each change was first observed in public registration data (runZero mac-tracker).</p>
         <ol class="timeline">
 ${events}
         </ol>
@@ -132,18 +136,18 @@ function renderResult(record, lineage) {
       : '';
 
   const details = detailRows([
-    ['Matched prefix', colon, true],
-    ['Match', `${record.blockType} assignment`],
-    ['Address range', `${range.start} – ${range.end}`, true],
-    ['Addresses in block', formatCount(record.addressCount)],
-    ['Country', record.country],
-    ['Organization address', record.orgAddress || null],
-    ['First registered', firstSeen ? formatDate(firstSeen) : null],
+    ['detail.matchedPrefix', colon, true],
+    ['detail.match', `${record.blockType} assignment`],
+    ['detail.addressRange', `${range.start} – ${range.end}`, true],
+    ['detail.addressesInBlock', formatCount(record.addressCount)],
+    ['detail.country', record.country],
+    ['detail.orgAddress', record.orgAddress || null],
+    ['detail.firstRegistered', firstSeen ? formatDate(firstSeen) : null],
   ]);
 
   return `    <article class="card result-card">
       <header class="result-header">
-        <p class="eyebrow">Vendor</p>
+        <p class="eyebrow" data-i18n="result.eyebrow">Vendor</p>
         <h2 class="vendor">${escapeHtml(record.orgName || 'Unknown organization')}</h2>
         <div class="badges">
           ${badges}
@@ -157,7 +161,7 @@ function renderResult(record, lineage) {
       ${bannerHtml}
       ${details}
       <section class="result-section">
-        <h3>Formats</h3>
+        <h3 data-i18n="result.formats">Formats</h3>
         ${formatList(formats)}
       </section>
 ${lineageSection(lineage)}
@@ -247,16 +251,21 @@ export function renderPrefixPage({
     <script type="module" src="${assets.appFile}"></script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>
 
     <header class="site-header">
       <div class="container">
         <a class="wordmark" href="/">MAC Address Lookup</a>
-        <button type="button" id="theme-toggle" class="button button--ghost button--icon" aria-label="Toggle theme">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
-          </svg>
-        </button>
+        <div class="header-actions">
+          <a class="button button--ghost button--icon" href="/help" data-i18n-title="nav.help" aria-label="Help and documentation" title="Help and documentation">?</a>
+          <select id="locale-picker" class="locale-picker" aria-label="Language">
+          </select>
+          <button type="button" id="theme-toggle" class="button button--ghost button--icon" data-i18n-title="nav.theme" aria-label="Toggle theme">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -272,7 +281,7 @@ export function renderPrefixPage({
             registered to ${escapeHtml(orgName)}${record.country ? ` in ${escapeHtml(record.country)}` : ''}.
           </p>
           <form class="lookup-form" id="lookup-form" novalidate>
-            <label class="visually-hidden" for="lookup-input">MAC address or OUI prefix</label>
+            <label class="visually-hidden" for="lookup-input" data-i18n="lookup.label">MAC address or OUI prefix</label>
             <input
               class="lookup-input"
               id="lookup-input"
@@ -284,7 +293,7 @@ export function renderPrefixPage({
               spellcheck="false"
               placeholder="e.g. 00:1A:2B or 001A2B3C4D5E"
             />
-            <button class="button button--primary" type="submit">Look up</button>
+            <button class="button button--primary" type="submit" data-i18n="lookup.submit">Look up</button>
           </form>
           <p class="status" id="status" role="status" aria-live="polite"></p>
         </section>
@@ -310,9 +319,9 @@ ${renderResult(record, lineage)}
           Bundled software: <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> (MIT).
         </p>
         <p>
-          All lookups run in your browser — nothing is sent to a server. Data refreshed
+          <span data-i18n="footer.dataNote">All lookups run in your browser — nothing is sent to a server.</span> Data refreshed
           <span id="last-updated">on the latest deploy</span>.
-          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener">Source on GitHub</a>.
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>.
         </p>
       </div>
     </footer>
