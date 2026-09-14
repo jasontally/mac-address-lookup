@@ -67,13 +67,13 @@ mac-address-lookup/
 
 ## Data pipeline
 
-1. **Fetch** the five IEEE registries:
+1. **Fetch** the five IEEE registries in parallel, with retries and backoff so builds survive transient network failures (`build/fetch-with-retry.mjs`):
    - `https://standards-oui.ieee.org/oui/oui.csv` (MA-L)
    - `https://standards-oui.ieee.org/oui28/mam.csv` (MA-M)
    - `https://standards-oui.ieee.org/oui36/oui36.csv` (MA-S)
    - `https://standards-oui.ieee.org/iab/iab.csv` (IAB)
    - `https://standards-oui.ieee.org/cid/cid.csv` (CID)
-2. **Fetch lineage** (`build/fetch-lineage.mjs`): the runZero mac-tracker history JSON (MIT, updated twice daily) — dated `add`/`change` records per prefix going back to ~1998.
+2. **Fetch lineage** (`build/fetch-lineage.mjs`): the runZero mac-tracker history JSON (MIT, updated twice daily) — dated `add`/`change` records per prefix going back to ~1998. Uses the same retry helper as the registries.
 3. **Normalize registries**: trim and validate hex assignments; uppercase; derive `prefixLength` (24/28/36 bits), `addressCount`, and `country` (parsed from the address tail); mark `Private`/empty organizations; dedupe; sort by prefix value.
 4. **Build lineage** (`build/lineage.mjs`): normalize organization names (case, punctuation), drop `Private`/empty glitches, collapse consecutive identical organizations, and keep prefixes with at least two distinct organizations. `buildFirstSeen` also derives the earliest observed date for every tracked prefix. **Measured 2026-09-12: 5,665 changed prefixes / 14,350 events.**
 5. **Write Parquet** (`dist/data/registry.<hash>.parquet`, prefix-trie shards under `dist/data/shards/`, and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`, `firstSeen`, `lineageCount` (events for changed prefixes), `vendorBlocks`, `vendorAddresses` (global vendor totals repeated per row so a single shard reports correct portfolio stats). Shards split any prefix group over 1,500 rows by the next hex digit, so hot ranges (IAB under `00:50:C2`, MA-S under `8C:1F:64`) get deep keys while quiet ranges stay shallow. **Measured: registry 3.01 MB / 58,694 records; lineage 232 KB; 293 shards totaling 4.20 MB (largest ~63 KB, `001B` shard 30 KB).**

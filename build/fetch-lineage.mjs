@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fetchWithRetry } from './fetch-with-retry.mjs';
 
 /** Historical assignment changes tracked by runZero (MIT). */
 export const LINEAGE_SOURCE = {
@@ -21,8 +22,11 @@ export async function fetchLineage({ cacheDir, force = false, fetchImpl = fetch 
     }
   }
 
-  const response = await fetchImpl(LINEAGE_SOURCE.url, {
+  const response = await fetchWithRetry(LINEAGE_SOURCE.url, {
+    fetchImpl,
     headers: { 'user-agent': 'mac-address-lookup build' },
+    attempts: 4,
+    timeoutMs: 60_000,
   });
   if (!response.ok) {
     throw new Error(`Failed to fetch lineage (${LINEAGE_SOURCE.url}): ${response.status}`);
