@@ -8,6 +8,7 @@ import {
   searchRegistry,
   summarizeLookups,
 } from '../engine/index.mjs';
+import { initI18n, t, tCount, applyDom, getLocale, setLocale, LOCALE_NAMES, SUPPORTED_LOCALES } from '../i18n/index.mjs';
 import { loadLineage, loadManifest, loadRegistryFor } from '../engine/load.mjs';
 import { wireCopyButtons } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
@@ -45,6 +46,7 @@ const ui = {
 };
 
 initTheme({ toggleButton: ui.themeToggle });
+initI18n();
 wireCopyButtons();
 
 const data = {
