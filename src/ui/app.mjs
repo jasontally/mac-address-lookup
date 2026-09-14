@@ -75,6 +75,7 @@ async function handleInput(text, options = {}) {
   } else if (decision.mode === 'batch') {
     await runBatch(text, options);
   } else if (decision.mode === 'invalid') {
+    clearPendingLookup();
     renderInvalid(ui.result, { error: decision.error });
   } else {
     await runSearch(decision.value, options);
@@ -133,10 +134,12 @@ async function runSingle(raw, { push = true } = {}) {
     updateSingleUrl(result.input.hex, { push });
     setRobotsMeta(false);
     setCanonical(`${location.origin}${location.pathname}`);
-    ui.result.focus({ preventScroll: true });
+    clearPendingLookup();
+    requestAnimationFrame(() => ui.result.focus({ preventScroll: true }));
   } catch (error) {
     console.error(error);
-    renderDataError(ui.result, { onRetry: () => runSingle(raw) });
+    clearPendingLookup();
+    renderDataError(ui.result, { onRetry: () => runSingle(raw), message: error?.userMessage ?? null });
   }
 }
 
@@ -183,10 +186,12 @@ async function runBatch(text, { push = true } = {}) {
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
     document.title = `${limited.length} MAC lookups | MAC Address Lookup`;
-    ui.result.focus({ preventScroll: true });
+    clearPendingLookup();
+    requestAnimationFrame(() => ui.result.focus({ preventScroll: true }));
   } catch (error) {
     console.error(error);
-    renderDataError(ui.result, { onRetry: () => runBatch(text) });
+    clearPendingLookup();
+    renderDataError(ui.result, { onRetry: () => runBatch(text), message: error?.userMessage ?? null });
   }
 }
 
@@ -210,10 +215,12 @@ async function runSearch(query, { push = true } = {}) {
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
     document.title = `${query} — MAC Address Lookup`;
-    ui.result.focus({ preventScroll: true });
+    clearPendingLookup();
+    requestAnimationFrame(() => ui.result.focus({ preventScroll: true }));
   } catch (error) {
     console.error(error);
-    renderDataError(ui.result, { onRetry: () => runSearch(query) });
+    clearPendingLookup();
+    renderDataError(ui.result, { onRetry: () => runSearch(query), message: error?.userMessage ?? null });
   }
 }
 
@@ -253,6 +260,11 @@ function setCanonical(href) {
     document.head.append(link);
   }
   link.setAttribute('href', href);
+}
+
+/** Reveal the content below the result once the dynamic lookup has settled. */
+function clearPendingLookup() {
+  document.documentElement.removeAttribute('data-pending-lookup');
 }
 
 function runRoute(route) {

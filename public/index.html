@@ -21,7 +21,7 @@
     <meta property="og:url" content="https://mac.jasontally.com/" />
     <meta name="twitter:card" content="summary" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/assets/app.css" />
+    <link rel="stylesheet" href="{{APP_CSS}}" />
     <script>
       (function () {
         try {
@@ -29,6 +29,42 @@
           if (mode === 'light' || mode === 'dark') document.documentElement.dataset.mode = mode;
         } catch (error) {
           /* storage unavailable; system preference applies */
+        }
+      })();
+    </script>
+    <script>
+      // Start the data fetch before the app bundle arrives on dynamic lookups.
+      (function () {
+        try {
+          var path = decodeURIComponent(location.pathname).replace(/^\/+/, '');
+          var hasQuery = new URLSearchParams(location.search).has('q');
+          var isLookup = hasQuery || /^[0-9a-fA-F][0-9a-fA-F\s:.\-]*$/.test(path);
+          if (!isLookup) return;
+          // Reserve the result area by hiding the content below it until the
+          // lookup renders, so inserting the result cannot shift the page.
+          document.documentElement.dataset.pendingLookup = '1';
+          var manifest = fetch('/data/manifest.json').then(function (response) {
+            if (!response.ok) throw new Error('manifest ' + response.status);
+            return response.json();
+          });
+          var buffer = function (file) {
+            return file
+              ? fetch('/' + file).then(function (response) {
+                  return response.arrayBuffer();
+                })
+              : null;
+          };
+          window.__malPreload = {
+            manifest: manifest,
+            registry: manifest.then(function (data) {
+              return buffer(data && data.data && data.data.file);
+            }),
+            lineage: manifest.then(function (data) {
+              return buffer(data && data.lineage && data.lineage.file);
+            }),
+          };
+        } catch (error) {
+          /* preloading is best-effort */
         }
       })();
     </script>
@@ -65,7 +101,7 @@
     <script type="application/ld+json">
       {{FAQ_SCHEMA}}
     </script>
-    <script type="module" src="/assets/app.js"></script>
+    <script type="module" src="{{APP_JS}}"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -124,6 +160,7 @@
 
         <section id="result" aria-live="polite" tabindex="-1"></section>
 
+        <div id="below-result">
         <details class="disclosure" id="batch">
           <summary>Batch lookup</summary>
           <div class="disclosure-body">
@@ -229,6 +266,7 @@
             <p>The lookup runs entirely in your browser and needs JavaScript enabled.</p>
           </div>
         </noscript>
+        </div>
       </div>
     </main>
 

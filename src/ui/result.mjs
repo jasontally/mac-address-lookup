@@ -368,12 +368,12 @@ export function renderInvalid(container, { error }) {
   );
 }
 
-export function renderDataError(container, { onRetry } = {}) {
+export function renderDataError(container, { onRetry, message = null } = {}) {
   clear(container);
   container.append(
     el('div', { class: 'banner banner--danger', role: 'alert' }, [
       el('strong', { text: 'Could not load the registry data' }),
-      el('p', { text: 'Check your connection and try again.' }),
+      el('p', { text: message || 'Check your connection and try again.' }),
       onRetry
         ? el('p', {}, [
             el('button', {

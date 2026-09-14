@@ -16,10 +16,17 @@ const record = {
 };
 
 test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JSON-LD', () => {
-  const html = renderPrefixPage({ record, lineage: null, site: 'https://example.test' });
+  const html = renderPrefixPage({
+    record,
+    lineage: null,
+    site: 'https://example.test',
+    assets: { appFile: '/assets/app.abc123.js', cssFile: '/assets/app.abc123.css' },
+  });
 
   assert.match(html, /<title>00:1A:2B — Intel Corporate \| MAC Address Lookup<\/title>/);
   assert.match(html, /<link rel="canonical" href="https:\/\/example\.test\/001A2B" \/>/);
+  assert.match(html, /\/assets\/app\.abc123\.css/);
+  assert.match(html, /\/assets\/app\.abc123\.js/);
   assert.match(html, /data-prerendered="true"/);
   assert.match(html, /data-hex="001A2B"/);
   assert.match(html, /Intel Corporate/);

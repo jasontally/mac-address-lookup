@@ -30,6 +30,7 @@ export async function generatePages({
   pageBudget = 90_000,
   vendorPriority = {},
   lastmod,
+  assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
 }) {
   const { selected, dropped, selectedByType, droppedByType } = selectPages(records, {
     pageBudget,
@@ -43,6 +44,7 @@ export async function generatePages({
       record,
       lineage: lineageByPrefix.get(record.prefix) ?? null,
       site,
+      assets,
     });
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });

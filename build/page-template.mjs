@@ -174,7 +174,12 @@ const THEME_BOOT = `(function () {
       })();`;
 
 /** Render a complete static HTML page for one registered prefix. */
-export function renderPrefixPage({ record, lineage = null, site = SITE }) {
+export function renderPrefixPage({
+  record,
+  lineage = null,
+  site = SITE,
+  assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
+}) {
   const colon = colonize(record.prefix);
   const canonical = `${site}/${record.prefix}`;
   const orgName = record.orgName || 'Unknown organization';
@@ -229,7 +234,7 @@ export function renderPrefixPage({ record, lineage = null, site = SITE }) {
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/assets/app.css" />
+    <link rel="stylesheet" href="${assets.cssFile}" />
     <script>
       ${THEME_BOOT}
     </script>
@@ -239,7 +244,7 @@ export function renderPrefixPage({ record, lineage = null, site = SITE }) {
     <script type="application/ld+json">
       ${breadcrumbLd}
     </script>
-    <script type="module" src="/assets/app.js"></script>
+    <script type="module" src="${assets.appFile}"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

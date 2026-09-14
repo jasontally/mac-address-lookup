@@ -35,7 +35,8 @@ test('buildHomePage replaces the placeholders in the template', async () => {
   await mkdir(distDir, { recursive: true });
   await writeFile(
     path.join(root, 'public', 'index.html'),
-    '<html><body><div>{{FAQ_LIST}}</div><script type="application/ld+json">{{FAQ_SCHEMA}}</script></body></html>',
+    '<html><head><link rel="stylesheet" href="{{APP_CSS}}" /><script type="module" src="{{APP_JS}}"></script></head>' +
+      '<body><div>{{FAQ_LIST}}</div><script type="application/ld+json">{{FAQ_SCHEMA}}</script></body></html>',
   );
 
   await buildHomePage({ root, distDir });
@@ -54,5 +55,8 @@ test('buildHomePage rejects templates without placeholders', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'home-'));
   await mkdir(path.join(root, 'public'), { recursive: true });
   await writeFile(path.join(root, 'public', 'index.html'), '<html></html>');
-  await assert.rejects(() => buildHomePage({ root, distDir: root }), /missing FAQ placeholders/);
+  await assert.rejects(
+    () => buildHomePage({ root, distDir: root }),
+    /missing the \{\{FAQ_LIST\}\} placeholder/,
+  );
 });

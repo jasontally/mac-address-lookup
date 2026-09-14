@@ -490,6 +490,11 @@ main {
   max-width: var(--measure);
 }
 
+/* Dynamic deep links: keep the page below the result stable until it renders. */
+html[data-pending-lookup] #below-result {
+  display: none;
+}
+
 .faq-list .disclosure {
   margin: var(--space-3) 0;
 }

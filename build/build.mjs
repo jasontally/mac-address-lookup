@@ -117,11 +117,11 @@ console.log('  data/manifest.json');
 console.log('Building static site...');
 const staticAssets = await buildStatic({ root, distDir });
 console.log(
-  `  assets/app.js ${formatBytes(staticAssets.appBytes)}, ` +
-    `assets/app.css ${formatBytes(staticAssets.cssBytes)}`,
+  `  ${staticAssets.appFile} ${formatBytes(staticAssets.appBytes)}, ` +
+    `${staticAssets.cssFile} ${formatBytes(staticAssets.cssBytes)}`,
 );
 
-const home = await buildHomePage({ root, distDir });
+const home = await buildHomePage({ root, distDir, assets: staticAssets });
 console.log(`  index.html ${formatBytes(home.bytes)} (FAQ content + schema injected)`);
 
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
@@ -139,6 +139,7 @@ if (!flags.has('--no-pages')) {
     pageBudget,
     vendorPriority,
     lastmod: refreshDate,
+    assets: staticAssets,
   });
   console.log(
     `  ${pages.selected.toLocaleString('en-US')} pages in ` +
