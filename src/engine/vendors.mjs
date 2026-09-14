@@ -37,46 +37,42 @@ export function classifyRandomization({ bits, match, hypervisor }) {
     return {
       likely: false,
       confidence: 'none',
-      reasons: [`Matches the ${hypervisor.name} virtual machine prefix`],
+      reasons: [{ key: 'randomize.vmPrefix', params: { name: hypervisor.name } }],
     };
   }
   if (!bits) return { likely: false, confidence: 'none', reasons: [] };
   if (bits.broadcast) {
-    return { likely: false, confidence: 'none', reasons: ['Broadcast address, not a device address'] };
+    return { likely: false, confidence: 'none', reasons: [{ key: 'randomize.broadcast' }] };
   }
   if (bits.allZeros) {
-    return { likely: false, confidence: 'none', reasons: ['All-zero address, not a device address'] };
+    return { likely: false, confidence: 'none', reasons: [{ key: 'randomize.allZeros' }] };
   }
   if (bits.locallyAdministered) {
     if (!match) {
       return {
         likely: true,
         confidence: 'high',
-        reasons: [
-          'Locally administered bit is set and the prefix is not registered to any vendor',
-        ],
+        reasons: [{ key: 'randomize.localUnregistered' }],
       };
     }
     if (match.isPrivate) {
       return {
         likely: true,
         confidence: 'medium',
-        reasons: [
-          'Matches a privately registered block; locally administered addresses are not tied to hardware',
-        ],
+        reasons: [{ key: 'randomize.localPrivate' }],
       };
     }
     return {
       likely: true,
       confidence: 'low',
-      reasons: ['Locally administered bit is set, which is unexpected for vendor-assigned hardware'],
+      reasons: [{ key: 'randomize.localRegistered' }],
     };
   }
   if (!match) {
     return {
       likely: false,
       confidence: 'none',
-      reasons: ['Not registered to a vendor; a globally administered address can still be spoofed'],
+      reasons: [{ key: 'randomize.notRegistered' }],
     };
   }
   return { likely: false, confidence: 'none', reasons: [] };

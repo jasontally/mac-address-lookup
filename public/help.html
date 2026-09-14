@@ -53,7 +53,7 @@
       <div class="container">
         <a class="wordmark" href="/">MAC Address Lookup</a>
         <div class="header-actions">
-          <select id="locale-picker" class="locale-picker" aria-label="Language">
+          <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
           </select>
           <button type="button" id="theme-toggle" class="button button--ghost button--icon" data-i18n-title="nav.theme" aria-label="Toggle theme">
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
@@ -150,13 +150,13 @@
     <footer class="site-footer">
       <div class="container">
         <p>
-          Data: IEEE Registration Authority registries; historical changes from
-          <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> (MIT).
-          Bundled software: <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> (MIT).
+          <span data-i18n="footer.dataSources">Data: IEEE Registration Authority registries; historical changes from</span>
+          <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> <span data-i18n="footer.license">(MIT).</span>
+          <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
         </p>
         <p>
           <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
-          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>.
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>
     </footer>

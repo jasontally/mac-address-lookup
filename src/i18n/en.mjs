@@ -59,6 +59,21 @@ export const en = {
   // Randomization
   'randomize.likelyTitle': 'Likely randomized or locally administered',
   'randomize.notesTitle': 'Address notes',
+  'randomize.vmPrefix': 'Matches the {name} virtual machine prefix',
+  'randomize.broadcast': 'Broadcast address, not a device address',
+  'randomize.allZeros': 'All-zero address, not a device address',
+  'randomize.localUnregistered':
+    'Locally administered bit is set and the prefix is not registered to any vendor',
+  'randomize.localPrivate':
+    'Matches a privately registered block; locally administered addresses are not tied to hardware',
+  'randomize.localRegistered':
+    'Locally administered bit is set, which is unexpected for vendor-assigned hardware',
+  'randomize.notRegistered':
+    'Not registered to a vendor; a globally administered address can still be spoofed',
+
+  // Theme
+  'theme.toDark': 'Switch to dark theme',
+  'theme.toLight': 'Switch to light theme',
 
   // Badges
   'badge.private': 'Private registration',
@@ -189,6 +204,19 @@ export const en = {
 
   // Skip link
   'a11y.skip': 'Skip to content',
+  'a11y.language': 'Language',
+  'a11y.breadcrumb': 'Breadcrumb',
+
+  // Pre-rendered prefix pages (client-side swap; HTML stays English for crawlers)
+  'prerender.lede':
+    '{prefix} is a {bits}-bit {blockType} MAC address block registered to {org}.',
+  'prerender.ledeCountry':
+    '{prefix} is a {bits}-bit {blockType} MAC address block registered to {org} in {country}.',
+  'footer.dataSources': 'Data: IEEE Registration Authority registries; historical changes from',
+  'footer.license': '(MIT).',
+  'footer.bundled': 'Bundled software:',
+  'footer.refreshed': 'Data refreshed',
+  'footer.refreshPlaceholder': 'on the latest deploy',
 
   // Detail labels
   'detail.match': 'Match',

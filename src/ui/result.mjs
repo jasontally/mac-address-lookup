@@ -1,9 +1,8 @@
 /** Result renderers. All external data goes through textContent. */
 
-import { countryName } from '../engine/countries.mjs';
 import { formatAddress } from '../engine/formats.mjs';
 import { analyzeBits } from '../engine/input.mjs';
-import { t, tCount } from '../i18n/index.mjs';
+import { t, tCount, getLocale } from '../i18n/index.mjs';
 import { copyButton } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
 import { addressRange, colonize, formatAddresses, formatCount, formatDate } from './format.mjs';
@@ -52,6 +51,65 @@ function bitSummary(bits) {
   return el('p', { class: 'bits', text: parts.join(' · ') });
 }
 
+/**
+ * Re-translate a pre-rendered result card after the locale table loads.
+ * The static HTML keeps English for crawlers; here we swap the pieces that
+ * data-i18n alone cannot express: interpolated badges, the lede sentence,
+ * the match value, copy-button labels, and the randomization reasons.
+ */
+export function applyPrerenderedI18n(root = document) {
+  if (!root) return;
+  const locale = getLocale();
+
+  const lede = root.querySelector('.lede[data-lede]');
+  if (lede) {
+    const params = JSON.parse(lede.getAttribute('data-lede'));
+    const key = params.country ? 'prerender.ledeCountry' : 'prerender.lede';
+    lede.textContent = t(key, { ...params, country: countryLabel(params.country) });
+  }
+
+  const bits = root.querySelector('.bits[data-bits]');
+  if (bits) {
+    const flags = JSON.parse(bits.getAttribute('data-bits'));
+    const parts = [
+      flags.multicast ? t('bits.multicast') : t('bits.unicast'),
+      flags.locallyAdministered
+        ? t('bits.locallyAdministered')
+        : t('bits.universallyAdministered'),
+    ];
+    if (flags.broadcast) parts.push(t('bits.broadcast'));
+    if (flags.allZeros) parts.push(t('bits.allZeros'));
+    bits.textContent = parts.join(' · ');
+  }
+
+  const resultSection = root.querySelector('#result[data-blocktype]') ?? root;
+  const matchValue = resultSection.querySelector('dt[data-i18n="detail.match"] + dd');
+  const blockType = resultSection.getAttribute('data-blocktype');
+  if (matchValue && blockType) matchValue.textContent = t('result.assignment', { type: blockType });
+
+  const badges = root.querySelector('.badges');
+  for (const badgeEl of (badges ?? root).querySelectorAll('.badge[data-i18n]')) {
+    const key = badgeEl.getAttribute('data-i18n');
+    const params = badgeEl.hasAttribute('data-i18n-params')
+      ? JSON.parse(badgeEl.getAttribute('data-i18n-params'))
+      : null;
+    badgeEl.textContent = params ? t(key, params) : t(key);
+  }
+
+  for (const button of root.querySelectorAll('button[data-copy]')) {
+    const kind = button.getAttribute('data-copy-kind');
+    const labelKey = button.getAttribute('data-copy-label');
+    const label = kind === 'mac' ? t('format.copyMac') : t('format.copy', { label: t(labelKey) });
+    button.textContent = label;
+    button.setAttribute('aria-label', label);
+  }
+
+  for (const text of root.querySelectorAll('.banner-text[data-reasons]')) {
+    const reasons = JSON.parse(text.getAttribute('data-reasons'));
+    text.textContent = reasonText(reasons);
+  }
+}
+
 function randomizationBanner(randomization) {
   if (!randomization || !randomization.reasons?.length) return null;
   const kind = randomization.likely ? 'warning' : 'info';
@@ -60,8 +118,23 @@ function randomizationBanner(randomization) {
     : t('randomize.notesTitle');
   return el('div', { class: `banner banner--${kind}` }, [
     el('strong', { text: title }),
-    el('p', { text: randomization.reasons.join(' ') }),
+    el('p', { text: reasonText(randomization.reasons) }),
   ]);
+}
+
+/** Render structured reasons ({key, params}) as localized sentences. */
+function reasonText(reasons) {
+  const locale = getLocale();
+  return reasons
+    .map((reason) => (typeof reason === 'string' ? reason : t(reason.key, reason.params)))
+    .join(' ');
+}
+
+/** One search-match reason label with locale-aware country detail. */
+function reasonCell(reason) {
+  const label = t(`reason.${reason.type}`);
+  const detail = reason.type === 'country' ? countryLabel(reason.detail) : reason?.detail;
+  return detail ? `${label}: ${detail}` : label;
 }
 
 function formatList(formats) {
@@ -117,8 +190,14 @@ function resultsTable(headerKeys, rows) {
 
 function countryLabel(code) {
   if (!code) return null;
-  const name = countryName(code);
-  return name ? `${name} (${code})` : code;
+  const locale = getLocale();
+  try {
+    const name = new Intl.DisplayNames([locale], { type: 'region' }).of(code.toUpperCase());
+    if (name && name !== code.toUpperCase()) return `${name} (${code})`;
+  } catch {
+    // fall through to the raw code
+  }
+  return code;
 }
 
 /** Chronological lineage timeline, or null when there is nothing to show. */
@@ -133,7 +212,9 @@ export function lineageTimeline(entry) {
       entry.events.map((event) =>
         el('li', {}, [
           el('span', { class: 'timeline-org', text: event.orgName || t('lineage.unknown') }),
-          event.date ? el('span', { class: 'timeline-when', text: formatDate(event.date) }) : null,
+          event.date
+            ? el('span', { class: 'timeline-when', text: formatDate(event.date, getLocale()) })
+            : null,
         ]),
       ),
     ),
@@ -191,15 +272,15 @@ export function renderMatch(container, result, { lineage = null, portfolio = nul
             : t('result.longestMatch', { bits: match.matchedLength * 4 }),
         ],
         ['detail.addressRange', el('code', { text: `${range.start} – ${range.end}` })],
-        ['detail.addressesInBlock', formatCount(match.addressCount)],
+        ['detail.addressesInBlock', formatCount(match.addressCount, getLocale())],
         ['detail.country', countryLabel(match.country)],
         ['detail.orgAddress', match.orgAddress || null],
-        ['detail.firstRegistered', firstSeen ? formatDate(firstSeen) : null],
+        ['detail.firstRegistered', firstSeen ? formatDate(firstSeen, getLocale()) : null],
       ]),
       portfolio && portfolio.blocks > 1
         ? el('p', { class: 'summary-line' }, [
             t('portfolio.label', {
-              blocks: formatCount(portfolio.blocks),
+              blocks: formatCount(portfolio.blocks, getLocale()),
               addresses: formatAddresses(portfolio.addresses),
             }),
             onViewAll
@@ -344,7 +425,7 @@ export function renderSearchResults(
       el('td', { 'data-label': t('table.block') }, [record.blockType]),
       el('td', { 'data-label': t('table.org'), class: 'org' }, [record.orgName || '—']),
       el('td', { 'data-label': t('table.match') }, [
-        `${t(`reason.${reason.type}`)}${reason?.detail ? `: ${reason.detail}` : ''}`,
+        reasonCell(reason),
       ]),
     ]),
   );
@@ -361,7 +442,7 @@ export function renderSearchResults(
       portfolio
         ? el('p', {
             class: 'summary-line',
-            text: `${portfolio.orgName} — ${formatCount(portfolio.blocks)} · ${formatAddresses(portfolio.addresses)}`,
+            text: `${portfolio.orgName} — ${formatCount(portfolio.blocks, getLocale())} · ${formatAddresses(portfolio.addresses, getLocale())}`,
           })
         : null,
       el('p', {

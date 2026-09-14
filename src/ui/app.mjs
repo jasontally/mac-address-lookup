@@ -23,6 +23,7 @@ import {
   renderPartial,
   renderPending,
   renderSearchResults,
+  applyPrerenderedI18n,
 } from './result.mjs';
 import { canonicalQuery, parseLookup, splitBatch } from './router.mjs';
 import { initTheme } from './theme.mjs';
@@ -45,9 +46,16 @@ const ui = {
   themeToggle: document.getElementById('theme-toggle'),
 };
 
-initTheme({ toggleButton: ui.themeToggle });
 await initI18n();
+initTheme({ toggleButton: ui.themeToggle });
 wireCopyButtons();
+
+// Pre-rendered cards keep English HTML for crawlers; swap the translatable
+// pieces once the locale table is ready.
+const prerendered = document.getElementById('result');
+// Pre-rendered cards keep English HTML for crawlers; swap the translatable
+// pieces once the locale table is ready.
+if (prerendered?.dataset.prerendered) applyPrerenderedI18n();
 
 // Populate the language picker (English included via SUPPORTED_LOCALES)
 const localePicker = document.getElementById('locale-picker');
@@ -345,7 +353,7 @@ function renderHistory() {
           [
             el('span', { class: 'history-hex', text: colonize(entry.hex) }),
             el('span', { class: 'history-label', text: entry.label }),
-            el('span', { class: 'history-when', text: formatRelativeTime(entry.at) }),
+    el('span', { class: 'history-when', text: formatRelativeTime(entry.at, Date.now(), getLocale()) }),
           ],
         ),
       ]),

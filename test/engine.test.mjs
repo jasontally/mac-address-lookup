@@ -115,7 +115,7 @@ test('classifyRandomization flags locally administered addresses', () => {
     hypervisor: detectHypervisor('0242AC110002'),
   });
   assert.equal(docker.likely, false);
-  assert.match(docker.reasons[0], /Docker/);
+  assert.equal(docker.reasons[0].key, 'randomize.vmPrefix');
 
   const broadcast = classifyRandomization({
     bits: analyzeBits('FFFFFFFFFFFF'),
@@ -123,5 +123,5 @@ test('classifyRandomization flags locally administered addresses', () => {
     hypervisor: null,
   });
   assert.equal(broadcast.likely, false);
-  assert.match(broadcast.reasons[0], /Broadcast/);
+  assert.equal(broadcast.reasons[0].key, 'randomize.broadcast');
 });

@@ -108,6 +108,11 @@ export function applyDom(root = document) {
       element.setAttribute('aria-label', text);
     }
   }
+  for (const element of root.querySelectorAll?.('[data-i18n-aria]')) {
+    const key = element.getAttribute('data-i18n-aria');
+    const text = table[key] ?? en[key];
+    if (text !== undefined) element.setAttribute('aria-label', text);
+  }
 }
 
 export function isRtl() {

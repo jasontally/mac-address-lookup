@@ -38,13 +38,19 @@ function truncate(text, max) {
   return `${cut.slice(0, lastSpace > 40 ? lastSpace : max - 1).trimEnd()}…`;
 }
 
-function badge(text, kind = 'neutral') {
+function badge(text, kind = 'neutral', i18n = null, params = null) {
   const cls = kind === 'neutral' ? 'badge' : `badge badge--${kind}`;
-  return `<span class="${cls}">${escapeHtml(text)}</span>`;
+  const attr = i18n ? ` data-i18n="${i18n}"` : '';
+  const paramAttr = params
+    ? ` data-i18n-params='${JSON.stringify(params).replace(/'/g, '&#39;')}'`
+    : '';
+  return `<span class="${cls}"${attr}${paramAttr}>${escapeHtml(text)}</span>`;
 }
 
-function copyButton(label, value) {
-  return `<button type="button" class="button button--ghost button--small" data-copy="${escapeHtml(value)}" aria-label="Copy ${escapeHtml(label)}">Copy ${escapeHtml(label)}</button>`;
+function copyButton(label, value, i18nKey = null) {
+  const kind = i18nKey ? 'format' : 'mac';
+  const keyAttr = i18nKey ? ` data-copy-label="${i18nKey}"` : '';
+  return `<button type="button" class="button button--ghost button--small" data-copy="${escapeHtml(value)}" data-copy-kind="${kind}" aria-label="Copy ${escapeHtml(label)}"${keyAttr}>Copy ${escapeHtml(label)}</button>`;
 }
 
 function bitSummary(bits) {
@@ -54,11 +60,45 @@ function bitSummary(bits) {
       ? 'Locally administered (U/L bit set)'
       : 'Universally administered (U/L bit clear)',
   ];
-  return `<p class="bits">${escapeHtml(parts.join(' · '))}</p>`;
+  if (bits.broadcast) parts.push('Broadcast address');
+  if (bits.allZeros) parts.push('All-zero address');
+  const payload = JSON.stringify({
+    multicast: !!bits.multicast,
+    locallyAdministered: !!bits.locallyAdministered,
+    broadcast: !!bits.broadcast,
+    allZeros: !!bits.allZeros,
+  }).replace(/"/g, '&quot;');
+  return `<p class="bits" data-bits="${payload}">${escapeHtml(parts.join(' · '))}</p>`;
 }
 
-function banner(kind, title, text) {
-  return `<div class="banner banner--${kind}"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div>`;
+function banner(kind, title, reasons, likely) {
+  const titleKey = likely ? 'randomize.likelyTitle' : 'randomize.notesTitle';
+  const payload = JSON.stringify(reasons).replace(/"/g, '&quot;');
+  return (
+    `<div class="banner banner--${kind}">` +
+    `<strong data-i18n="${titleKey}">${escapeHtml(en[titleKey])}</strong>` +
+    `<p class="banner-text" data-reasons="${payload}">${escapeHtml(reasonText(reasons, 'en'))}</p>` +
+    `</div>`
+  );
+}
+
+/** Structured reasons ({key, params}) → localized sentences for one locale. */
+function reasonText(reasons, locale = 'en') {
+  return reasons
+    .map((reason) =>
+      typeof reason === 'string'
+        ? reason
+        : interpolate(en[reason.key] ?? reason.key, reason.params ?? {}),
+    )
+    .join(' ');
+}
+
+function interpolate(text, params) {
+  let out = text;
+  for (const [name, value] of Object.entries(params)) {
+    out = out.replaceAll(`{${name}}`, String(value));
+  }
+  return out;
 }
 
 function detailRows(rows) {
@@ -79,7 +119,7 @@ function formatList(formats) {
         `      <li class="format-row">\n` +
         `        <span class="format-label" data-i18n="${i18nKey}">${escapeHtml(label(i18nKey))}</span>\n` +
         `        <code class="format-value">${escapeHtml(formats[key])}</code>\n` +
-        `        ${copyButton(label(i18nKey), formats[key])}\n` +
+        `        ${copyButton(label(i18nKey), formats[key], i18nKey)}\n` +
         `      </li>`,
     )
     .join('\n');
@@ -92,9 +132,11 @@ function lineageSection(lineage) {
     .map(
       (event) =>
         `        <li>\n` +
-        `          <span class="timeline-org">${escapeHtml(event.orgName || 'Unknown organization')}</span>\n` +
+        `          <span class="timeline-org"${
+          event.orgName ? '' : ' data-i18n="lineage.unknown"'
+        }>${escapeHtml(event.orgName || en['lineage.unknown'])}</span>\n` +
         (event.date
-          ? `          <span class="timeline-when">${escapeHtml(formatDate(event.date))}</span>\n`
+          ? `          <span class="timeline-when">${escapeHtml(formatDate(event.date, 'en'))}</span>\n`
           : '') +
         `        </li>`,
     )
@@ -119,9 +161,9 @@ function renderResult(record, lineage) {
 
   const badges = [
     badge(`${record.blockType} · ${record.prefixLen}-bit`),
-    record.isPrivate ? badge('Private registration', 'warning') : '',
-    hypervisor ? badge(`Virtual machine: ${hypervisor.name}`) : '',
-    randomization.likely ? badge('Likely randomized', 'warning') : '',
+    record.isPrivate ? badge('Private registration', 'warning', 'badge.private') : '',
+    hypervisor ? badge(`Virtual machine: ${hypervisor.name}`, 'neutral', 'badge.vm', { name: hypervisor.name }) : '',
+    randomization.likely ? badge('Likely randomized', 'warning', 'badge.randomized') : '',
   ]
     .filter(Boolean)
     .join('\n          ');
@@ -131,7 +173,8 @@ function renderResult(record, lineage) {
       ? banner(
           randomization.likely ? 'warning' : 'info',
           randomization.likely ? 'Likely randomized or locally administered' : 'Address notes',
-          randomization.reasons.join(' '),
+          randomization.reasons,
+          randomization.likely,
         )
       : '';
 
@@ -139,10 +182,10 @@ function renderResult(record, lineage) {
     ['detail.matchedPrefix', colon, true],
     ['detail.match', `${record.blockType} assignment`],
     ['detail.addressRange', `${range.start} – ${range.end}`, true],
-    ['detail.addressesInBlock', formatCount(record.addressCount)],
+    ['detail.addressesInBlock', formatCount(record.addressCount, 'en')],
     ['detail.country', record.country],
     ['detail.orgAddress', record.orgAddress || null],
-    ['detail.firstRegistered', firstSeen ? formatDate(firstSeen) : null],
+    ['detail.firstRegistered', firstSeen ? formatDate(firstSeen, 'en') : null],
   ]);
 
   return `    <article class="card result-card">
@@ -258,7 +301,7 @@ export function renderPrefixPage({
         <a class="wordmark" href="/">MAC Address Lookup</a>
         <div class="header-actions">
           <a class="button button--ghost button--icon" href="/help" data-i18n-title="nav.help" aria-label="Help and documentation" title="Help and documentation">?</a>
-          <select id="locale-picker" class="locale-picker" aria-label="Language">
+          <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
           </select>
           <button type="button" id="theme-toggle" class="button button--ghost button--icon" data-i18n-title="nav.theme" aria-label="Toggle theme">
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
@@ -271,12 +314,18 @@ export function renderPrefixPage({
 
     <main id="main">
       <div class="container">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-i18n-aria="a11y.breadcrumb">
           <a href="/">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>${escapeHtml(colon)}</span>
         </nav>
         <section class="hero hero--compact">
           <h1>${escapeHtml(orgName)} <span class="h1-prefix">${escapeHtml(colon)}</span></h1>
-          <p class="lede">
+          <p class="lede" data-lede="${escapeHtml(JSON.stringify({
+            prefix: colon,
+            bits: record.prefixLen,
+            blockType: record.blockType,
+            org: orgName,
+            country: record.country ?? null,
+          }))}">
             ${escapeHtml(colon)} is a ${record.prefixLen}-bit ${escapeHtml(record.blockType)} MAC address block
             registered to ${escapeHtml(orgName)}${record.country ? ` in ${escapeHtml(record.country)}` : ''}.
           </p>
@@ -305,6 +354,8 @@ export function renderPrefixPage({
           data-prerendered="true"
           data-hex="${escapeHtml(record.prefix)}"
           data-label="${escapeHtml(orgName)}"
+          data-prefixlen="${escapeHtml(record.prefixLen)}"
+          data-blocktype="${escapeHtml(record.blockType)}"
         >
 ${renderResult(record, lineage)}
         </section>
@@ -314,14 +365,15 @@ ${renderResult(record, lineage)}
     <footer class="site-footer">
       <div class="container">
         <p>
-          Data: IEEE Registration Authority registries; historical changes from
-          <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> (MIT).
-          Bundled software: <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> (MIT).
+          <span data-i18n="footer.dataSources">Data: IEEE Registration Authority registries; historical changes from</span>
+          <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> <span data-i18n="footer.license">(MIT).</span>
+          <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
         </p>
         <p>
-          <span data-i18n="footer.dataNote">All lookups run in your browser — nothing is sent to a server.</span> Data refreshed
-          <span id="last-updated">on the latest deploy</span>.
-          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>.
+          <span data-i18n="footer.dataNote">All lookups run in your browser — nothing is sent to a server.</span>
+          <span data-i18n="footer.refreshed">Data refreshed</span>
+          <span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>
     </footer>

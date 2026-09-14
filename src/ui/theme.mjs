@@ -1,5 +1,7 @@
 /** Theme: system default via `light-dark()`, explicit override persisted. */
 
+import { t } from '../i18n/index.mjs';
+
 const STORAGE_KEY = 'mal.theme';
 
 export function effectiveMode() {
@@ -11,8 +13,9 @@ export function effectiveMode() {
 function updateToggle(button) {
   if (!button) return;
   const next = effectiveMode() === 'dark' ? 'light' : 'dark';
-  button.setAttribute('aria-label', `Switch to ${next} theme`);
-  button.setAttribute('title', `Switch to ${next} theme`);
+  const label = t(next === 'dark' ? 'theme.toDark' : 'theme.toLight');
+  button.setAttribute('aria-label', label);
+  button.setAttribute('title', label);
 }
 
 export function initTheme({ toggleButton } = {}) {

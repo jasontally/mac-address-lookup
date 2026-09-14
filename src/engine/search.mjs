@@ -90,13 +90,13 @@ export function searchRegistry(registry, lineage, query, { limit = 200 } = {}) {
     const country = record.country ? String(record.country).toLowerCase() : '';
     const name = countryName(record.country)?.toLowerCase() ?? '';
     if (country && (name === token || country === token)) {
-      return { score: 55, reason: { type: 'country', detail: countryName(record.country) ?? country.toUpperCase() } };
+      return { score: 55, reason: { type: 'country', detail: record.country.toUpperCase() } };
     }
     if (name && name.split(' ').some((word) => word.startsWith(token))) {
-      return { score: 48, reason: { type: 'country', detail: countryName(record.country) } };
+      return { score: 48, reason: { type: 'country', detail: record.country.toUpperCase() } };
     }
     if (name.includes(token)) {
-      return { score: 42, reason: { type: 'country', detail: countryName(record.country) } };
+      return { score: 42, reason: { type: 'country', detail: record.country.toUpperCase() } };
     }
 
     if (record.blockType?.toLowerCase() === token) {
