@@ -20,6 +20,7 @@ import {
   renderMatch,
   renderNone,
   renderPartial,
+  renderPending,
   renderSearchResults,
 } from './result.mjs';
 import { canonicalQuery, parseLookup, splitBatch } from './router.mjs';
@@ -47,6 +48,7 @@ initTheme({ toggleButton: ui.themeToggle });
 wireCopyButtons();
 
 let dataPromise = null;
+let dataReady = false;
 
 /** Load the registry once, on first use. */
 function ensureData() {
@@ -55,6 +57,7 @@ function ensureData() {
     dataPromise = loadRegistry()
       .then(({ manifest, registry, lineage }) => {
         ui.status.textContent = '';
+        dataReady = true;
         if (ui.lastUpdated) ui.lastUpdated.textContent = manifest.refreshDate ?? '';
         return { registry, lineage };
       })
@@ -88,6 +91,8 @@ async function runSingle(raw, { push = true } = {}) {
     renderInvalid(ui.result, { error: normalized.error });
     return;
   }
+
+  if (!dataReady) renderPending(ui.result, normalized.hex);
 
   try {
     const { registry, lineage } = await ensureData();
@@ -262,8 +267,11 @@ function setCanonical(href) {
   link.setAttribute('href', href);
 }
 
-/** Reveal the content below the result once the dynamic lookup has settled. */
+/** Freeze the current result height, then reveal the pending state. */
 function clearPendingLookup() {
+  const node = ui.result;
+  const height = node.getBoundingClientRect().height;
+  if (height > 0) node.style.minHeight = `${Math.ceil(height)}px`;
   document.documentElement.removeAttribute('data-pending-lookup');
 }
 

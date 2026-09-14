@@ -1,6 +1,8 @@
 /** Result renderers. All external data goes through textContent. */
 
 import { countryName } from '../engine/countries.mjs';
+import { formatAddress } from '../engine/formats.mjs';
+import { analyzeBits } from '../engine/input.mjs';
 import { reasonLabel } from '../engine/search.mjs';
 import { copyButton } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
@@ -147,6 +149,27 @@ export function lineageTimeline(entry) {
       ),
     ),
   ]);
+}
+
+/** Placeholder card for a dynamic lookup while the registry loads. */
+export function renderPending(container, hex) {
+  clear(container);
+  const formats = formatAddress(hex);
+  const bits = analyzeBits(hex);
+  container.append(
+    el('article', { class: 'card result-card', 'aria-busy': 'true' }, [
+      el('header', { class: 'result-header' }, [
+        el('p', { class: 'eyebrow', text: 'Vendor' }),
+        el('h2', { class: 'vendor', text: 'Loading vendor data…' }),
+      ]),
+      macLine(formats.colon),
+      bitSummary(bits),
+      el('section', { class: 'result-section' }, [
+        el('h3', { text: 'Formats' }),
+        formatList(formats),
+      ]),
+    ]),
+  );
 }
 
 export function renderMatch(container, result, { lineage = null, portfolio = null, onViewAll = null } = {}) {

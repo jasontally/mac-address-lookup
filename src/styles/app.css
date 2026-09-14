@@ -490,10 +490,20 @@ main {
   max-width: var(--measure);
 }
 
-/* Dynamic deep links: keep the page below the result stable until it renders. */
-html[data-pending-lookup] #below-result,
-html[data-pending-lookup] .site-footer {
-  display: none;
+/* Dynamic deep links: keep the page from shifting while the result renders.
+   Desktop reserves the result area, so inserting the card moves nothing.
+   Small screens hide below-fold content instead of showing a long blank gap. */
+@media (min-width: 640px) {
+  html[data-pending-lookup] #result {
+    min-height: 56rem;
+  }
+}
+
+@media (max-width: 639px) {
+  html[data-pending-lookup] #below-result,
+  html[data-pending-lookup] .site-footer {
+    display: none;
+  }
 }
 
 .faq-list .disclosure {
