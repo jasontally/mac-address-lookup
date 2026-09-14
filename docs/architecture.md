@@ -80,7 +80,14 @@ mac-address-lookup/
 6. **Emit manifest** (`dist/data/manifest.json`): content-hashed filenames, `generatedAt`, counts by block type, schema version, and lineage source attribution (name, homepage, license, retrieval time).
 7. **Budget checks** (`build/budget.mjs`): file-count and file-size assertions — see [Capacity & page budget](#capacity--page-budget).
 
-Caching: `data/manifest.json` → `no-cache` (it maps to content-hashed filenames that are replaced every deploy, so serving it stale could reference removed files); `data/*.parquet` → `public, max-age=31536000, immutable`; `assets/*` → `immutable` with content-hashed filenames; generated pages keep the platform default (`max-age=0, must-revalidate` + ETag).
+Caching: `data/manifest.json` → `no-cache` (it maps to content-hashed filenames that are replaced every deploy, so serving it stale could reference removed files); `data/*.parquet` → `public, max-age=31536000, immutable`; `data/sources/*` → `public, max-age=0, must-revalidate` (fixed filenames, revalidation only); `assets/*` → `immutable` with content-hashed filenames; generated pages keep the platform default (`max-age=0, must-revalidate` + ETag).
+
+## Source resilience & data refresh
+
+- **Deployed raw cache.** Alongside the Parquet data, the build writes the raw inputs (five IEEE CSVs + `macs.json`, **6 files / ~22 MB**) to `dist/data/sources/` plus a `sources.json` manifest with per-file sha256 hashes and a combined `sourceHash`. These are public and only fetched by builds and CI, never by pages.
+- **Fetch order:** upstream (retries + backoff) → the live site's raw copy (`https://mac.jasontally.com/data/sources/<file>`) → fail. Because the fallback is served by Cloudflare's own CDN, an IEEE outage or block cannot stop rebuilds; only the very first build has no fallback. `--no-fallback` disables the fallback for local experiments.
+- **Weekly change detection.** `.github/workflows/data-refresh.yml` runs every Monday: it fetches the upstream sources, hashes them, and compares against the deployed `sources.json`. A refresh-date bump is committed only when something changed; if the deployed data is from an earlier month it forces a bump anyway, so the site redeploys at least monthly for SEO freshness. Pushes made with `GITHUB_TOKEN` do not start other Actions workflows but do reach GitHub Apps, so the commit still triggers Workers Builds.
+- **Manual alternatives** (if a mirror is ever needed): Debian's [`ieee-data`](https://salsa.debian.org/debian/ieee-data) package, npm [`oui-data`](https://github.com/silverwind/oui-data) (BSD-2-Clause; MA-L/MA-M/MA-S names, addresses, countries — no IAB/CID), [`jfisbein/ouidb-json`](https://github.com/jfisbein/ouidb-json), Wireshark's `manuf` (GPL-2.0-or-later, derived), and runZero mac-tracker (MIT, already used for lineage).
 
 Schema versioning: the manifest carries `schemaVersion`. The client refuses to run against a newer schema and shows a reload message, so an older cached bundle fails safely instead of querying columns it does not understand. Additive columns are tolerated (`createRegistry` reads known fields only); renames or removals require a version bump (`SUPPORTED_SCHEMA_VERSION` in `src/engine/load.mjs`).
 
@@ -167,7 +174,7 @@ Behavior notes:
 Measured from a live build on 2026-09-12 (3 cross-registry duplicates skipped).
 
 - One pre-rendered page per assignment = **58,694 files today**: 64% of the paid file budget, but 293% of the free budget.
-- Build output: **~451 MB across 58,707 files**; page generation 2.8s; sitemaps 50,000 + 8,695 URLs (4.8 MB + 0.9 MB).
+- Build output: **~479 MB across 59,010 files** (including the ~22 MB raw source cache); page generation 2.6s; sitemaps 50,000 + 8,695 URLs (4.8 MB + 0.9 MB).
 - The paid plan is required to pre-render the full registry; the free plan can only pre-render a subset (dev/preview budget: 15,000 pages).
 - Growth assumption: MA-L grows ~2,000/year and MA-M/MA-S are growing faster. The registry is on a path to 100,000 assignments; device-level data (future feature) would add many more potential pages. The page budget policy below is designed for that.
 
@@ -181,6 +188,7 @@ Expected non-page files:
 | --- | --- |
 | App shell, CSS/JS, icons, manifest | ~30 |
 | Parquet data (registry + lineage + trie shards) | 3–300 |
+| Raw source copies (CSV + JSON + manifest) | 7 |
 | Sitemaps (chunked at 50,000 URLs) | 2–3 |
 | `robots.txt`, `_headers`, `_redirects` | ~5 |
 
@@ -220,9 +228,10 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 | --- | --- |
 | Pre-rendered pages (budget capped) | 90,000 |
 | Parquet data (registry + lineage + shards) | 3–300 |
+| Raw source copies | 7 |
 | Sitemaps (100k URLs) | 3 |
 | App shell + static assets | ~30 |
-| Reserved headroom | 9,966 |
+| Reserved headroom | 9,959 |
 | **Total** | **100,000** |
 
 ## Page generation & SEO
@@ -250,7 +259,7 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 
 - **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → SEO artifacts → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
 - **Node version:** build image defaults to Node 24.18.0; pin with `.nvmrc` (`24`).
-- **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. A manual build can also be triggered through the Workers Builds API if needed later.
+- **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. The weekly GitHub Action does this automatically when sources change (see [Source resilience & data refresh](#source-resilience--data-refresh)), and forces a monthly refresh for SEO.
 - **Limits:** 3,000 build min/month free, 6,000 paid (+$0.005/min after); 20-minute build timeout; concurrent builds 1 free / 6 paid; paid build environment: 4 vCPU / 8 GB RAM / 20 GB disk.
 - **Runtime cost:** static asset requests are free and unlimited; an assets-only deployment has no billed Worker invocations.
 - **Measured duration:** ~5 minutes end-to-end for 58,707 files / ~448 MB (2026-09-12), comfortably inside the 20-minute timeout. If the file set grows, the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.

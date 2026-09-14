@@ -58,7 +58,7 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 
 ## Status
 
-All core milestones are complete and the site is live at [mac.jasontally.com](https://mac.jasontally.com): 58,694 pre-rendered prefix pages, a client-side lookup engine, prefix lineage, and a full FAQ.
+All core milestones are complete and the site is live at [mac.jasontally.com](https://mac.jasontally.com): 58,694 pre-rendered prefix pages, a client-side lookup engine, prefix lineage, and a full FAQ. A scheduled workflow checks the IEEE and mac-tracker sources weekly and redeploys only when data changed (plus a forced monthly refresh for SEO).
 
 Possible future work: demand-driven page prioritization from privacy-friendly analytics, reverse vendor search, and device-type hints.
 

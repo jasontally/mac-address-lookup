@@ -1,6 +1,10 @@
 import { strict as assert } from 'node:assert';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import { fetchWithRetry } from '../build/fetch-with-retry.mjs';
+import { fetchRegistries } from '../build/fetch-registries.mjs';
 
 const response = (status, body = 'ok') => ({
   ok: status >= 200 && status < 300,
@@ -49,4 +53,31 @@ test('fetchWithRetry fails fast on client errors', async () => {
     /HTTP 404/,
   );
   assert.equal(calls, 1);
+});
+
+test('fetchRegistries falls back to the live raw cache when upstream fails', async () => {
+  const cacheDir = await mkdtemp(path.join(tmpdir(), 'registry-fallback-'));
+  const calls = [];
+  const fetchImpl = async (url) => {
+    calls.push(url);
+    if (url.startsWith('https://standards-oui.ieee.org')) throw new Error('blocked');
+    if (url.startsWith('https://live.test/data/sources/')) {
+      return response(200, 'Registry,Assignment,Organization Name,Organization Address\nMA-L,001A2B,Vendor,X');
+    }
+    throw new Error(`unexpected ${url}`);
+  };
+
+  const results = await fetchRegistries({
+    cacheDir,
+    force: true,
+    fetchImpl,
+    fallbackBaseUrl: 'https://live.test',
+    attempts: 2,
+    baseDelayMs: 1,
+    timeoutMs: 5_000,
+  });
+
+  assert.equal(results.length, 5);
+  assert.ok(results.every((result) => result.fromFallback));
+  assert.ok(calls.some((url) => url.startsWith('https://live.test/data/sources/')));
 });

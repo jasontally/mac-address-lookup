@@ -10,6 +10,10 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Raw source cache: fixed filenames, always revalidated.
+/data/sources/*
+  Cache-Control: public, max-age=0, must-revalidate
+
 # Security headers (catch-all last so specific cache rules apply first).
 /*
   X-Content-Type-Options: nosniff

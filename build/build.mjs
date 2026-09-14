@@ -6,6 +6,8 @@ import { fetchLineage, LINEAGE_SOURCE } from './fetch-lineage.mjs';
 import { buildFirstSeen, buildLineage, countLineageEvents, normalizeOrgName } from './lineage.mjs';
 import { normalizeRegistries } from './normalize.mjs';
 import { writeLineageParquet, writeRegistryParquet, writeShardParquets } from './write-parquet.mjs';
+import { writeSourceCache } from './source-cache.mjs';
+import { DEFAULT_SITE } from './source-files.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { buildHomePage } from './generate-home.mjs';
@@ -20,6 +22,7 @@ const cacheDir = path.join(root, 'build', '.cache');
 const flags = new Set(process.argv.slice(2));
 const force = flags.has('--force');
 const skipLineage = flags.has('--no-lineage');
+const fallbackBaseUrl = flags.has('--no-fallback') ? undefined : DEFAULT_SITE;
 
 const startedAt = Date.now();
 
@@ -27,9 +30,10 @@ const startedAt = Date.now();
 await rm(distDir, { recursive: true, force: true });
 
 console.log('Fetching IEEE registries...');
-const sources = await fetchRegistries({ cacheDir, force });
+const sources = await fetchRegistries({ cacheDir, force, fallbackBaseUrl });
 for (const source of sources) {
-  console.log(`  ${source.name.padEnd(5)} ${source.fromCache ? 'cached' : 'fetched'}  ${source.text.length} bytes`);
+  const origin = source.fromFallback ? 'live-cache' : source.fromCache ? 'cached' : 'fetched';
+  console.log(`  ${source.name.padEnd(5)} ${origin}  ${source.text.length} bytes`);
 }
 
 console.log('Normalizing...');
@@ -67,11 +71,14 @@ let lineage = null;
 let lineageEntries = [];
 let firstSeen = new Map();
 let lineageCounts = new Map();
+let lineageText = null;
 if (!skipLineage) {
   try {
     console.log(`Fetching lineage (${LINEAGE_SOURCE.name})...`);
-    const historyText = await fetchLineage({ cacheDir, force });
-    console.log(`  macs.json ${historyText.fromCache ? 'cached' : 'fetched'}  ${historyText.text.length} bytes`);
+    const historyText = await fetchLineage({ cacheDir, force, fallbackBaseUrl });
+    lineageText = historyText.text;
+    const origin = historyText.fromFallback ? 'live-cache' : historyText.fromCache ? 'cached' : 'fetched';
+    console.log(`  macs.json ${origin}  ${historyText.text.length} bytes`);
     const history = JSON.parse(historyText.text);
     lineageEntries = buildLineage(history);
     firstSeen = buildFirstSeen(history);
@@ -108,6 +115,20 @@ for (const record of records) {
   record.lineageCount = lineageCounts.get(record.prefix) ?? 0;
 }
 
+// Deploy the raw sources: an emergency cache for future builds and the
+// baseline the weekly change-detection workflow diffs against.
+const sourceCache = await writeSourceCache(
+  [
+    ...sources.map((source) => ({ file: source.cacheFile, text: source.text })),
+    ...(lineageText ? [{ file: 'macs.json', text: lineageText }] : []),
+  ],
+  { outDir: dataDir },
+);
+console.log(
+  `  source cache: ${sourceCache.files.length} files (${formatBytes(sourceCache.bytes)}), ` +
+    `hash ${sourceCache.sourceHash.slice(0, 12)}`,
+);
+
 console.log('Writing Parquet...');
 const parquet = await writeRegistryParquet(records, { outDir: dataDir });
 console.log(`  ${parquet.filename} (${formatBytes(parquet.bytes)})`);
@@ -133,6 +154,7 @@ const manifest = {
       Object.entries(stats.perRegistry).map(([name, registryStats]) => [name, registryStats.kept]),
     ),
   },
+  sourcesHash: sourceCache.sourceHash,
   sources: REGISTRIES.map((registry) => registry.url),
 };
 if (lineage) manifest.lineage = lineage;

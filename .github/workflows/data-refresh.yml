@@ -1,0 +1,45 @@
+name: Data refresh
+
+# Checks upstream data sources weekly and commits a refresh date bump only when
+# something changed (or once a month for SEO freshness). The commit triggers a
+# Cloudflare Workers Build. Pushes made with GITHUB_TOKEN do not start other
+# Actions workflows, but they do reach GitHub Apps such as Cloudflare's.
+
+on:
+  schedule:
+    # Mondays at 06:17 UTC
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Force a refresh even when sources are unchanged
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Check data sources
+        run: node build/check-sources.mjs ${{ inputs.force == true && '--force' || '' }}
+
+      - name: Commit the refresh trigger
+        run: |
+          if git diff --quiet -- data/refresh.txt; then
+            echo "No refresh needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/refresh.txt
+          git commit -m "chore: data refresh $(date -u +%F)"
+          git push
