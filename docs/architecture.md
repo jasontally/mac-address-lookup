@@ -80,7 +80,9 @@ mac-address-lookup/
 6. **Emit manifest** (`dist/data/manifest.json`): content-hashed filenames, `generatedAt`, counts by block type, schema version, and lineage source attribution (name, homepage, license, retrieval time).
 7. **Budget checks** (`build/budget.mjs`): file-count and file-size assertions — see [Capacity & page budget](#capacity--page-budget).
 
-Caching: `data/manifest.json` → `no-cache`; `data/*.parquet` → `public, max-age=31536000, immutable` (content-hashed). Generated pages keep the platform default (`max-age=0, must-revalidate` + ETag).
+Caching: `data/manifest.json` → `no-cache` (it maps to content-hashed filenames that are replaced every deploy, so serving it stale could reference removed files); `data/*.parquet` → `public, max-age=31536000, immutable`; `assets/*` → `immutable` with content-hashed filenames; generated pages keep the platform default (`max-age=0, must-revalidate` + ETag).
+
+Schema versioning: the manifest carries `schemaVersion`. The client refuses to run against a newer schema and shows a reload message, so an older cached bundle fails safely instead of querying columns it does not understand. Additive columns are tolerated (`createRegistry` reads known fields only); renames or removals require a version bump (`SUPPORTED_SCHEMA_VERSION` in `src/engine/load.mjs`).
 
 ## Prefix lineage
 
@@ -98,7 +100,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 
 ## Client engine
 
-- **Loading**: the app fetches `data/manifest.json`, then the hashed registry and lineage Parquet files in parallel. Pre-rendered pages do not load either file until the user interacts (search, batch, unknown prefix); the embedded record covers the initial render.
+- **Loading**: the app fetches `data/manifest.json`, then the hashed registry and lineage Parquet files in parallel. On dynamic deep links an inline head script starts those fetches before the app bundle runs, and `loadRegistry` consumes those promises instead of refetching. Pre-rendered pages do not load either file at all; the embedded record covers the initial render.
 - **Lineage**: `createLineageIndex` groups event rows per prefix and exposes `forPrefix(prefix)`; `loadRegistry` returns `{ manifest, registry, lineage }`.
 - **Normalization**: strip separators (`:` `-` `.` space), uppercase, validate `[0-9A-F]`, accept 1–12 hex digits.
 - **Lookup**: longest-prefix match over 9-hex (MA-S/IAB), 7-hex (MA-M), 6-hex (MA-L/CID), using a first-byte index over sorted prefix arrays.
@@ -123,7 +125,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - `src/ui/theme.mjs` — system-aware dark mode with explicit override
 - `src/ui/clipboard.mjs` — copy buttons with insecure-context fallback
 - `public/index.html` — indexable shell (search + FAQ); the app hydrates results on top
-- esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.js` (~84 KB); CSS is bundled into one ~14 KB file
+- esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.<hash>.js` (~86 KB); CSS is bundled into one hashed ~14 KB file
 
 ## Platform constraints
 
@@ -235,6 +237,14 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 - Long-tail/full-MAC paths return the SPA shell with `200`; the engine renders them after load.
 - Pre-rendered pages hydrate without fetching the Parquet data: the app detects `data-prerendered` and only wires copy buttons and history.
 
+## Performance
+
+- Pre-rendered pages fetch only the content-hashed CSS and JS bundles — no Parquet, no data fetch.
+- Dynamic routes start the manifest and Parquet fetches from an inline head script, in parallel with the app bundle download.
+- Content below the result is hidden until a dynamic lookup renders (removing the layout shift from inserting the result card; desktop CLS was 0.296 before this change).
+- Asset filenames are content-hashed and cached immutably; the manifest is always revalidated.
+- Known remaining cost: a dynamic deep link still downloads the full registry (~2.9 MB). The [sharding plan](#25-mib-file-size-strategy) (one file per first byte) is the intended fix if cold-load latency becomes a priority.
+
 ## Build & deployment
 
 - **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → SEO artifacts → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
@@ -255,7 +265,7 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 
 ## Testing
 
-- Unit tests for normalization, longest-prefix matching, partial listing, bit flags, VM mapping, batch parsing, MAC extraction (including newline-collapsed text and UUID tails), free-text search, summaries, vendor portfolios, country names, page selection/scoring, template escaping, sitemap chunking, and FAQ injection (Node's built-in `node:test`, no dependencies).
+- Unit tests for normalization, longest-prefix matching, partial listing, bit flags, VM mapping, batch parsing, MAC extraction (including newline-collapsed text and UUID tails), input classification, free-text search, summaries, vendor portfolios, country names, schema-version guard, page selection/scoring, template escaping, sitemap chunking, and FAQ injection (Node's built-in `node:test`, no dependencies).
 - Synthetic fixtures only; no network access in tests.
 - Browser verification during development with Playwright against the local preview server (deep links, hydration skip, batch indexing rules, mobile overflow).
 

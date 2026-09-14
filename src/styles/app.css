@@ -491,7 +491,8 @@ main {
 }
 
 /* Dynamic deep links: keep the page below the result stable until it renders. */
-html[data-pending-lookup] #below-result {
+html[data-pending-lookup] #below-result,
+html[data-pending-lookup] .site-footer {
   display: none;
 }
 
