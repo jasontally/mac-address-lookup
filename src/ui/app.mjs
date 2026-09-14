@@ -49,10 +49,9 @@ initTheme({ toggleButton: ui.themeToggle });
 await initI18n();
 wireCopyButtons();
 
-// Populate the language picker (English first)
+// Populate the language picker (English included via SUPPORTED_LOCALES)
 const localePicker = document.getElementById('locale-picker');
 if (localePicker) {
-  localePicker.append(el('option', { value: 'en' }, ['English']));
   for (const locale of SUPPORTED_LOCALES) {
     localePicker.append(el('option', { value: locale }, [LOCALE_NAMES[locale] ?? locale]));
   }

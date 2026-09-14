@@ -61,16 +61,16 @@ export function getLocale() {
   return active;
 }
 
-/** Switch locale, persist, and re-apply DOM translations. */
+/** Switch locale, persist first (reload may follow), then load and apply. */
 export async function setLocale(locale) {
   if (!SUPPORTED_LOCALES.includes(locale)) return;
-  active = locale;
-  table = locale === 'en' ? en : ((await loadLocale(locale)) ?? en);
   try {
     localStorage.setItem('mal.locale', locale);
   } catch {
     // storage unavailable
   }
+  active = locale;
+  table = locale === 'en' ? en : ((await loadLocale(locale)) ?? en);
   applyChrome();
 }
 

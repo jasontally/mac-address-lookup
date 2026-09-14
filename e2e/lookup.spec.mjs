@@ -76,21 +76,18 @@ test.describe('Path-based routing', () => {
 });
 
 test.describe('Locale switching', () => {
-  test('switching to German shows translated UI and lookups still work', async ({ page }) => {
+  test('picker offers English exactly once and switching to German works', async ({ page }) => {
     await page.goto('/');
     const picker = page.locator('#locale-picker');
     await picker.waitFor();
+    const options = await picker.locator('option').allTextContents();
+    expect(options.filter((o) => o === 'English')).toHaveLength(1);
+    // Switch to German via the picker; the reload must persist the choice
     await picker.selectOption('de');
-    await page.waitForLoadState();
-    // The German UI should show translated elements
-    await expect(page.locator('.lookup-input')).toBeVisible();
-    // Look up an address
+    await expect(picker).toHaveValue('de', { timeout: 10_000 });
     await page.goto('/001B21AABBCC');
-    await expect(page.locator('.vendor')).toHaveText('Intel Corporate');
-    // The format label should be in German
-    await expect(page.locator('.format-label').first()).not.toBeEmpty();
-    // Switch back to English
-    await page.goto('/');
+    await expect(page.locator('.format-label').first()).toHaveText('Hexadezimal');
+    // Reset to English
     const pickerAfter = page.locator('#locale-picker');
     await pickerAfter.waitFor();
     await pickerAfter.selectOption('en');
@@ -101,7 +98,7 @@ test.describe('Locale switching', () => {
     const picker = page.locator('#locale-picker');
     await picker.waitFor();
     await picker.selectOption('de');
-    await page.waitForLoadState();
+    await expect(picker).toHaveValue('de', { timeout: 10_000 });
     await page.goto('/001B21');
     await expect(page.locator('.vendor')).toHaveText('Intel Corporate');
     // Clear the locale back to English for other tests
