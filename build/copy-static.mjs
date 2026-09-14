@@ -36,7 +36,10 @@ export async function buildStatic({ root, distDir }) {
     format: 'esm',
     minify: true,
     target: ['es2022'],
-    outfile: appPath,
+    splitting: true,
+    outdir: assetsDir,
+    entryNames: 'app',
+    chunkNames: 'chunk.[hash]',
     legalComments: 'none',
     logLevel: 'silent',
   });

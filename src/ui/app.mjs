@@ -46,7 +46,7 @@ const ui = {
 };
 
 initTheme({ toggleButton: ui.themeToggle });
-initI18n();
+await initI18n();
 wireCopyButtons();
 
 // Populate the language picker (English first)
