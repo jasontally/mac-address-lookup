@@ -3,9 +3,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchRegistries } from './fetch-registries.mjs';
 import { fetchLineage, LINEAGE_SOURCE } from './fetch-lineage.mjs';
-import { buildFirstSeen, buildLineage } from './lineage.mjs';
+import { buildFirstSeen, buildLineage, normalizeOrgName } from './lineage.mjs';
 import { normalizeRegistries } from './normalize.mjs';
-import { writeLineageParquet, writeRegistryParquet } from './write-parquet.mjs';
+import { writeLineageParquet, writeRegistryParquet, writeShardParquets } from './write-parquet.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { buildHomePage } from './generate-home.mjs';
@@ -42,6 +42,23 @@ for (const [name, registryStats] of Object.entries(stats.perRegistry)) {
 }
 if (stats.duplicates.length > 0) {
   console.log(`  duplicates skipped: ${stats.duplicates.length}`);
+}
+
+// Global vendor totals, carried on every record so a single shard can report
+// correct portfolio stats without loading the full registry.
+const portfolios = new Map();
+for (const record of records) {
+  const key = normalizeOrgName(record.orgName);
+  if (key === '') continue;
+  const entry = portfolios.get(key) ?? { blocks: 0, addresses: 0 };
+  entry.blocks += 1;
+  entry.addresses += record.addressCount ?? 0;
+  portfolios.set(key, entry);
+}
+for (const record of records) {
+  const entry = portfolios.get(normalizeOrgName(record.orgName));
+  record.vendorBlocks = entry?.blocks ?? null;
+  record.vendorAddresses = entry?.addresses ?? null;
 }
 
 await mkdir(dataDir, { recursive: true });
@@ -91,6 +108,9 @@ console.log('Writing Parquet...');
 const parquet = await writeRegistryParquet(records, { outDir: dataDir });
 console.log(`  ${parquet.filename} (${formatBytes(parquet.bytes)})`);
 
+const shards = await writeShardParquets(records, { outDir: dataDir });
+console.log(`  shards: ${shards.count} files (${formatBytes(shards.bytes)} total)`);
+
 const refreshDate = (await readFile(path.join(root, 'data', 'refresh.txt'), 'utf8')).trim();
 const manifest = {
   schemaVersion: 1,
@@ -101,6 +121,7 @@ const manifest = {
     bytes: parquet.bytes,
     sha256: parquet.sha256,
   },
+  shards: shards.files,
   counts: {
     total: stats.total,
     private: stats.privateCount,

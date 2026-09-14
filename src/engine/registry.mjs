@@ -13,6 +13,8 @@ function toRecord(row) {
     country: row.country ?? null,
     isPrivate: Boolean(row.is_private),
     firstSeen: row.first_seen ?? null,
+    vendorBlocks: typeof row.vendor_blocks === 'number' ? row.vendor_blocks : null,
+    vendorAddresses: typeof row.vendor_addresses === 'number' ? row.vendor_addresses : null,
   };
 }
 
@@ -71,6 +73,18 @@ export function createRegistry(rows) {
     }
   }
   allRecords.sort((a, b) => (a.prefix < b.prefix ? -1 : a.prefix > b.prefix ? 1 : 0));
+
+  // Shard rows carry global vendor totals; prefer them over the local count.
+  for (const record of allRecords) {
+    if (record.vendorBlocks === null || record.vendorBlocks === undefined) continue;
+    const entry = portfolios.get(portfolioKey(record.orgName));
+    if (entry) {
+      entry.blocks = record.vendorBlocks;
+      if (record.vendorAddresses !== null && record.vendorAddresses !== undefined) {
+        entry.addresses = record.vendorAddresses;
+      }
+    }
+  }
 
   return {
     size: allRecords.length,

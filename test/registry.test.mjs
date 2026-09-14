@@ -132,6 +132,28 @@ test('portfolio aggregates blocks and address space by organization', () => {
   assert.equal(registry.records()[0].firstSeen, '2003-09-08');
 });
 
+test('portfolio prefers global vendor totals carried on shard rows', () => {
+  const shardRows = [
+    {
+      prefix: '001B21',
+      prefix_len: 24,
+      block_type: 'MA-L',
+      address_count: 16_777_216,
+      org_name: 'Intel Corporate',
+      org_address: '',
+      country: 'MY',
+      is_private: false,
+      vendor_blocks: 667,
+      vendor_addresses: 11_200_000_000,
+    },
+  ];
+  const registry = createRegistry(shardRows);
+  assert.deepEqual(registry.portfolio('Intel Corporate'), {
+    blocks: 667,
+    addresses: 11_200_000_000,
+  });
+});
+
 test('lookup returns a full result for registered addresses', () => {
   const registry = createRegistry(rows);
   const result = lookup(registry, '00:1A:2B:0C:1F:FF');

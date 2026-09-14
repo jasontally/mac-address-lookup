@@ -8,7 +8,7 @@ import {
   searchRegistry,
   summarizeLookups,
 } from '../engine/index.mjs';
-import { loadRegistry } from '../engine/load.mjs';
+import { loadLineage, loadManifest, loadRegistryFor } from '../engine/load.mjs';
 import { wireCopyButtons } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
 import { colonize, formatRelativeTime } from './format.mjs';
@@ -47,27 +47,49 @@ const ui = {
 initTheme({ toggleButton: ui.themeToggle });
 wireCopyButtons();
 
-let dataPromise = null;
+const data = {
+  manifestPromise: null,
+  lineagePromise: null,
+  shardRows: new Map(),
+  fullRegistry: null,
+};
 let dataReady = false;
 
-/** Load the registry once, on first use. */
-function ensureData() {
-  if (!dataPromise) {
+/** Load the manifest once, on first use. */
+function ensureManifest() {
+  if (!data.manifestPromise) {
     ui.status.textContent = 'Loading registry…';
-    dataPromise = loadRegistry()
-      .then(({ manifest, registry, lineage }) => {
+    data.manifestPromise = loadManifest()
+      .then((manifest) => {
         ui.status.textContent = '';
-        dataReady = true;
         if (ui.lastUpdated) ui.lastUpdated.textContent = manifest.refreshDate ?? '';
-        return { registry, lineage };
+        return manifest;
       })
       .catch((error) => {
-        dataPromise = null;
+        data.manifestPromise = null;
         ui.status.textContent = '';
         throw error;
       });
   }
-  return dataPromise;
+  return data.manifestPromise;
+}
+
+/** Lineage is optional: failures degrade to "no timeline" rather than an error. */
+function ensureLineage() {
+  if (!data.lineagePromise) {
+    data.lineagePromise = ensureManifest()
+      .then((manifest) => loadLineage(manifest))
+      .catch(() => null);
+  }
+  return data.lineagePromise;
+}
+
+/** Load a registry sized to the inputs (shards when possible). */
+async function registryFor(inputs) {
+  const manifest = await ensureManifest();
+  const loaded = await loadRegistryFor(manifest, inputs, { cache: data });
+  dataReady = true;
+  return loaded;
 }
 
 /** Route any user input: address/prefix, pasted text, or free-text search. */
@@ -95,12 +117,15 @@ async function runSingle(raw, { push = true } = {}) {
   if (!dataReady) renderPending(ui.result, normalized.hex);
 
   try {
-    const { registry, lineage } = await ensureData();
-    const result = lookup(registry, raw);
+    const [loaded, lineage] = await Promise.all([
+      registryFor([normalized.hex]),
+      ensureLineage(),
+    ]);
+    const result = lookup(loaded.registry, raw);
     const lineageEntry = result.kind === 'match' ? lineage?.forPrefix(result.match.prefix) : null;
 
     if (result.kind === 'match') {
-      const portfolio = registry.portfolio(result.match.orgName);
+      const portfolio = loaded.registry.portfolio(result.match.orgName);
       renderMatch(ui.result, result, {
         lineage: lineageEntry,
         portfolio,
@@ -170,8 +195,8 @@ async function runBatch(text, { push = true } = {}) {
   const limited = tokens.slice(0, MAX_BATCH);
 
   try {
-    const { registry } = await ensureData();
-    const entries = limited.map((token) => ({ raw: token, result: lookup(registry, token) }));
+    const loaded = await registryFor(limited);
+    const entries = limited.map((token) => ({ raw: token, result: lookup(loaded.registry, token) }));
     renderBatch(ui.result, entries, {
       summary: summarizeLookups(entries),
       extracted: fromText,
@@ -202,8 +227,8 @@ async function runBatch(text, { push = true } = {}) {
 
 async function runSearch(query, { push = true } = {}) {
   try {
-    const { registry, lineage } = await ensureData();
-    const outcome = searchRegistry(registry, lineage, query, { limit: 200 });
+    const [loaded, lineage] = await Promise.all([registryFor(null), ensureLineage()]);
+    const outcome = searchRegistry(loaded.registry, lineage, query, { limit: 200 });
     renderSearchResults(ui.result, {
       query,
       matches: outcome.matches,

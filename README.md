@@ -50,7 +50,7 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 
 - Static HTML/CSS/JavaScript — no backend at runtime; all lookup work happens in the browser
 - Single client bundle built with esbuild (engine + Hyparquet inlined): ~73 KB JS / ~14 KB CSS, gzip-served by Cloudflare
-- IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies, range-read capable) — no database or API
+- IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies) — sharded by prefix so a lookup fetches a few KB instead of the full registry; no database or API
 - Pre-rendered per-prefix pages generated at build time for SEO
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
 - Architecture, platform constraints, and capacity planning: [`docs/architecture.md`](docs/architecture.md)

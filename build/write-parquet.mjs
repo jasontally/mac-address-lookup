@@ -3,15 +3,9 @@ import { mkdir, readFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { parquetWriteFile } from 'hyparquet-writer';
 
-/**
- * Write the registry to a content-hashed Parquet file and return its metadata.
- * The hash is used by the client to cache the file immutably.
- */
-export async function writeRegistryParquet(records, { outDir }) {
-  await mkdir(outDir, { recursive: true });
-  const tmpPath = path.join(outDir, 'registry.parquet');
-
-  const columnData = [
+/** Registry table columns. Vendor totals are global and repeated per row. */
+function registryColumnData(records) {
+  return [
     { name: 'prefix', data: records.map((record) => record.prefix), type: 'STRING' },
     { name: 'prefix_len', data: records.map((record) => record.prefixLen), type: 'INT32' },
     { name: 'block_type', data: records.map((record) => record.blockType), type: 'STRING' },
@@ -21,15 +15,80 @@ export async function writeRegistryParquet(records, { outDir }) {
     { name: 'country', data: records.map((record) => record.country), type: 'STRING' },
     { name: 'is_private', data: records.map((record) => record.isPrivate), type: 'BOOLEAN' },
     { name: 'first_seen', data: records.map((record) => record.firstSeen ?? null), type: 'STRING' },
+    { name: 'vendor_blocks', data: records.map((record) => record.vendorBlocks ?? null), type: 'INT32' },
+    { name: 'vendor_addresses', data: records.map((record) => record.vendorAddresses ?? null), type: 'DOUBLE' },
   ];
+}
 
+async function writeHashedParquet({ columnData, dir, baseName }) {
+  await mkdir(dir, { recursive: true });
+  const tmpPath = path.join(dir, `${baseName}.parquet`);
   await parquetWriteFile({ filename: tmpPath, columnData });
   const buffer = await readFile(tmpPath);
   const sha256 = createHash('sha256').update(buffer).digest('hex');
-  const filename = `registry.${sha256.slice(0, 12)}.parquet`;
-  await rename(tmpPath, path.join(outDir, filename));
-
+  const filename = `${baseName}.${sha256.slice(0, 12)}.parquet`;
+  await rename(tmpPath, path.join(dir, filename));
   return { filename, sha256, bytes: buffer.byteLength };
+}
+
+/** Write the full registry to a content-hashed Parquet file. */
+export async function writeRegistryParquet(records, { outDir }) {
+  return writeHashedParquet({ columnData: registryColumnData(records), dir: outDir, baseName: 'registry' });
+}
+
+/** Maximum rows per shard before the group is split by the next hex digit. */
+export const SHARD_MAX_ROWS = 1500;
+
+/**
+ * Partition records into prefix-trie shards capped at `maxRows`.
+ * Hot ranges (for example the IAB cluster under 00:50:C2) split deeper while
+ * quiet ranges stay as a single shallow shard.
+ */
+export function buildShardGroups(records, maxRows = SHARD_MAX_ROWS) {
+  const groups = new Map();
+  const recurse = (list, key) => {
+    if (list.length <= maxRows || key.length >= 12) {
+      groups.set(key, list);
+      return;
+    }
+    const self = [];
+    const buckets = new Map();
+    for (const record of list) {
+      if (record.prefix.length <= key.length) {
+        self.push(record);
+        continue;
+      }
+      const nextKey = record.prefix.slice(0, key.length + 1);
+      if (!buckets.has(nextKey)) buckets.set(nextKey, []);
+      buckets.get(nextKey).push(record);
+    }
+    if (self.length > 0) groups.set(key, self);
+    for (const [nextKey, childList] of buckets) recurse(childList, nextKey);
+  };
+  recurse(records, '');
+  return groups;
+}
+
+/**
+ * Write one Parquet file per shard key (variable-length hex prefixes).
+ * Lookups select shards whose key is a prefix of the input, or the input's
+ * prefix for partial searches.
+ */
+export async function writeShardParquets(records, { outDir, maxRows = SHARD_MAX_ROWS } = {}) {
+  const shardsDir = path.join(outDir, 'shards');
+  const groups = buildShardGroups(records, maxRows);
+  const files = {};
+  let bytes = 0;
+  for (const key of [...groups.keys()].sort()) {
+    const result = await writeHashedParquet({
+      columnData: registryColumnData(groups.get(key)),
+      dir: shardsDir,
+      baseName: key === '' ? 'all' : key,
+    });
+    files[key] = `data/shards/${result.filename}`;
+    bytes += result.bytes;
+  }
+  return { files, count: Object.keys(files).length, bytes };
 }
 
 /**
@@ -37,9 +96,6 @@ export async function writeRegistryParquet(records, { outDir }) {
  * Fields such as `first_seen` are repeated per prefix for simple client grouping.
  */
 export async function writeLineageParquet(entries, { outDir }) {
-  await mkdir(outDir, { recursive: true });
-  const tmpPath = path.join(outDir, 'lineage.parquet');
-
   const rows = [];
   for (const entry of entries) {
     entry.events.forEach((event, seq) => {
@@ -67,11 +123,6 @@ export async function writeLineageParquet(entries, { outDir }) {
     { name: 'source', data: rows.map((row) => row.source), type: 'STRING' },
   ];
 
-  await parquetWriteFile({ filename: tmpPath, columnData });
-  const buffer = await readFile(tmpPath);
-  const sha256 = createHash('sha256').update(buffer).digest('hex');
-  const filename = `lineage.${sha256.slice(0, 12)}.parquet`;
-  await rename(tmpPath, path.join(outDir, filename));
-
-  return { filename, sha256, bytes: buffer.byteLength, prefixes: entries.length, events: rows.length };
+  const result = await writeHashedParquet({ columnData, dir: outDir, baseName: 'lineage' });
+  return { ...result, prefixes: entries.length, events: rows.length };
 }

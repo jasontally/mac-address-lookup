@@ -7,4 +7,4 @@ export { lookup } from './lookup.mjs';
 export { classifyInput, splitBatch } from './route.mjs';
 export { extractMacs, searchRegistry, summarizeLookups, reasonLabel } from './search.mjs';
 export { countryName } from './countries.mjs';
-export { loadRegistry, registryFromParquetUrl, lineageFromParquetUrl } from './load.mjs';
+export { loadRegistry, loadManifest, loadLineage, loadRegistryFor, shardKeysFor, registryFromParquetUrl, lineageFromParquetUrl } from './load.mjs';

@@ -4,7 +4,12 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { parquetReadObjects } from 'hyparquet';
-import { writeLineageParquet, writeRegistryParquet } from '../build/write-parquet.mjs';
+import {
+  buildShardGroups,
+  writeLineageParquet,
+  writeRegistryParquet,
+  writeShardParquets,
+} from '../build/write-parquet.mjs';
 import { createLineageIndex } from '../src/engine/lineage.mjs';
 
 test('writeRegistryParquet round-trips records through hyparquet', async () => {
@@ -20,6 +25,8 @@ test('writeRegistryParquet round-trips records through hyparquet', async () => {
       country: 'US',
       isPrivate: false,
       firstSeen: '2003-09-08',
+      vendorBlocks: 1,
+      vendorAddresses: 16_777_216,
     },
     {
       prefix: '741AE09',
@@ -51,10 +58,72 @@ test('writeRegistryParquet round-trips records through hyparquet', async () => {
   assert.equal(first.country, 'US');
   assert.equal(first.is_private, false);
   assert.equal(first.first_seen, '2003-09-08');
+  assert.equal(first.vendor_blocks, 1);
+  assert.equal(first.vendor_addresses, 16_777_216);
   assert.equal(second.prefix, '741AE09');
   assert.equal(second.prefix_len, 28);
   assert.equal(second.is_private, true);
   assert.equal(second.country, null);
+});
+
+test('writeShardParquets writes one file per first byte', async () => {
+  const outDir = await mkdtemp(path.join(tmpdir(), 'shards-'));
+  const record = (prefix, orgName) => ({
+    prefix,
+    prefixLen: 24,
+    blockType: 'MA-L',
+    addressCount: 16_777_216,
+    orgName,
+    orgAddress: '',
+    country: 'US',
+    isPrivate: false,
+    firstSeen: null,
+    vendorBlocks: 1,
+    vendorAddresses: 16_777_216,
+  });
+  const records = [
+    record('001A2B', 'Alpha'),
+    record('00FFEE', 'Beta'),
+    record('DEAD01', 'Gamma'),
+    record('DEAD02', 'Delta'),
+  ];
+
+  const result = await writeShardParquets(records, { outDir, maxRows: 2 });
+  assert.equal(result.count, 2);
+  assert.deepEqual(Object.keys(result.files).sort(), ['0', 'D']);
+
+  const shardPath = path.join(outDir, 'shards', result.files.D.replace('data/shards/', ''));
+  const buffer = await readFile(shardPath);
+  const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  const rows = await parquetReadObjects({ file: arrayBuffer });
+  assert.equal(rows.length, 2);
+  assert.deepEqual(
+    rows.map((row) => row.prefix).sort(),
+    ['DEAD01', 'DEAD02'],
+  );
+});
+
+test('buildShardGroups splits hot ranges by deeper prefixes', () => {
+  const record = (prefix) => ({ prefix });
+  const records = [
+    record('001A2B'),
+    record('001A2C'),
+    record('001A2D'),
+    record('8C1F64AFA'),
+    record('8C1F64AFB'),
+    record('DEAD01'),
+  ];
+  const groups = buildShardGroups(records, 2);
+  // 001A2* exceeds two rows and splits; quiet ranges stay together.
+  const keys = [...groups.keys()].sort();
+  assert.ok(keys.length > 3);
+  const deadGroup = [...groups.values()].find((list) =>
+    list.some((item) => item.prefix === 'DEAD01'),
+  );
+  assert.deepEqual(deadGroup.map((item) => item.prefix), ['DEAD01']);
+  for (const list of groups.values()) {
+    assert.ok(list.length <= 2, `group has ${list.length} rows`);
+  }
 });
 
 test('writeLineageParquet round-trips events through hyparquet', async () => {

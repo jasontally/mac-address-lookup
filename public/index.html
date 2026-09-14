@@ -33,15 +33,16 @@
       })();
     </script>
     <script>
-      // Start the data fetch before the app bundle arrives on dynamic lookups.
+      // Start the data fetches before the app bundle arrives on dynamic lookups.
       (function () {
         try {
           var path = decodeURIComponent(location.pathname).replace(/^\/+/, '');
           var hasQuery = new URLSearchParams(location.search).has('q');
-          var isLookup = hasQuery || /^[0-9a-fA-F][0-9a-fA-F\s:.\-]*$/.test(path);
+          var hex = path.replace(/[\s:.-]/g, '').toUpperCase();
+          var isLookup = hasQuery || /^[0-9A-F]/.test(hex);
           if (!isLookup) return;
-          // Reserve the result area by hiding the content below it until the
-          // lookup renders, so inserting the result cannot shift the page.
+          // Reserve the result area until the lookup renders, so inserting the
+          // result card cannot shift the page.
           document.documentElement.dataset.pendingLookup = '1';
           var manifest = fetch('/data/manifest.json').then(function (response) {
             if (!response.ok) throw new Error('manifest ' + response.status);
@@ -54,11 +55,32 @@
                 })
               : null;
           };
+          var shardsForInput = null;
+          if (!hasQuery && /^[0-9A-F]/.test(hex)) {
+            shardsForInput = manifest.then(function (data) {
+              var keys = data && data.shards ? Object.keys(data.shards) : [];
+              var selected = [];
+              for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var match = hex.length >= 6 ? hex.indexOf(key) === 0 : key.indexOf(hex) === 0;
+                if (match) selected.push(key);
+              }
+              return Promise.all(
+                selected.map(function (key) {
+                  return buffer(data.shards[key]).then(function (bytes) {
+                    return [key, bytes];
+                  });
+                }),
+              ).then(function (pairs) {
+                var map = {};
+                for (var j = 0; j < pairs.length; j++) map[pairs[j][0]] = pairs[j][1];
+                return map;
+              });
+            });
+          }
           window.__malPreload = {
             manifest: manifest,
-            registry: manifest.then(function (data) {
-              return buffer(data && data.data && data.data.file);
-            }),
+            shardsForInput: shardsForInput,
             lineage: manifest.then(function (data) {
               return buffer(data && data.lineage && data.lineage.file);
             }),
