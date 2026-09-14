@@ -336,51 +336,55 @@ function renderHistory() {
   }
 }
 
-ui.form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  handleInput(ui.input.value);
-});
+const staticPage = document.body.dataset.staticPage === 'true';
 
-ui.batchForm?.addEventListener('submit', (event) => {
-  event.preventDefault();
-  runBatch(ui.batchInput.value);
-});
+if (!staticPage) {
+  ui.form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    handleInput(ui.input.value);
+  });
 
-ui.examples?.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-value]');
-  if (!button) return;
-  const value = button.dataset.value;
-  ui.input.value = value;
-  runSingle(value);
-});
+  ui.batchForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    runBatch(ui.batchInput.value);
+  });
 
-ui.historyClear?.addEventListener('click', () => {
-  clearHistory();
-  renderHistory();
-});
+  ui.examples?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-value]');
+    if (!button) return;
+    const value = button.dataset.value;
+    ui.input.value = value;
+    runSingle(value);
+  });
 
-window.addEventListener('popstate', () => {
-  const route = parseLookup(location);
-  if (route) runRoute(route);
-});
-
-renderHistory();
-
-// Pre-rendered prefix pages already contain the result; skip the initial
-// lookup (and the data fetch) but record the visit in history.
-if (ui.result.dataset.prerendered === 'true') {
-  const hex = ui.result.dataset.hex;
-  if (hex) {
-    addHistory({ hex, label: ui.result.dataset.label || 'Vendor' });
+  ui.historyClear?.addEventListener('click', () => {
+    clearHistory();
     renderHistory();
-  }
-} else {
-  const route = parseLookup(location);
-  if (route) {
-    runRoute(route);
-  } else if (location.pathname !== '/' || location.search !== '') {
-    // Unknown path or non-lookup query: this is a soft 404 served by the SPA shell.
-    setRobotsMeta(true);
-    setCanonical(`${location.origin}/`);
+  });
+
+  window.addEventListener('popstate', () => {
+    const route = parseLookup(location);
+    if (route) runRoute(route);
+  });
+
+  renderHistory();
+
+  // Pre-rendered prefix pages already contain the result; skip the initial
+  // lookup (and the data fetch) but record the visit in history.
+  if (ui.result.dataset.prerendered === 'true') {
+    const hex = ui.result.dataset.hex;
+    if (hex) {
+      addHistory({ hex, label: ui.result.dataset.label || 'Vendor' });
+      renderHistory();
+    }
+  } else {
+    const route = parseLookup(location);
+    if (route) {
+      runRoute(route);
+    } else if (location.pathname !== '/' || location.search !== '') {
+      // Unknown path or non-lookup query: this is a soft 404 served by the SPA shell.
+      setRobotsMeta(true);
+      setCanonical(`${location.origin}/`);
+    }
   }
 }

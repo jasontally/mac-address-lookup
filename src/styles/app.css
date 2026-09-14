@@ -506,6 +506,12 @@ main {
   }
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .faq-list .disclosure {
   margin: var(--space-3) 0;
 }

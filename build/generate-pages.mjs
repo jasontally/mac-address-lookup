@@ -30,6 +30,7 @@ export async function generatePages({
   pageBudget = 90_000,
   vendorPriority = {},
   lastmod,
+  extraUrls = [],
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
 }) {
   const { selected, dropped, selectedByType, droppedByType } = selectPages(records, {
@@ -49,7 +50,7 @@ export async function generatePages({
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });
 
-  const urls = [`${site}/`, ...selected.map((record) => `${site}/${record.prefix}`)];
+  const urls = [`${site}/`, `${site}/help`, ...selected.map((record) => `${site}/${record.prefix}`)];
   const sitemap = await writeSitemaps({ urls, site, outDir, lastmod });
 
   return {

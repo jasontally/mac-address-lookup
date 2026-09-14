@@ -10,7 +10,6 @@ import { writeSourceCache } from './source-cache.mjs';
 import { DEFAULT_SITE } from './source-files.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
-import { buildHomePage } from './generate-home.mjs';
 import { generatePages } from './generate-pages.mjs';
 import { REGISTRIES } from './registries.mjs';
 
@@ -168,9 +167,6 @@ console.log(
     `${staticAssets.cssFile} ${formatBytes(staticAssets.cssBytes)}`,
 );
 
-const home = await buildHomePage({ root, distDir, assets: staticAssets });
-console.log(`  index.html ${formatBytes(home.bytes)} (FAQ content + schema injected)`);
-
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
 if (!flags.has('--no-pages')) {
   console.log(`Generating up to ${pageBudget.toLocaleString('en-US')} prefix pages...`);
@@ -186,6 +182,7 @@ if (!flags.has('--no-pages')) {
     pageBudget,
     vendorPriority,
     lastmod: refreshDate,
+    extraUrls: ['/help'],
     assets: staticAssets,
   });
   console.log(

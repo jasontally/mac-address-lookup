@@ -1,7 +1,8 @@
-import { cp, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import * as esbuild from 'esbuild';
+import { buildHelpPage } from './build-help.mjs';
 
 async function hashAsset(filePath) {
   const buffer = await readFile(filePath);
@@ -60,6 +61,19 @@ export async function buildStatic({ root, distDir }) {
     path.join(assetsDir, 'THIRD-PARTY.txt'),
     `hyparquet — MIT License\nhttps://github.com/hyparam/hyparquet\n\n${hyparquetLicense}\n`,
   );
+
+  // Substitute asset tokens in every root-level HTML file.
+  const appToken = `/assets/${app.name}`;
+  const cssToken = `/assets/${css.name}`;
+  for (const file of await readdir(distDir)) {
+    if (!file.endsWith('.html')) continue;
+    const htmlPath = path.join(distDir, file);
+    let html = await readFile(htmlPath, 'utf8');
+    html = html.replaceAll('{{APP_CSS}}', cssToken).replaceAll('{{APP_JS}}', appToken);
+    await writeFile(htmlPath, html);
+  }
+
+  await buildHelpPage({ distDir });
 
   const [appStat, cssStat] = await Promise.all([
     stat(path.join(assetsDir, app.name)),

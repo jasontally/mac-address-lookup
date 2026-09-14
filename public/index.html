@@ -134,7 +134,7 @@
               "@type": "SearchAction",
               "target": {
                 "@type": "EntryPoint",
-                "urlTemplate": "https://mac.jasontally.com/?q={search_term_string}"
+                "urlTemplate": "https://mac.jasontally.com/{search_term_string}"
               },
               "query-input": "required name=search_term_string"
             }
@@ -150,9 +150,6 @@
         ]
       }
     </script>
-    <script type="application/ld+json">
-      {{FAQ_SCHEMA}}
-    </script>
     <script type="module" src="{{APP_JS}}"></script>
   </head>
   <body>
@@ -160,12 +157,15 @@
 
     <header class="site-header">
       <div class="container">
-        <h1 class="wordmark"><a href="/">MAC Address Lookup</a></h1>
-        <button type="button" id="theme-toggle" class="button button--ghost button--icon" aria-label="Toggle theme">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
-          </svg>
-        </button>
+        <a class="wordmark" href="/">MAC Address Lookup</a>
+        <div class="header-actions">
+          <a class="button button--ghost button--icon" href="/help" aria-label="Help and documentation" title="Help and documentation">?</a>
+          <button type="button" id="theme-toggle" class="button button--ghost button--icon" aria-label="Toggle theme">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -239,79 +239,6 @@
           <p><button type="button" class="button button--ghost button--small" id="history-clear">Clear history</button></p>
         </section>
 
-        <section class="prose">
-          <h2>What this tool tells you</h2>
-          <p>
-            Every network interface has a MAC address, and its first three bytes — the
-            <abbr title="Organizationally Unique Identifier">OUI</abbr> — are registered with the IEEE
-            Registration Authority. This lookup resolves that prefix against the complete IEEE registries
-            using longest-prefix matching, so small blocks resolve to the correct organization rather than a
-            generic parent block.
-          </p>
-          <ul>
-            <li>Vendor and registered organization, with block type and address range</li>
-            <li>Randomization detection — modern phones randomize Wi-Fi addresses, which have no vendor</li>
-            <li>Virtual-machine prefixes for VMware, VirtualBox, Hyper-V, Parallels, Xen, QEMU/KVM, and Docker</li>
-            <li>Prefix lineage — acquisitions and renames, with the dates each change was first observed</li>
-            <li>Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local</li>
-          </ul>
-
-          <h2>How MAC address lookup works</h2>
-          <p>
-            A MAC address is 48 bits, usually written as six hex pairs such as <code>00:1B:21:3C:4D:5E</code>.
-            The IEEE assigns the leading bits to organizations as registered blocks: MA-L blocks are 24 bits,
-            MA-M blocks are 28 bits, and MA-S and IAB blocks are 36 bits. A lookup tries the longest
-            registered prefix first, so a device inside an MA-S block is attributed to the company that holds
-            that block, not the parent MA-L. The first octet also carries two flag bits: the I/G bit marks
-            multicast addresses, and the U/L bit marks locally administered addresses such as randomized
-            privacy addresses and virtual machines.
-          </p>
-
-          <h2>MAC address block types</h2>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">Registry</th>
-                  <th scope="col">Prefix length</th>
-                  <th scope="col">Addresses per block</th>
-                  <th scope="col">Typical use</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>MA-L</td><td>24 bits (6 hex)</td><td>16,777,216</td><td>Classic OUI; the vast majority of network hardware</td></tr>
-                <tr><td>MA-M</td><td>28 bits (7 hex)</td><td>1,048,576</td><td>Mid-size allocations, common for newer vendors</td></tr>
-                <tr><td>MA-S</td><td>36 bits (9 hex)</td><td>4,096</td><td>Small allocations; IoT modules and niche hardware</td></tr>
-                <tr><td>IAB</td><td>36 bits (9 hex)</td><td>4,096</td><td>Legacy Individual Address Blocks from reserved ranges</td></tr>
-                <tr><td>CID</td><td>24 bits (6 hex)</td><td>—</td><td>Company identifiers, not assigned to network interfaces</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h2>How to find your own MAC address</h2>
-          <ul>
-            <li><strong>Windows:</strong> run <code>getmac /v</code>, or open Settings → Network &amp; internet → Hardware properties.</li>
-            <li><strong>macOS:</strong> open System Settings → Network → Details, or run <code>ifconfig en0 | grep ether</code>.</li>
-            <li><strong>Linux:</strong> run <code>ip link</code> and read the <code>link/ether</code> value.</li>
-            <li><strong>iPhone / Android:</strong> open the Wi-Fi network details. The "private Wi-Fi address" shown there is randomized and will not resolve to a vendor.</li>
-          </ul>
-
-          <h2>Frequently asked questions</h2>
-          <div class="faq-list">
-{{FAQ_LIST}}
-          </div>
-
-          <h2>Data sources and accuracy</h2>
-          <p>
-            Current assignments come from the IEEE Registration Authority's MA-L, MA-M, MA-S, IAB, and CID
-            registries, refreshed on every deploy. Historical changes come from
-            <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> (MIT),
-            which records when an organization name changed in the public data. Those dates are observation
-            dates, not legal transfer dates, and the registries do not reassign most prefixes — an
-            acquisition usually leaves the old vendor name on existing hardware forever.
-          </p>
-        </section>
-
         <noscript>
           <div class="banner banner--info">
             <strong>JavaScript required</strong>
@@ -330,8 +257,8 @@
           Bundled software: <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> (MIT).
         </p>
         <p>
-          All lookups run in your browser — the addresses you type are never sent to a server. Data refreshed
-          <span id="last-updated">on the latest deploy</span>.
+          All lookups run in your browser — the addresses you look up are never sent to a server.
+          <a href="/help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener">Source on GitHub</a>.
         </p>
       </div>
