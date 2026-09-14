@@ -4,6 +4,8 @@ Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial M
 
 **[mac.jasontally.com](https://mac.jasontally.com)**
 
+There are no ads and no tracking. Similar lookup pages are often wrapped in intrusive advertising, which is what prompted this project: identifying a MAC vendor is a small utility, and it should be possible to build and host it for close to nothing.
+
 ## Features
 
 - **Full or partial lookup** — works with complete 48-bit addresses or just the leading hex digits (`00:1A:2B`, `001A2B3`, `001A2B3C4`)
@@ -18,8 +20,8 @@ Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial M
 - **Batch summary** — compact counts by vendor, randomized addresses, virtual machines, and unregistered prefixes for pasted lists
 - **Registration dates and portfolios** — first-registered dates for every prefix, and per-vendor block/address-space totals
 - **Format conversions** — see the address in every common notation
-- **URL-driven lookups** — no pasting required: `mac.jasontally.com/001A2B` renders the result directly. Batch lookups work the same way.
-- **Static & private** — the IEEE dataset loads once in the browser; all searching, processing, and presentation happen locally. The addresses you look up are never sent to a server, and the site sets no cookies.
+- **URL-driven lookups** — no pasting required: `mac.jasontally.com/001A2B` renders the result directly. Batch lookups and vendor searches work the same way.
+- **Static & private** — the IEEE dataset loads in the browser; all searching, processing, and presentation happen locally. The addresses you look up are never sent to a server, and the site sets no cookies.
 - **Dark mode** — follows your system preference by default, with a manual toggle
 - **History, copy & share** — recent lookups are stored locally; results are copyable and permalinked
 
@@ -38,9 +40,9 @@ Navigate directly to a result — no form submission needed. Everything after `/
 
 The page consumes the value from the URL path and displays the result without any manual input.
 
-## SEO architecture
+## Pre-rendered pages
 
-The site is static where it matters. A build step pre-renders an HTML page for as many registered IEEE prefixes as fit the platform's file budget, prioritizing the largest and most-searched prefixes (see [platform constraints and page budget](docs/architecture.md#capacity--page-budget)). Every pre-rendered page contains real vendor content — no JavaScript required for crawlers. The interactive tool hydrates on top and resolves arbitrary full or partial addresses, including prefixes without a pre-rendered page, via the client-side SPA fallback (assets-only deployment, no server code). Generated pages include canonical URLs, schema.org markup, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
+A build step pre-renders a real HTML page for every registered IEEE assignment — each OUI (MA-L), MA-M, MA-S, IAB, and CID prefix — so that search engines can index those pages and people can find them when they look up a prefix or a vendor. Every page contains the vendor record without requiring JavaScript, and the interactive tool hydrates on top to resolve everything else in the browser: full addresses, partial prefixes, batch lists, vendor names, former owners, countries, and registration years. Generated pages include canonical URLs, schema.org metadata, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
 
 ## Data sources
 
@@ -50,29 +52,12 @@ The site is static where it matters. A build step pre-renders an HTML page for a
 ## Tech stack
 
 - Static HTML/CSS/JavaScript — no backend at runtime; all lookup work happens in the browser
-- Single client bundle built with esbuild (engine + Hyparquet inlined): ~73 KB JS / ~14 KB CSS, gzip-served by Cloudflare
+- Single client bundle built with esbuild (engine + Hyparquet inlined): ~88 KB JS / ~15 KB CSS, gzip-served by Cloudflare
 - IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies) — sharded by prefix so a lookup fetches a few KB instead of the full registry; no database or API
-- Pre-rendered per-prefix pages generated at build time for SEO
+- Pre-rendered prefix pages generated at build time so search engines can index them and people can find them
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
 - Architecture, platform constraints, and capacity planning: [`docs/architecture.md`](docs/architecture.md)
 - Design language and UX requirements: [`docs/design.md`](docs/design.md)
-
-## Status
-
-All core milestones are complete and the site is live at [mac.jasontally.com](https://mac.jasontally.com): 58,694 pre-rendered prefix pages, a client-side lookup engine, prefix lineage, and a full FAQ. A scheduled workflow checks the IEEE and mac-tracker sources weekly and redeploys only when data changed (plus a forced monthly refresh for SEO).
-
-Possible future work: demand-driven page prioritization from privacy-friendly analytics, reverse vendor search, and device-type hints.
-
-## Development
-
-```bash
-npm install
-npm run build                  # fetch data, build dist/ (all pages)
-npm run build -- --no-pages    # data + assets only, for quick iteration
-PAGE_BUDGET=500 npm run build  # limit pre-rendered pages
-npm run serve                  # preview dist/ at http://localhost:8788 (SPA fallback)
-npm test                       # unit tests
-```
 
 ## License
 

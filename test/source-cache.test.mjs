@@ -71,7 +71,7 @@ test('shouldRefresh skips no-op weeks and forces a monthly redeploy', () => {
   });
   assert.deepEqual(shouldRefresh({ changed: false, refreshDate: '2026-08-03', now }), {
     refresh: true,
-    reason: 'monthly-seo',
+    reason: 'monthly-refresh',
   });
   assert.deepEqual(shouldRefresh({ changed: false, refreshDate: '2026-09-01', now }), {
     refresh: false,
@@ -79,7 +79,7 @@ test('shouldRefresh skips no-op weeks and forces a monthly redeploy', () => {
   });
   assert.deepEqual(shouldRefresh({ changed: false, refreshDate: '', now }), {
     refresh: true,
-    reason: 'monthly-seo',
+    reason: 'monthly-refresh',
   });
 });
 

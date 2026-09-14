@@ -35,7 +35,7 @@ export function shouldRefresh({ changed, refreshDate, now = new Date() }) {
   if (changed) return { refresh: true, reason: 'sources-changed' };
   const month = now.toISOString().slice(0, 7);
   if (!refreshDate || refreshDate.slice(0, 7) !== month) {
-    return { refresh: true, reason: 'monthly-seo' };
+    return { refresh: true, reason: 'monthly-refresh' };
   }
   return { refresh: false, reason: 'no-change' };
 }

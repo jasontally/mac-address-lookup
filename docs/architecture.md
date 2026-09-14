@@ -6,7 +6,7 @@ Related docs: [design language](design.md) · [README](../README.md)
 
 ## Overview
 
-A static, assets-only Cloudflare Worker serving a client-side MAC address lookup tool. Pre-rendered HTML pages cover the largest and most-searched IEEE prefixes for SEO; everything else (trimmed long-tail prefixes, full-MAC deep links, batch) is resolved in the browser via the SPA fallback. The registry and its prefix-lineage history ship as two small Parquet files read with Hyparquet. No server code, no API, no in-app analytics.
+A static, assets-only Cloudflare Worker serving a client-side MAC address lookup tool. Pre-rendered HTML pages cover the largest and most-searched IEEE prefixes so search engines can index them and people can find them; everything else (trimmed long-tail prefixes, full-MAC deep links, batch) is resolved in the browser via the SPA fallback. The registry and its prefix-lineage history ship as two small Parquet files read with Hyparquet. No server code, no API, no in-app analytics. The project is feature-complete; this document is the maintenance reference.
 
 ```
 Build (Workers Builds)                          Runtime (Cloudflare edge)
@@ -26,7 +26,7 @@ Build (Workers Builds)                          Runtime (Cloudflare edge)
 | Hosting | Cloudflare Workers Static Assets, assets-only (no Worker script), paid plan |
 | Fallback | `not_found_handling: "single-page-application"` → `200` + shell for unmatched paths |
 | Data | Apache Parquet files (registry + lineage), read in-browser with Hyparquet; Apache Arrow JS not used |
-| SEO | Pre-rendered priority tiers, flat `<prefix>.html` pages, canonical uppercase URLs, sitemap for pre-rendered pages only (provisional) |
+| Indexing | Pre-rendered priority tiers, flat `<prefix>.html` pages, canonical uppercase URLs, sitemap for pre-rendered pages only (provisional) |
 | Design | Kumo-inspired semantic tokens, monochrome + status colors, system font stack, system-aware dark mode + toggle |
 | Deep links | Every single-segment path: `/001A2B`, `/apple`, `/001A2B,005056` (comma-separated batch, cap 100); legacy `?q=` still accepted and canonicalized to the path form |
 | Partials | < 6 hex lists matching prefixes, capped at 200 with total count |
@@ -49,7 +49,7 @@ mac-address-lookup/
 │   ├── select-pages.mjs    # budget + priority scoring
 │   ├── page-template.mjs   # static prefix page HTML
 │   ├── generate-pages.mjs  # page writes + sitemaps
-│   ├── generate-seo.mjs    # sitemap renderers
+│   ├── generate-sitemaps.mjs  # sitemap renderers
 │   ├── generate-home.mjs   # FAQ injection into the home page
 │   ├── faq.mjs             # FAQ content + schema (single source)
 │   ├── copy-static.mjs     # shell copy + esbuild client bundle
@@ -86,7 +86,7 @@ Caching: `data/manifest.json` and `data/sources-index.json` → `no-cache` (they
 
 - **Deployed raw cache.** Alongside the Parquet data, the build writes the raw inputs (five IEEE CSVs + `macs.json`, **6 files / ~22 MB**) to `dist/data/sources/` with content-hashed filenames, plus `data/sources-index.json` mapping each logical name to its hashed path, per-file sha256, and a combined `sourceHash`. These files are cached immutably and only fetched by builds and CI, never by pages.
 - **Fetch order:** upstream (retries + backoff) → the live site's raw copy (resolved through `data/sources-index.json`) → fail. Because the fallback is served by Cloudflare's own CDN, an IEEE outage or block cannot stop rebuilds; only the very first build has no fallback. `--no-fallback` disables the fallback for local experiments.
-- **Weekly change detection.** `.github/workflows/data-refresh.yml` runs every Monday: it fetches the upstream sources, hashes them, and compares against the deployed `sources-index.json`. A refresh-date bump is committed only when something changed; if the deployed data is from an earlier month it forces a bump anyway, so the site redeploys at least monthly for SEO freshness. Pushes made with `GITHUB_TOKEN` do not start other Actions workflows but do reach GitHub Apps, so the commit still triggers Workers Builds.
+- **Weekly change detection.** `.github/workflows/data-refresh.yml` runs every Monday: it fetches the upstream sources, hashes them, and compares against the deployed `sources-index.json`. A refresh-date bump is committed only when something changed; if the deployed data is from an earlier month it forces a bump anyway, so the site redeploys at least monthly to keep indexed pages current. Pushes made with `GITHUB_TOKEN` do not start other Actions workflows but do reach GitHub Apps, so the commit still triggers Workers Builds.
 - **Manual alternatives** (if a mirror is ever needed): Debian's [`ieee-data`](https://salsa.debian.org/debian/ieee-data) package, npm [`oui-data`](https://github.com/silverwind/oui-data) (BSD-2-Clause; MA-L/MA-M/MA-S names, addresses, countries — no IAB/CID), [`jfisbein/ouidb-json`](https://github.com/jfisbein/ouidb-json), Wireshark's `manuf` (GPL-2.0-or-later, derived), and runZero mac-tracker (MIT, already used for lineage).
 
 Schema versioning: the manifest carries `schemaVersion`. The client refuses to run against a newer schema and shows a reload message, so an older cached bundle fails safely instead of querying columns it does not understand. Additive columns are tolerated (`createRegistry` reads known fields only); renames or removals require a version bump (`SUPPORTED_SCHEMA_VERSION` in `src/engine/load.mjs`).
@@ -234,7 +234,7 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 | Reserved headroom | 9,959 |
 | **Total** | **100,000** |
 
-## Page generation & SEO
+## Pre-rendered pages
 
 - Page selection follows the page budget policy above.
 - Each page is a flat `<PREFIX>.html` file; Cloudflare's `html_handling` serves it at `/<PREFIX>` and 307-redirects `.html`/trailing-slash variants to the canonical URL.
@@ -257,9 +257,10 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 
 ## Build & deployment
 
-- **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → SEO artifacts → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
+- **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
 - **Node version:** build image defaults to Node 24.18.0; pin with `.nvmrc` (`24`).
-- **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. The weekly GitHub Action does this automatically when sources change (see [Source resilience & data refresh](#source-resilience--data-refresh)), and forces a monthly refresh for SEO.
+- **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. The weekly GitHub Action does this automatically when sources change (see [Source resilience & data refresh](#source-resilience--data-refresh)), and forces a monthly refresh so indexed pages stay current.
+- **Local development:** `npm install`; `npm run build` (or `npm run build -- --no-pages` for quick iterations, `PAGE_BUDGET=500 npm run build` to limit pages); `npm run serve` previews `dist/` at `http://localhost:8788` with the SPA fallback; `npm test` runs the unit tests; `node build/check-sources.mjs` performs the weekly source check locally.
 - **Limits:** 3,000 build min/month free, 6,000 paid (+$0.005/min after); 20-minute build timeout; concurrent builds 1 free / 6 paid; paid build environment: 4 vCPU / 8 GB RAM / 20 GB disk.
 - **Runtime cost:** static asset requests are free and unlimited; an assets-only deployment has no billed Worker invocations.
 - **Measured duration:** ~5 minutes end-to-end for 58,707 files / ~448 MB (2026-09-12), comfortably inside the 20-minute timeout. If the file set grows, the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.
@@ -284,3 +285,4 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 1. **Cloudflare Web Analytics beacon:** the zone injects `static.cloudflareinsights.com/beacon.min.js` and `/cdn-cgi/rum`. Keep (cookieless, aggregate) or disable in the dashboard; site copy says addresses are never sent to a server and no cookies are set.
 2. Monitor Search Console indexing; re-evaluate the provisional sitemap policy if the page budget ever trims long-tail pages.
 3. CID pages are included while they fit the budget (219 files); revisit only if the budget binds.
+4. **Device-type hints (not implemented, unlikely to be reliable):** IEEE registries record who owns a prefix, never what devices use it. Vendors span categories (HP: printers, PCs, servers; HPE: servers and network gear; Samsung: phones, TVs, appliances, SSDs), contract manufacturers and module vendors (AzureWave, Wistron, Foxconn) appear in many product types, and a single vendor's prefixes are spread across product lines with no public mapping. Sources that offer categories — for example OUI-Master-Database's `device_type` field, or vendor-name heuristics like "name contains Printer" — are guesses rather than registrations. If this is ever added it should be a clearly labeled low-confidence category derived from a curated vendor list, never a claim about the specific device.

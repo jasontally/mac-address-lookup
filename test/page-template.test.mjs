@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 import { renderPrefixPage } from '../build/page-template.mjs';
-import { chunkUrls, renderSitemapIndex, renderUrlSet } from '../build/generate-seo.mjs';
+import { chunkUrls, renderSitemapIndex, renderUrlSet } from '../build/generate-sitemaps.mjs';
 
 const record = {
   prefix: '001A2B',

@@ -1,9 +1,9 @@
 name: Data refresh
 
 # Checks upstream data sources weekly and commits a refresh date bump only when
-# something changed (or once a month for SEO freshness). The commit triggers a
-# Cloudflare Workers Build. Pushes made with GITHUB_TOKEN do not start other
-# Actions workflows, but they do reach GitHub Apps such as Cloudflare's.
+# something changed (or once a month, to keep indexed pages current). The commit
+# triggers a Cloudflare Workers Build. Pushes made with GITHUB_TOKEN do not start
+# other Actions workflows, but they do reach GitHub Apps such as Cloudflare's.
 
 on:
   schedule:

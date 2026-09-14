@@ -4,7 +4,7 @@ import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { renderPrefixPage } from './page-template.mjs';
 import { selectPages } from './select-pages.mjs';
-import { writeSitemaps } from './generate-seo.mjs';
+import { writeSitemaps } from './generate-sitemaps.mjs';
 
 async function mapConcurrent(items, limit, fn) {
   let index = 0;
