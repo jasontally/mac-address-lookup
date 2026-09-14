@@ -25,6 +25,13 @@ function prefixFromKey(key) {
   return { prefix: hex.slice(0, mask / 4).toUpperCase(), prefixLen: mask };
 }
 
+/** Map of prefix → lineage event count for prefixes that changed hands. */
+export function countLineageEvents(entries) {
+  const counts = new Map();
+  for (const entry of entries) counts.set(entry.prefix, entry.events.length);
+  return counts;
+}
+
 /** Earliest observed date for every tracked prefix (not just changed ones). */
 export function buildFirstSeen(history) {
   const map = new Map();

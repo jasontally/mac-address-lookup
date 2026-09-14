@@ -117,12 +117,13 @@ async function runSingle(raw, { push = true } = {}) {
   if (!dataReady) renderPending(ui.result, normalized.hex);
 
   try {
-    const [loaded, lineage] = await Promise.all([
-      registryFor([normalized.hex]),
-      ensureLineage(),
-    ]);
+    const loaded = await registryFor([normalized.hex]);
     const result = lookup(loaded.registry, raw);
-    const lineageEntry = result.kind === 'match' ? lineage?.forPrefix(result.match.prefix) : null;
+    // Only prefixes that changed hands need the lineage file at all.
+    const needsLineage = result.kind === 'match' && (result.match.lineageCount ?? 0) > 1;
+    const lineage = needsLineage ? await ensureLineage() : null;
+    const lineageEntry =
+      result.kind === 'match' ? (lineage?.forPrefix(result.match.prefix) ?? null) : null;
 
     if (result.kind === 'match') {
       const portfolio = loaded.registry.portfolio(result.match.orgName);

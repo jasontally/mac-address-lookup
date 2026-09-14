@@ -130,6 +130,7 @@ test('portfolio aggregates blocks and address space by organization', () => {
   assert.equal(registry.portfolio('Nonexistent'), null);
   assert.equal(registry.records().length, 5);
   assert.equal(registry.records()[0].firstSeen, '2003-09-08');
+  assert.equal(registry.records()[0].lineageCount, 0);
 });
 
 test('portfolio prefers global vendor totals carried on shard rows', () => {

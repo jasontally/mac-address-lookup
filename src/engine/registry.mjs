@@ -13,6 +13,7 @@ function toRecord(row) {
     country: row.country ?? null,
     isPrivate: Boolean(row.is_private),
     firstSeen: row.first_seen ?? null,
+    lineageCount: typeof row.lineage_count === 'number' ? row.lineage_count : 0,
     vendorBlocks: typeof row.vendor_blocks === 'number' ? row.vendor_blocks : null,
     vendorAddresses: typeof row.vendor_addresses === 'number' ? row.vendor_addresses : null,
   };

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchRegistries } from './fetch-registries.mjs';
 import { fetchLineage, LINEAGE_SOURCE } from './fetch-lineage.mjs';
-import { buildFirstSeen, buildLineage, normalizeOrgName } from './lineage.mjs';
+import { buildFirstSeen, buildLineage, countLineageEvents, normalizeOrgName } from './lineage.mjs';
 import { normalizeRegistries } from './normalize.mjs';
 import { writeLineageParquet, writeRegistryParquet, writeShardParquets } from './write-parquet.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
@@ -66,6 +66,7 @@ await mkdir(dataDir, { recursive: true });
 let lineage = null;
 let lineageEntries = [];
 let firstSeen = new Map();
+let lineageCounts = new Map();
 if (!skipLineage) {
   try {
     console.log(`Fetching lineage (${LINEAGE_SOURCE.name})...`);
@@ -74,6 +75,7 @@ if (!skipLineage) {
     const history = JSON.parse(historyText.text);
     lineageEntries = buildLineage(history);
     firstSeen = buildFirstSeen(history);
+    lineageCounts = countLineageEvents(lineageEntries);
     console.log(`  first-seen dates for ${firstSeen.size.toLocaleString('en-US')} prefixes`);
     const lineageParquet = await writeLineageParquet(lineageEntries, { outDir: dataDir });
     console.log(
@@ -99,9 +101,11 @@ if (!skipLineage) {
   }
 }
 
-// Join the earliest observed date for every prefix into the registry table.
+// Join the earliest observed date and lineage event count into the registry
+// table so a single shard can drive both display and lazy lineage loading.
 for (const record of records) {
   record.firstSeen = firstSeen.get(record.prefix) ?? null;
+  record.lineageCount = lineageCounts.get(record.prefix) ?? 0;
 }
 
 console.log('Writing Parquet...');

@@ -25,6 +25,7 @@ test('writeRegistryParquet round-trips records through hyparquet', async () => {
       country: 'US',
       isPrivate: false,
       firstSeen: '2003-09-08',
+      lineageCount: 2,
       vendorBlocks: 1,
       vendorAddresses: 16_777_216,
     },
@@ -58,6 +59,7 @@ test('writeRegistryParquet round-trips records through hyparquet', async () => {
   assert.equal(first.country, 'US');
   assert.equal(first.is_private, false);
   assert.equal(first.first_seen, '2003-09-08');
+  assert.equal(first.lineage_count, 2);
   assert.equal(first.vendor_blocks, 1);
   assert.equal(first.vendor_addresses, 16_777_216);
   assert.equal(second.prefix, '741AE09');

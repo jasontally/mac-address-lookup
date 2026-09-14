@@ -78,12 +78,16 @@
               });
             });
           }
+          var query = hasQuery ? new URLSearchParams(location.search).get('q') || '' : '';
+          var searchish = hasQuery && /[^0-9A-Fa-f\s:.,-]/.test(query);
           window.__malPreload = {
             manifest: manifest,
             shardsForInput: shardsForInput,
-            lineage: manifest.then(function (data) {
-              return buffer(data && data.lineage && data.lineage.file);
-            }),
+            lineage: searchish
+              ? manifest.then(function (data) {
+                  return buffer(data && data.lineage && data.lineage.file);
+                })
+              : null,
           };
         } catch (error) {
           /* preloading is best-effort */

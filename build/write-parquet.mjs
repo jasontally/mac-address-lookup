@@ -15,6 +15,7 @@ function registryColumnData(records) {
     { name: 'country', data: records.map((record) => record.country), type: 'STRING' },
     { name: 'is_private', data: records.map((record) => record.isPrivate), type: 'BOOLEAN' },
     { name: 'first_seen', data: records.map((record) => record.firstSeen ?? null), type: 'STRING' },
+    { name: 'lineage_count', data: records.map((record) => record.lineageCount ?? 0), type: 'INT32' },
     { name: 'vendor_blocks', data: records.map((record) => record.vendorBlocks ?? null), type: 'INT32' },
     { name: 'vendor_addresses', data: records.map((record) => record.vendorAddresses ?? null), type: 'DOUBLE' },
   ];
