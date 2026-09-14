@@ -49,6 +49,19 @@ initTheme({ toggleButton: ui.themeToggle });
 initI18n();
 wireCopyButtons();
 
+// Populate the language picker
+const localePicker = document.getElementById('locale-picker');
+if (localePicker) {
+  for (const locale of SUPPORTED_LOCALES) {
+    localePicker.append(el('option', { value: locale }, [LOCALE_NAMES[locale] ?? locale]));
+  }
+  localePicker.value = getLocale();
+  localePicker.addEventListener('change', () => {
+    setLocale(localePicker.value);
+    location.reload();
+  });
+}
+
 const data = {
   manifestPromise: null,
   lineagePromise: null,

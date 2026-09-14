@@ -68,14 +68,14 @@ function randomizationBanner(randomization) {
 
 function formatList(formats) {
   const list = el('ul', { class: 'format-list' });
-  for (const [label, key] of FORMATS) {
+  for (const [, key, i18nKey] of FORMATS) {
     const value = formats[key];
     if (!value) continue;
     list.append(
       el('li', { class: 'format-row' }, [
-        el('span', { class: 'format-label', text: label }),
+        el('span', { class: 'format-label', text: t(i18nKey) }),
         el('code', { class: 'format-value', text: value }),
-        copyButton(() => value, { label: `Copy ${label}` }),
+        copyButton(() => value, { label: t(`format.copy`, { label: t(i18nKey) }) }),
       ]),
     );
   }
@@ -159,13 +159,13 @@ export function renderPending(container, hex) {
   container.append(
     el('article', { class: 'card result-card', 'aria-busy': 'true' }, [
       el('header', { class: 'result-header' }, [
-        el('p', { class: 'eyebrow', text: 'Vendor' }),
+        el('p', { class: 'eyebrow', text: t('result.loading') ? 'Vendor' : 'Vendor' }),
         el('h2', { class: 'vendor', text: 'Loading vendor data…' }),
       ]),
       macLine(formats.colon),
       bitSummary(bits),
       el('section', { class: 'result-section' }, [
-        el('h3', { text: 'Formats' }),
+        el('h3', { text: t('result.formats') }),
         formatList(formats),
       ]),
     ]),
@@ -181,47 +181,50 @@ export function renderMatch(container, result, { lineage = null, portfolio = nul
   container.append(
     el('article', { class: 'card result-card' }, [
       el('header', { class: 'result-header' }, [
-        el('p', { class: 'eyebrow', text: 'Vendor' }),
-        el('h2', { class: 'vendor', text: match.orgName || 'Unknown organization' }),
+        el('p', { class: 'eyebrow', text: t('result.eyebrow') }),
+        el('h2', { class: 'vendor', text: match.orgName || t('result.unknownOrg') }),
         el('div', { class: 'badges' }, [
           badge(`${match.blockType} · ${match.prefixLen}-bit`),
-          match.isPrivate ? badge('Private registration', 'warning') : null,
-          hypervisor ? badge(`Virtual machine: ${hypervisor.name}`) : null,
-          randomization?.likely ? badge('Likely randomized', 'warning') : null,
+          match.isPrivate ? badge(t('badge.private'), 'warning') : null,
+          hypervisor ? badge(t('badge.vm', { name: hypervisor.name })) : null,
+          randomization?.likely ? badge(t('badge.randomized'), 'warning') : null,
         ]),
       ]),
       macLine(formats.colon),
       bitSummary(bits),
       randomizationBanner(randomization),
       detailList([
-        ['Matched prefix', el('code', { text: colonize(match.prefix) })],
+        ['detail.matchedPrefix', el('code', { text: colonize(match.prefix) })],
         [
-          'Match',
+          'detail.match',
           match.exact
-            ? `${match.blockType} assignment`
-            : `Longest prefix match on the first ${match.matchedLength * 4} bits`,
+            ? `${match.blockType}`
+            : t('result.longestMatch', { bits: match.matchedLength * 4 }),
         ],
-        ['Address range', el('code', { text: `${range.start} – ${range.end}` })],
-        ['Addresses in block', formatCount(match.addressCount)],
-        ['Country', countryLabel(match.country)],
-        ['Organization address', match.orgAddress || null],
-        ['First registered', firstSeen ? formatDate(firstSeen) : null],
+        ['detail.addressRange', el('code', { text: `${range.start} – ${range.end}` })],
+        ['detail.addressesInBlock', formatCount(match.addressCount)],
+        ['detail.country', countryLabel(match.country)],
+        ['detail.orgAddress', match.orgAddress || null],
+        ['detail.firstRegistered', firstSeen ? formatDate(firstSeen) : null],
       ]),
       portfolio && portfolio.blocks > 1
         ? el('p', { class: 'summary-line' }, [
-            `Vendor portfolio: ${formatCount(portfolio.blocks)} blocks · ${formatAddresses(portfolio.addresses)} addresses`,
+            t('portfolio.label', {
+              blocks: formatCount(portfolio.blocks),
+              addresses: formatAddresses(portfolio.addresses),
+            }),
             onViewAll
               ? el('button', {
                   type: 'button',
                   class: 'button button--ghost button--small',
-                  text: 'View all prefixes',
+                  text: t('portfolio.viewAll'),
                   onClick: onViewAll,
                 })
               : null,
           ])
         : null,
       el('section', { class: 'result-section' }, [
-        el('h3', { text: 'Formats' }),
+        el('h3', { text: t('result.formats') }),
         formatList(formats),
       ]),
       lineageTimeline(lineage),

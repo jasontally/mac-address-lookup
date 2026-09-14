@@ -136,6 +136,19 @@ a.wordmark:hover {
   text-underline-offset: 2px;
 }
 
+.locale-picker {
+  appearance: none;
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  color: var(--text-default);
+  background: var(--color-control);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
 .skip-link {
   position: absolute;
   left: -9999px;
