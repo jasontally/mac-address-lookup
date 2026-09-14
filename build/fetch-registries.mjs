@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fetchWithRetry } from './fetch-with-retry.mjs';
+import { fetchLiveSource } from './live-source.mjs';
 import { REGISTRIES } from './registries.mjs';
 
 const USER_AGENT =
@@ -43,13 +44,13 @@ async function loadRegistry(
     console.warn(
       `  warning: ${registry.name} upstream failed (${error.message}); fetching the live cache`,
     );
-    const response = await fetchWithRetry(`${fallbackBaseUrl}/data/sources/${registry.cacheFile}`, {
+    const text = await fetchLiveSource(registry.cacheFile, {
       fetchImpl,
-      headers: { 'user-agent': USER_AGENT },
+      baseUrl: fallbackBaseUrl,
       attempts: 3,
       timeoutMs: 60_000,
     });
-    return save(await response.text(), true);
+    return save(text, true);
   }
 }
 

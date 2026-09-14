@@ -41,9 +41,10 @@ export function shouldRefresh({ changed, refreshDate, now = new Date() }) {
 }
 
 /**
- * Write the raw sources to `data/sources/` plus a manifest with per-file and
- * combined hashes. The deployed copy is both an emergency cache for builds and
- * the baseline for the weekly change-detection workflow.
+ * Write the raw sources to `data/sources/` (content-hashed filenames) plus a
+ * `data/sources-index.json` manifest with per-file and combined hashes. The
+ * deployed copy is both an emergency cache for builds and the baseline for the
+ * weekly change-detection workflow.
  */
 export async function writeSourceCache(entries, { outDir }) {
   const dir = path.join(outDir, 'sources');
@@ -53,10 +54,18 @@ export async function writeSourceCache(entries, { outDir }) {
   let bytes = 0;
   for (const entry of entries) {
     const text = entry.text ?? '';
-    const info = { file: entry.file, bytes: Buffer.byteLength(text), sha256: sha256(text) };
-    await writeFile(path.join(dir, entry.file), text);
-    files.push(info);
-    bytes += info.bytes;
+    const hash = sha256(text);
+    const extension = path.extname(entry.file);
+    const base = path.basename(entry.file, extension);
+    const filename = `${base}.${hash.slice(0, 12)}${extension}`;
+    await writeFile(path.join(dir, filename), text);
+    files.push({
+      file: entry.file,
+      path: `data/sources/${filename}`,
+      bytes: Buffer.byteLength(text),
+      sha256: hash,
+    });
+    bytes += Buffer.byteLength(text);
   }
 
   const manifest = {
@@ -64,7 +73,7 @@ export async function writeSourceCache(entries, { outDir }) {
     sourceHash: sourceHashOf(files),
     files,
   };
-  await writeFile(path.join(dir, 'sources.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  await writeFile(path.join(outDir, 'sources-index.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
-  return { dir: 'data/sources', sourceHash: manifest.sourceHash, files, bytes };
+  return { dir: 'data/sources', indexFile: 'data/sources-index.json', sourceHash: manifest.sourceHash, files, bytes };
 }

@@ -25,7 +25,7 @@ export async function currentSourceFiles(fetchImpl = fetch) {
 
 export async function fetchDeployedManifest(fetchImpl = fetch) {
   try {
-    const response = await fetchWithRetry(`${DEFAULT_SITE}/data/sources/sources.json`, {
+    const response = await fetchWithRetry(`${DEFAULT_SITE}/data/sources-index.json`, {
       fetchImpl,
       attempts: 2,
       timeoutMs: 30_000,

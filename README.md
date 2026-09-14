@@ -25,17 +25,18 @@ Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial M
 
 ## URL-driven lookups
 
-Navigate directly to a result — no form submission needed:
+Navigate directly to a result — no form submission needed. Everything after `/` is the query (address, prefix, batch list, or vendor/country/former-owner text):
 
 | URL | Result |
 | --- | --- |
-| `https://mac.jasontally.com/00:1A:2B:3C:4D:5E` | Full address lookup |
-| `https://mac.jasontally.com/001A2B` | OUI / MA-L prefix lookup |
-| `https://mac.jasontally.com/001A2B3` | MA-M prefix lookup |
-| `https://mac.jasontally.com/001A2B3C4` | MA-S prefix lookup |
-| `https://mac.jasontally.com/?q=001A2B,001A2B3` | Batch lookup |
+| `https://mac.jasontally.com/001A2B` | OUI / prefix lookup |
+| `https://mac.jasontally.com/001B213C4D5E` | Full address lookup |
+| `https://mac.jasontally.com/001A2B,005056` | Batch lookup (comma-separated, cap 100) |
+| `https://mac.jasontally.com/apple` | Vendor search |
+| `https://mac.jasontally.com/tekelec` | Former-owner search |
+| `https://mac.jasontally.com/?q=001A2B` | Legacy form (canonicalizes to `/001A2B`) |
 
-The page consumes the address from the URL path or query string and displays the result without any manual input.
+The page consumes the value from the URL path and displays the result without any manual input.
 
 ## SEO architecture
 

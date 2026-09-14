@@ -22,26 +22,14 @@ test('canonicalToken and canonicalQuery normalize valid hex only', () => {
   assert.equal(canonicalQuery(['00:1a:2b', '005056', 'not-hex']), '001A2B,005056');
 });
 
-test('parseLookup handles path, encoded path, query, and non-lookup routes', () => {
-  assert.deepEqual(parseLookup({ pathname: '/001A2B' }), {
-    mode: 'single',
-    value: '001A2B',
-    tokens: ['001A2B'],
-  });
-  const encoded = parseLookup({ pathname: '/00%3A1A%3A2B' });
-  assert.equal(encoded.mode, 'single');
-  assert.equal(encoded.value, '00:1A:2B');
-
-  const batch = parseLookup({ search: '?q=001A2B,005056' });
-  assert.equal(batch.mode, 'batch');
-  assert.deepEqual(batch.tokens, ['001A2B', '005056']);
-
-  assert.deepEqual(parseLookup({ search: '?q=001A2B' }), {
-    mode: 'single',
-    value: '001A2B',
-    tokens: ['001A2B'],
-  });
-  assert.equal(parseLookup({ pathname: '/about' }), null);
+test('parseLookup accepts any single path segment and legacy ?q=', () => {
+  assert.deepEqual(parseLookup({ pathname: '/001A2B' }), { value: '001A2B' });
+  assert.deepEqual(parseLookup({ pathname: '/00%3A1A%3A2B' }), { value: '00:1A:2B' });
+  assert.deepEqual(parseLookup({ pathname: '/apple' }), { value: 'apple' });
+  assert.deepEqual(parseLookup({ pathname: '/apple%20inc' }), { value: 'apple inc' });
+  assert.deepEqual(parseLookup({ pathname: '/001A2B,005056' }), { value: '001A2B,005056' });
+  assert.deepEqual(parseLookup({ search: '?q=apple' }), { value: 'apple' });
+  assert.deepEqual(parseLookup({ search: '?q=001A2B,005056' }), { value: '001A2B,005056' });
   assert.equal(parseLookup({ pathname: '/' }), null);
   assert.equal(parseLookup({ pathname: '/001A2B/extra' }), null);
   assert.equal(parseLookup({ pathname: '/', search: '?q=' }), null);

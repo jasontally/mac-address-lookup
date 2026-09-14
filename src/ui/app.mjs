@@ -212,8 +212,8 @@ async function runBatch(text, { push = true } = {}) {
             : `${limited.length} ${limited.length === 1 ? 'address' : 'addresses'} looked up.`;
     }
 
-    const query = canonicalQuery(limited);
-    if (query) updateUrl(`/?q=${encodeURIComponent(query)}`, { push });
+    const canonical = canonicalQuery(limited);
+    if (canonical) updateUrl(`/${canonical}`, { push });
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
     document.title = `${limited.length} MAC lookups | MAC Address Lookup`;
@@ -242,7 +242,7 @@ async function runSearch(query, { push = true } = {}) {
       },
     });
 
-    if (push) updateUrl(`/?q=${encodeURIComponent(query)}`, { push: true });
+    if (push || location.search) updateUrl(`/${encodeURIComponent(query)}`, { push });
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
     document.title = `${query} — MAC Address Lookup`;
@@ -303,12 +303,8 @@ function clearPendingLookup() {
 
 function runRoute(route) {
   if (!route) return;
-  if (route.mode === 'batch') {
-    runBatch(route.tokens.join(','), { push: false });
-  } else {
-    ui.input.value = route.value;
-    handleInput(route.value, { push: false });
-  }
+  ui.input.value = route.value;
+  handleInput(route.value, { push: false });
 }
 
 function renderHistory() {

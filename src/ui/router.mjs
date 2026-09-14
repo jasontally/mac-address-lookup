@@ -3,8 +3,6 @@
 import { normalizeInput } from '../engine/input.mjs';
 import { splitBatch } from '../engine/route.mjs';
 
-const LOOKUP_PATH = /^[0-9a-fA-F][0-9a-fA-F\s:.-]*$/;
-
 export { splitBatch };
 
 /** Canonical uppercase hex for a token, or null when it is not a valid address. */
@@ -13,36 +11,30 @@ export function canonicalToken(token) {
   return normalized.ok ? normalized.hex : null;
 }
 
-/** Canonical `?q=` value: comma-separated uppercase hex, order preserved. */
+/** Canonical path value: comma-separated uppercase hex, order preserved. */
 export function canonicalQuery(tokens) {
   return tokens.map(canonicalToken).filter(Boolean).join(',');
 }
 
 /**
- * Parse a location into a lookup route:
- *   `/001A2B` → `{ mode: 'single', value: '001A2B' }`
- *   `/?q=a,b` → `{ mode: 'batch', tokens: ['a','b'] }`
- * Returns null when the location is not a lookup.
+ * Parse a location into a lookup value. Any single non-empty path segment is
+ * accepted (address, prefix, batch list, or free-text query); the input
+ * classifier decides what it means. `?q=` is still supported for old links.
+ * Returns `{ value }` or null when the location is not a lookup.
  */
 export function parseLookup({ pathname = '/', search = '' } = {}) {
   const query = new URLSearchParams(search).get('q');
   if (query && query.trim() !== '') {
-    const tokens = splitBatch(query);
-    if (tokens.length === 0) return null;
-    return { mode: tokens.length > 1 ? 'batch' : 'single', value: query, tokens };
+    return { value: query };
   }
 
   let segment = pathname;
   try {
     segment = decodeURIComponent(pathname);
   } catch {
-    // keep raw path when decoding fails
+    // keep the raw path when decoding fails
   }
   segment = segment.replace(/^\/+/, '').replace(/\/+$/, '');
   if (segment === '' || segment.includes('/')) return null;
-  if (!LOOKUP_PATH.test(segment)) return null;
-
-  const tokens = splitBatch(segment);
-  if (tokens.length === 0) return null;
-  return { mode: tokens.length > 1 ? 'batch' : 'single', value: segment, tokens };
+  return { value: segment };
 }

@@ -33,17 +33,40 @@
       })();
     </script>
     <script>
-      // Start the data fetches before the app bundle arrives on dynamic lookups.
+      // Start the data fetches before the app bundle arrives on lookups and
+      // searches. Pre-rendered pages do not include this script.
       (function () {
         try {
-          var path = decodeURIComponent(location.pathname).replace(/^\/+/, '');
-          var hasQuery = new URLSearchParams(location.search).has('q');
-          var hex = path.replace(/[\s:.-]/g, '').toUpperCase();
-          var isLookup = hasQuery || /^[0-9A-F]/.test(hex);
-          if (!isLookup) return;
+          var query = new URLSearchParams(location.search).get('q');
+          var path = '';
+          try {
+            path = decodeURIComponent(location.pathname);
+          } catch (error) {
+            path = location.pathname;
+          }
+          path = path.replace(/^\/+/, '').replace(/\/+$/, '');
+          var segment = query && query.trim() !== '' ? query.trim() : path;
+          if (segment === '' || (segment === path && path.indexOf('/') !== -1)) return;
+
           // Reserve the result area until the lookup renders, so inserting the
           // result card cannot shift the page.
           document.documentElement.dataset.pendingLookup = '1';
+
+          var parts = segment
+            .split(',')
+            .map(function (part) {
+              return part.trim();
+            })
+            .filter(Boolean);
+          var hexes = parts.map(function (part) {
+            return part.replace(/[\s:.-]/g, '').toUpperCase();
+          });
+          var addressOnly =
+            hexes.length > 0 &&
+            hexes.every(function (hex) {
+              return /^[0-9A-F]+$/.test(hex);
+            });
+
           var manifest = fetch('/data/manifest.json').then(function (response) {
             if (!response.ok) throw new Error('manifest ' + response.status);
             return response.json();
@@ -55,15 +78,19 @@
                 })
               : null;
           };
+
           var shardsForInput = null;
-          if (!hasQuery && /^[0-9A-F]/.test(hex)) {
+          if (addressOnly) {
             shardsForInput = manifest.then(function (data) {
               var keys = data && data.shards ? Object.keys(data.shards) : [];
               var selected = [];
-              for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                var match = hex.length >= 6 ? hex.indexOf(key) === 0 : key.indexOf(hex) === 0;
-                if (match) selected.push(key);
+              for (var h = 0; h < hexes.length; h++) {
+                var hex = hexes[h];
+                for (var i = 0; i < keys.length; i++) {
+                  var key = keys[i];
+                  var match = hex.length >= 6 ? hex.indexOf(key) === 0 : key.indexOf(hex) === 0;
+                  if (match && selected.indexOf(key) === -1) selected.push(key);
+                }
               }
               return Promise.all(
                 selected.map(function (key) {
@@ -78,16 +105,15 @@
               });
             });
           }
-          var query = hasQuery ? new URLSearchParams(location.search).get('q') || '' : '';
-          var searchish = hasQuery && /[^0-9A-Fa-f\s:.,-]/.test(query);
+
           window.__malPreload = {
             manifest: manifest,
             shardsForInput: shardsForInput,
-            lineage: searchish
-              ? manifest.then(function (data) {
+            lineage: addressOnly
+              ? null
+              : manifest.then(function (data) {
                   return buffer(data && data.lineage && data.lineage.file);
-                })
-              : null,
+                }),
           };
         } catch (error) {
           /* preloading is best-effort */

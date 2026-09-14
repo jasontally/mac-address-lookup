@@ -83,7 +83,7 @@ test('shouldRefresh skips no-op weeks and forces a monthly redeploy', () => {
   });
 });
 
-test('writeSourceCache writes files and a verifiable manifest', async () => {
+test('writeSourceCache writes hashed files and a verifiable index', async () => {
   const outDir = await mkdtemp(path.join(tmpdir(), 'sources-'));
   const result = await writeSourceCache(
     [
@@ -95,12 +95,14 @@ test('writeSourceCache writes files and a verifiable manifest', async () => {
 
   assert.equal(result.files.length, 2);
   assert.equal(result.sourceHash, sourceHashOf(result.files));
+  assert.match(result.files[0].path, /^data\/sources\/oui\.[0-9a-f]{12}\.csv$/);
 
-  const manifest = JSON.parse(await readFile(path.join(outDir, 'sources', 'sources.json'), 'utf8'));
+  const manifest = JSON.parse(await readFile(path.join(outDir, 'sources-index.json'), 'utf8'));
   assert.equal(manifest.sourceHash, result.sourceHash);
   assert.equal(manifest.files.length, 2);
 
-  const oui = await readFile(path.join(outDir, 'sources', 'oui.csv'), 'utf8');
+  const ouiEntry = manifest.files.find((file) => file.file === 'oui.csv');
+  const oui = await readFile(path.join(outDir, 'sources', path.basename(ouiEntry.path)), 'utf8');
   assert.equal(oui, 'Registry,Assignment\nMA-L,001A2B\n');
-  assert.equal(manifest.files.find((file) => file.file === 'oui.csv').sha256, sha256(oui));
+  assert.equal(ouiEntry.sha256, sha256(oui));
 });

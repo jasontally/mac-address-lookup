@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fetchWithRetry } from './fetch-with-retry.mjs';
+import { fetchLiveSource } from './live-source.mjs';
 
 /** Historical assignment changes tracked by runZero (MIT). */
 export const LINEAGE_SOURCE = {
@@ -53,12 +54,12 @@ export async function fetchLineage({
     console.warn(
       `  warning: lineage upstream failed (${error.message}); fetching the live cache`,
     );
-    const response = await fetchWithRetry(`${fallbackBaseUrl}/data/sources/${CACHE_FILE}`, {
+    const text = await fetchLiveSource(CACHE_FILE, {
       fetchImpl,
-      headers: { 'user-agent': USER_AGENT },
+      baseUrl: fallbackBaseUrl,
       attempts: 3,
       timeoutMs: 60_000,
     });
-    return save(await response.text(), true);
+    return save(text, true);
   }
 }
