@@ -150,6 +150,13 @@
             dates, not legal transfer dates, and the registries do not reassign most prefixes — an
             acquisition usually leaves the old vendor name on existing hardware forever.
           </p>
+          <p>
+            Both datasets are downloadable as machine-readable files — one JSON object per line, no keys:
+            <a href="/data/registry.ndjson">registry.ndjson</a> for every assignment and
+            <a href="/data/lineage.ndjson">lineage.ndjson</a> for every ownership change.
+            The most recent registrations are listed on the <a href="/recent">Latest OUIs</a> page,
+            refreshed on every deploy.
+          </p>
         </section>
       </div>
     </main>
@@ -163,6 +170,7 @@
         </p>
         <p>
           <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
+          <a href="/recent" data-i18n="footer.recent">Latest OUIs</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>

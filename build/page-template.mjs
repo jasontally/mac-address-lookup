@@ -380,6 +380,7 @@ ${renderResult(record, lineage)}
           <span data-i18n="footer.dataNote">All lookups run in your browser — nothing is sent to a server.</span>
           <span data-i18n="footer.refreshed">Data refreshed</span>
           <span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>
+          <a href="/recent" data-i18n="footer.recent">Latest OUIs</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>

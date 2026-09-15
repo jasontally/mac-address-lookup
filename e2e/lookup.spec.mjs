@@ -120,6 +120,14 @@ test.describe('Path-based routing', () => {
     expect(await page.locator('.data-table tbody tr').count()).toBeGreaterThan(10);
     await page.goto('/');
     expect(await page.locator('a[href="/recent"]').count()).toBeGreaterThan(0);
+    // Static pages surface the what's-new link too
+    await page.goto('/help');
+    expect(await page.locator('a[href="/recent"]').count()).toBeGreaterThan(0);
+    await page.goto('/001B21');
+    expect(await page.locator('a[href="/recent"]').count()).toBeGreaterThan(0);
+    // Help page documents the machine-readable exports
+    await page.goto('/help');
+    expect(await page.locator('a[href="/data/registry.ndjson"]').count()).toBeGreaterThan(0);
   });
 
   test('random chip performs a lookup on a generated address', async ({ page }) => {

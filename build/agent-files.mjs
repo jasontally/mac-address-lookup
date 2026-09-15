@@ -123,6 +123,12 @@ which records when an organization name changed in the public data. Those dates
 are observation dates, not legal transfer dates, and the registries do not
 reassign most prefixes — an acquisition usually leaves the old vendor name on
 existing hardware forever.
+
+Both datasets are downloadable as machine-readable files — one JSON object per
+line, no keys required: [registry.ndjson](${site}/data/registry.ndjson) for
+every assignment and [lineage.ndjson](${site}/data/lineage.ndjson) for every
+ownership-change event. The most recent registrations are listed on the
+[Latest OUIs](${site}/recent) page, refreshed on every deploy.
 `;
 }
 
