@@ -54,7 +54,24 @@ export async function buildStatic({ root, distDir }) {
     logLevel: 'silent',
   });
 
-  const [app, css] = await Promise.all([hashAsset(appPath), hashAsset(cssPath)]);
+  // Parquet decode worker: self-contained classic worker, no code splitting.
+  const workerPath = path.join(assetsDir, 'parquet-worker.js');
+  await esbuild.build({
+    entryPoints: [path.join(root, 'src', 'engine', 'parquet-worker.mjs')],
+    bundle: true,
+    format: 'iife',
+    minify: true,
+    target: ['es2022'],
+    outfile: workerPath,
+    legalComments: 'none',
+    logLevel: 'silent',
+  });
+
+  const [app, css, worker] = await Promise.all([
+    hashAsset(appPath),
+    hashAsset(cssPath),
+    hashAsset(workerPath),
+  ]);
 
   const hyparquetLicense = await readFile(
     path.join(root, 'node_modules', 'hyparquet', 'LICENSE'),
@@ -68,11 +85,15 @@ export async function buildStatic({ root, distDir }) {
   // Substitute asset tokens in every root-level HTML file.
   const appToken = `/assets/${app.name}`;
   const cssToken = `/assets/${css.name}`;
+  const workerToken = `/assets/${worker.name}`;
   for (const file of await readdir(distDir)) {
     if (!file.endsWith('.html')) continue;
     const htmlPath = path.join(distDir, file);
     let html = await readFile(htmlPath, 'utf8');
-    html = html.replaceAll('{{APP_CSS}}', cssToken).replaceAll('{{APP_JS}}', appToken);
+    html = html
+      .replaceAll('{{APP_CSS}}', cssToken)
+      .replaceAll('{{APP_JS}}', appToken)
+      .replaceAll('{{WORKER_JS}}', workerToken);
     await writeFile(htmlPath, html);
   }
 
@@ -85,6 +106,7 @@ export async function buildStatic({ root, distDir }) {
   return {
     appFile: `/assets/${app.name}`,
     cssFile: `/assets/${css.name}`,
+    workerFile: workerToken,
     appBytes: appStat.size,
     cssBytes: cssStat.size,
   };

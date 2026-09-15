@@ -225,7 +225,7 @@ export function renderPrefixPage({
   record,
   lineage = null,
   site = SITE,
-  assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
+  assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css', workerFile: '/assets/parquet-worker.js' },
 }) {
   const colon = colonize(record.prefix);
   const canonical = `${site}/${record.prefix}`;
@@ -284,6 +284,11 @@ export function renderPrefixPage({
     <link rel="stylesheet" href="${assets.cssFile}" />
     <script>
       ${THEME_BOOT}
+    </script>
+    <script>
+      // Pre-rendered pages keep English HTML for crawlers; the app swaps
+      // translated labels after boot. Provide the decode worker URL early.
+      window.__malWorker = '${escapeHtml(assets.workerFile)}';
     </script>
     <script type="application/ld+json">
       ${jsonLd}

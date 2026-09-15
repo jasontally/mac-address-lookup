@@ -62,7 +62,44 @@ async function fetchBuffer(url, fetchImpl) {
   return response.arrayBuffer();
 }
 
+let workerSequence = 0;
+
+/** Decode in a dedicated worker when the page provides one; else main thread. */
+function decodeParquetInWorker(buffer, workerUrl) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(workerUrl, { name: 'parquet-decode' });
+    const id = ++workerSequence;
+    const timeout = setTimeout(() => {
+      worker.terminate();
+      reject(new Error('parquet worker timed out'));
+    }, 120_000);
+    worker.onmessage = (event) => {
+      if (event.data?.id !== id) return;
+      clearTimeout(timeout);
+      worker.terminate();
+      if (event.data.error) reject(new Error(event.data.error));
+      else resolve(event.data.rows);
+    };
+    worker.onerror = () => {
+      clearTimeout(timeout);
+      worker.terminate();
+      reject(new Error('parquet worker failed'));
+    };
+    // Structured clone copies the buffer; transferring would detach it and
+    // break any main-thread fallback path.
+    worker.postMessage({ id, buffer });
+  });
+}
+
 async function fetchParquetRows(buffer) {
+  const workerUrl = globalThis.__malWorker;
+  if (workerUrl && typeof Worker === 'function') {
+    try {
+      return await decodeParquetInWorker(buffer, workerUrl);
+    } catch {
+      // fall through to main-thread decode
+    }
+  }
   return parquetReadObjects({ file: buffer });
 }
 

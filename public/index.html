@@ -36,6 +36,7 @@
       // Start the data fetches before the app bundle arrives on lookups and
       // searches. Pre-rendered pages do not include this script.
       (function () {
+        window.__malWorker = '{{WORKER_JS}}';
         try {
           var query = new URLSearchParams(location.search).get('q');
           var path = '';

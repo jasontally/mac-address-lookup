@@ -44,6 +44,11 @@
     <script type="application/ld+json">
       {{FAQ_SCHEMA}}
     </script>
+    <script>
+      // Pre-rendered pages keep English HTML for crawlers; the app swaps
+      // translated labels after boot. Provide the decode worker URL early.
+      window.__malWorker = '{{WORKER_JS}}';
+    </script>
     <script type="module" src="{{APP_JS}}"></script>
   </head>
   <body data-static-page="true">
