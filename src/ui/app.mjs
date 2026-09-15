@@ -238,7 +238,7 @@ async function runBatch(text, { push = true } = {}) {
     }
 
     const canonical = canonicalQuery(limited);
-    if (canonical) updateUrl(`/${canonical}`, { push });
+    if (canonical) updateUrl(`/${encodeURIComponent(canonical)}`, { push });
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
     document.title = `${limited.length} MAC lookups | MAC Address Lookup`;

@@ -68,6 +68,15 @@ test.describe('Path-based routing', () => {
     await expect(page.locator('.data-table tbody tr')).toHaveCount(2);
   });
 
+  test('batch share URL uses %2C to avoid a redirect round trip', async ({ page }) => {
+    await page.goto('/');
+    await page.click('#batch summary');
+    await page.fill('#batch-input', '00:1A:2B 00:50:56');
+    await page.click('#batch-form button[type=submit]');
+    await expect(page.locator('.result-card h2')).toContainText('2');
+    expect(await page.evaluate(() => location.pathname)).toBe('/001A2B%2C005056');
+  });
+
   test('/?q= canonicalizes to path form', async ({ page }) => {
     await page.goto('/?q=001B21');
     await expect(page.locator('.vendor')).toHaveText('Intel Corporate');
