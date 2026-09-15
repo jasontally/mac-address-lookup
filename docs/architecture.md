@@ -302,3 +302,38 @@ production edge.
 2. Monitor Search Console indexing; re-evaluate the provisional sitemap policy if the page budget ever trims long-tail pages.
 3. CID pages are included while they fit the budget (219 files); revisit only if the budget binds.
 4. **Device-type hints (not implemented, unlikely to be reliable):** IEEE registries record who owns a prefix, never what devices use it. Vendors span categories (HP: printers, PCs, servers; HPE: servers and network gear; Samsung: phones, TVs, appliances, SSDs), contract manufacturers and module vendors (AzureWave, Wistron, Foxconn) appear in many product types, and a single vendor's prefixes are spread across product lines with no public mapping. Sources that offer categories — for example OUI-Master-Database's `device_type` field, or vendor-name heuristics like "name contains Printer" — are guesses rather than registrations. If this is ever added it should be a clearly labeled low-confidence category derived from a curated vendor list, never a claim about the specific device.
+
+## Future work & parked ideas
+
+Residue of `docs/feature-research.md` (deleted after the 2026-09-15
+execution pass; the competitive survey and shipped-feature history lived
+there and is preserved in the git history of that file).
+
+**Not started:**
+
+- **PWA / offline lookup (medium):** a service worker caching the app shell
+  plus previously-fetched shards would make repeat visits work offline, and
+  a web app manifest would make it installable. Interacts with the existing
+  hashed-asset caching strategy and the manifest-revalidation contract;
+  design the SW around hashed filenames before building.
+
+**Parked (only if demand appears):**
+
+- **Notes/tags/favorites on history entries** — inventory-workflow feature
+  (Choate-style); still localStorage, still private, but a larger effort
+  that only pays off for inventory-style use.
+- **Camera/OCR capture of device labels** — heavy dependency for a
+  vanilla-JS project; even on-device OCR bundles sit awkwardly with the
+  privacy stance.
+- **MCP server** — a separate artifact, not a website feature; the engine is
+  plain ES modules so a thin wrapper over the Parquet loader is plausible,
+  but any agent that can `curl` already has full access via `llms.txt`.
+
+**Closed with evidence:**
+
+- **Wireshark manufacturer DB as a second source (2026-09-15):** adds
+  nothing. Full overlap check of all 58,257 manuf rows (24/28/36-bit)
+  against the deployed registry found **0 prefixes missing**; IEEE remains
+  authoritative on names. No pipeline integration warranted.
+- **Router default-login directory / DHCP fingerprints** — off-mission or
+  not a website feature; declined.

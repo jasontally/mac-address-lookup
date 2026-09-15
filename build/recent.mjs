@@ -1,7 +1,7 @@
 /**
  * Pre-rendered "latest OUIs" page: the most recently registered blocks per
  * deploy, from lineage first-observed dates. One static page; the "what's
- * new" surface (docs/feature-research.md §3).
+ * new" surface (a 2026-09 feature; rationale in docs/architecture.md).
  */
 
 import path from 'node:path';

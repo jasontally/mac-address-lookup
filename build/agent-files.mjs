@@ -2,7 +2,7 @@
  * Agent- and script-facing static files: /llms.txt, /help.md, and the NDJSON
  * data downloads (/data/registry.ndjson, /data/lineage.ndjson). All are plain
  * files so agents with nothing but curl can use the site; see
- * docs/feature-research.md §AI-friendliness.
+ * the agent-access research notes, now folded into docs/architecture.md.
  */
 
 import { writeFile, mkdir } from 'node:fs/promises';

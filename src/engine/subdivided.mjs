@@ -2,7 +2,7 @@
  * "OUI subdivided" honesty: ~400 MA-L blocks are held by the IEEE
  * Registration Authority itself for subdivision into smaller blocks.
  * A lookup that lands on one shows the IEEE as if it were a vendor;
- * classify those distinctly instead (see docs/feature-research.md §7).
+ * classify those distinctly instead (the "OUI subdivided" research item; now also in docs/architecture.md).
  */
 
 const SUBDIVIDED_ORGS = new Set(['IEEE REGISTRATION AUTHORITY']);
