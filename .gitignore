@@ -21,6 +21,9 @@ npm-debug.log*
 .vscode/
 .idea/
 
+# OpenCode
+opencode.jsonc
+
 # Test artifacts
 .playwright-mcp/
 test-results/
