@@ -100,6 +100,11 @@ export function applyDom(root = document) {
     const text = table[key] ?? en[key];
     if (text !== undefined) element.setAttribute('placeholder', text);
   }
+  for (const element of root.querySelectorAll?.('[data-i18n-data-label]')) {
+    const key = element.getAttribute('data-i18n-data-label');
+    const text = table[key] ?? en[key];
+    if (text !== undefined) element.setAttribute('data-label', text);
+  }
   for (const element of root.querySelectorAll?.('[data-i18n-title]')) {
     const key = element.getAttribute('data-i18n-title');
     const text = table[key] ?? en[key];
