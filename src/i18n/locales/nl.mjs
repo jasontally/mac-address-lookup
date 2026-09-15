@@ -12,7 +12,7 @@ export const nl = {
   "examples.random": "Willekeurig",
   "status.loadingRegistry": "Register wordt geladen…",
   "batch.title": "Batch-opzoeking",
-  "batch.description": "Plak MAC-adressen of CLI-uitvoer — tot 100 adressen; komma's, spaties en regeleinden werken allemaal.",
+  "batch.description": "Plak MAC-adressen of CLI-uitvoer — tot 250 adressen; komma's, spaties en regeleinden werken allemaal.",
   "batch.label": "MAC-adressen",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a uitvoer\nDE:AD:BE:EF:00:01",
   "batch.submit": "Adressen opzoeken",

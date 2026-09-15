@@ -12,7 +12,7 @@ export const uk = {
   "examples.random": "Випадково",
   "status.loadingRegistry": "Завантаження реєстру…",
   "batch.title": "Пакетний пошук",
-  "batch.description": "Вставте MAC-адреси чи вивід консолі — до 100 адрес; коми, пробіли та переноси рядків працюють.",
+  "batch.description": "Вставте MAC-адреси чи вивід консолі — до 250 адрес; коми, пробіли та переноси рядків працюють.",
   "batch.label": "MAC-адреси",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nвивід arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Знайти адреси",

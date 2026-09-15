@@ -12,7 +12,7 @@ export const vi = {
   "examples.random": "Ngẫu nhiên",
   "status.loadingRegistry": "Đang tải sổ đăng ký…",
   "batch.title": "Tra cứu hàng loạt",
-  "batch.description": "Dán địa chỉ MAC hoặc đầu ra CLI — tối đa 100 địa chỉ; dấu phẩy, khoảng trắng và xuống dòng đều được.",
+  "batch.description": "Dán địa chỉ MAC hoặc đầu ra CLI — tối đa 250 địa chỉ; dấu phẩy, khoảng trắng và xuống dòng đều được.",
   "batch.label": "Địa chỉ MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nkết quả arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Tra cứu địa chỉ",

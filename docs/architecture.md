@@ -28,8 +28,8 @@ Build (Workers Builds)                          Runtime (Cloudflare edge)
 | Data | Apache Parquet files (registry + lean search index + lineage), read in-browser with Hyparquet; Apache Arrow JS not used |
 | Indexing | Pre-rendered priority tiers, flat `<prefix>.html` pages, canonical uppercase URLs, sitemap for pre-rendered pages only (provisional) |
 | Design | Kumo-inspired semantic tokens, monochrome + status colors, system font stack, system-aware dark mode + toggle |
-| Deep links | Every single-segment path: `/001A2B`, `/apple`, `/001A2B,005056` (comma-separated batch, cap 100); legacy `?q=` still accepted and canonicalized to the path form |
-| Partials | < 6 hex lists matching prefixes, capped at 200 with total count |
+| Deep links | Every single-segment path: `/001A2B`, `/apple`, `/001A2B,005056` (comma-separated batch, cap 250); legacy `?q=` still accepted and canonicalized to the path form |
+| Partials | < 6 hex lists matching prefixes, capped at 500 with total count |
 | Build/deploy | Cloudflare Workers Builds, push-triggered; manual data refresh by bumping `data/refresh.txt` |
 | Analytics | None in the app; seed vendor-demand list drives page priority |
 
@@ -112,16 +112,16 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Lineage**: `createLineageIndex` groups event rows per prefix and exposes `forPrefix(prefix)`; `loadRegistry` returns `{ manifest, registry, lineage }`.
 - **Normalization**: strip separators (`:` `-` `.` space), uppercase, validate `[0-9A-F]`, accept 1–12 hex digits.
 - **Lookup**: longest-prefix match over 9-hex (MA-S/IAB), 7-hex (MA-M), 6-hex (MA-L/CID), using a first-byte index over sorted prefix arrays.
-- **Partials**: 1–5 hex digits return all matching assignments, capped at 200 rows plus a total count.
+- **Partials**: 1–5 hex digits return all matching assignments, capped at 500 rows plus a total count.
 - **Bit analysis**: I/G bit (multicast), U/L bit (locally administered → likely randomized when unregistered); broadcast (`FF:FF:FF:FF:FF:FF`) and all-zero special cases.
 - **VM/hypervisor detection**: known prefix map (VMware, VirtualBox, Microsoft Hyper-V/Virtual PC, Parallels, Xen, QEMU/KVM, Docker).
 - **Format conversions**: colon, hyphen, Cisco dot, plain hex, EUI-64, IPv6 link-local.
 - **Input routing**: a valid address/prefix is looked up directly; otherwise full MACs are extracted from pasted text; if none are found, the input is treated as a free-text search.
 - **Text extraction** (`extractMacs`): colon, hyphen, Cisco-dot, space-separated, and bare 12-hex formats; bare matches require clean boundaries so UUID tails and longer identifiers are ignored; deduped, capped at 100.
-- **Free-text search** (`searchRegistry`): matches current organizations, former organizations from lineage, country names and codes, registry types, prefixes, and registration years; all tokens must match; ranked by match quality; capped at 200; results are `noindex`.
+- **Free-text search** (`searchRegistry`): matches current organizations, former organizations from lineage, country names and codes, registry types, prefixes, and registration years; all tokens must match; ranked by match quality; capped at 500; results are `noindex`.
 - **Summaries** (`summarizeLookups`): batch and extraction views show counts by vendor, randomized addresses, virtual machines, unregistered prefixes, and invalid inputs.
 - **Vendor portfolios** (`registry.portfolio`): registered block count and total address space per organization, shown on results with a "View all prefixes" action.
-- **Batch**: split on comma/whitespace/newline, dedupe, cap 100, results table (collapses to cards on mobile).
+- **Batch**: split on comma/whitespace/newline, dedupe, cap 250, results table (collapses to cards on mobile).
 
 ## UI structure
 
@@ -254,6 +254,22 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 - Content below the result is hidden until a dynamic lookup renders (removing the layout shift from inserting the result card; desktop CLS was 0.296 before this change).
 - Asset filenames are content-hashed and cached immutably; the manifest is always revalidated.
 - Prefix-trie sharding cuts a dynamic deep link from the 3.0 MB full registry to one small shard (the `001B` example is 30 KB), and lazy lineage keeps the 232 KB lineage file out of lookups entirely unless the matched prefix changed hands. Measured payload for `/001B21AABBCC` is ~150 KB including JS, CSS, manifest, and shard (vs ~3.35 MB before sharding); changed prefixes add the lineage file.
+
+### Measured limits (2026-09-15, `e2e/measure-limits.mjs` / `e2e/measure-engine.mjs`)
+
+Display caps and the batch cap were re-derived from measurements instead of
+guesses. Method: DOM table render timing in a real browser at 1× and 4× CPU
+throttling; engine timing in Node over the real registry; parallel
+fetch+worker-decode timing for k shards vs the full registry on the
+production edge.
+
+| Measurement | Result | Decision |
+| --- | --- | --- |
+| Table render, N rows | 200 rows = 10 ms, 1000 = 48 ms, 5000 = 296 ms at 4× CPU | Display caps raised 200 → **500** (23 ms throttled; well below any degradation) |
+| Engine compute | `lookup()` ×2000 = 4 ms; full search incl. fuzzy fallback over 58,700 names = 30–64 ms | Search/token limits are not compute-bound |
+| Batch, end-to-end (production) | n=25/50 stay on shards (~370–420 ms); n=100 diverse addresses exceeds the shard union → full-registry fallback (~950 ms cold, dominated by the 3 MB fetch) | Batch cap raised 100 → **250** (rows are cheap; the fallback that dominates cost happens anyway for diverse batches) |
+| Shard crossover | 24 parallel shards: fetch 169 ms + decode 63 ms ≈ 130 ms best vs full registry 267 ms; on slow networks the gap widens (336 KB vs 3 MB) | `MAX_SHARDS = 24` confirmed |
+| Result cap visibility | totals always shown with a "showing the first N" note | caps stay transparent |
 
 ## Build & deployment
 

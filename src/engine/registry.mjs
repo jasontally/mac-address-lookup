@@ -119,7 +119,7 @@ export function createRegistry(rows) {
      * ordered lexicographically by prefix, capped at `limit` rows while
      * still reporting the full total.
      */
-    listPartials(hex, limit = 200) {
+    listPartials(hex, limit = 500) {
       const matches = [];
       for (const length of BLOCK_LENGTHS) {
         const bucket = buckets.get(length);

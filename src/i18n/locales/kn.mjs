@@ -12,7 +12,7 @@ export const kn = {
   "examples.random": "ಯಾದೃಚ್ಛಿಕ",
   "status.loadingRegistry": "ರಿಜಿಸ್ಟ್ರಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
   "batch.title": "ಸಾಮೂಹಿಕ ಹುಡುಕಾಟ",
-  "batch.description": "MAC ವಿಳಾಸಗಳು ಅಥವಾ CLI ಔಟ್‌ಪುಟ್ ಅಂಟಿಸಿ — 100 ರವರೆಗೆ; ಅಲ್ಪವಿರಾಮ, ಸ್ಪೇಸ್, ಹೊಸ ಸಾಲು ಎಲ್ಲವೂ ಕೆಲಸ ಮಾಡುತ್ತವೆ.",
+  "batch.description": "MAC ವಿಳಾಸಗಳು ಅಥವಾ CLI ಔಟ್‌ಪುಟ್ ಅಂಟಿಸಿ — 250 ರವರೆಗೆ; ಅಲ್ಪವಿರಾಮ, ಸ್ಪೇಸ್, ಹೊಸ ಸಾಲು ಎಲ್ಲವೂ ಕೆಲಸ ಮಾಡುತ್ತವೆ.",
   "batch.label": "MAC ವಿಳಾಸಗಳು",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a ಔಟ್‌ಪುಟ್\nDE:AD:BE:EF:00:01",
   "batch.submit": "ವಿಳಾಸಗಳನ್ನು ಹುಡುಕಿ",

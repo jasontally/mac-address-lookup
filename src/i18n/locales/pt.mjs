@@ -12,7 +12,7 @@ export const pt = {
   "examples.random": "Aleatório",
   "status.loadingRegistry": "Carregando registro…",
   "batch.title": "Consulta em lote",
-  "batch.description": "Cole endereços MAC ou saída de CLI — até 100 endereços; vírgulas, espaços e novas linhas funcionam.",
+  "batch.description": "Cole endereços MAC ou saída de CLI — até 250 endereços; vírgulas, espaços e novas linhas funcionam.",
   "batch.label": "Endereços MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nsaída do arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Consultar endereços",

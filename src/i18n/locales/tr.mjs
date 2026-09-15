@@ -12,7 +12,7 @@ export const tr = {
   "examples.random": "Rastgele",
   "status.loadingRegistry": "Kayıt yükleniyor…",
   "batch.title": "Toplu sorgu",
-  "batch.description": "MAC adresleri veya CLI çıktısı yapıştırın — 100 adrese kadar; virgül, boşluk ve satır sonu çalışır.",
+  "batch.description": "MAC adresleri veya CLI çıktısı yapıştırın — 250 adrese kadar; virgül, boşluk ve satır sonu çalışır.",
   "batch.label": "MAC adresleri",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a çıktısı\nDE:AD:BE:EF:00:01",
   "batch.submit": "Adresleri sorgula",

@@ -12,7 +12,7 @@ export const pl = {
   "examples.random": "Losowo",
   "status.loadingRegistry": "Wczytywanie rejestru…",
   "batch.title": "Wyszukiwanie zbiorcze",
-  "batch.description": "Wklej adresy MAC lub wynik z konsoli — do 100 adresów; przecinki, spacje i znaki nowej linii działają.",
+  "batch.description": "Wklej adresy MAC lub wynik z konsoli — do 250 adresów; przecinki, spacje i znaki nowej linii działają.",
   "batch.label": "Adresy MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nwynik arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Sprawdź adresy",

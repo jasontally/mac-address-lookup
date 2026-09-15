@@ -12,7 +12,7 @@ export const te = {
   "examples.random": "యాదృచ్ఛికం",
   "status.loadingRegistry": "రిజిస్ట్రీ లోడ్ అవుతోంది…",
   "batch.title": "బ్యాచ్ లుకప్",
-  "batch.description": "MAC చిరునామాలు లేదా CLI అవుట్‌పుట్ పేస్ట్ చేయండి — 100 వరకు; కామాలు, స్పేస్‌లు, కొత్త లైన్లు అన్నీ పనిచేస్తాయి.",
+  "batch.description": "MAC చిరునామాలు లేదా CLI అవుట్‌పుట్ పేస్ట్ చేయండి — 250 వరకు; కామాలు, స్పేస్‌లు, కొత్త లైన్లు అన్నీ పనిచేస్తాయి.",
   "batch.label": "MAC చిరునామాలు",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a అవుట్‌పుట్\nDE:AD:BE:EF:00:01",
   "batch.submit": "చిరునామాలు వెతకండి",

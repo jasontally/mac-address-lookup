@@ -12,7 +12,7 @@ export const id = {
   "examples.random": "Acak",
   "status.loadingRegistry": "Memuat registri…",
   "batch.title": "Pencarian massal",
-  "batch.description": "Tempel alamat MAC atau keluaran CLI — hingga 100 alamat; koma, spasi, dan baris baru semuanya berfungsi.",
+  "batch.description": "Tempel alamat MAC atau keluaran CLI — hingga 250 alamat; koma, spasi, dan baris baru semuanya berfungsi.",
   "batch.label": "Alamat MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nkeluaran arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Cari alamat",

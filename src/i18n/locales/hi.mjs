@@ -12,7 +12,7 @@ export const hi = {
   "examples.random": "यादृच्छिक",
   "status.loadingRegistry": "रजिस्ट्री लोड हो रही है…",
   "batch.title": "समूह लुकअप",
-  "batch.description": "MAC पते या CLI आउटपुट पेस्ट करें — 100 पतों तक; कॉमा, स्पेस और नई लाइन सभी चलती हैं।",
+  "batch.description": "MAC पते या CLI आउटपुट पेस्ट करें — 250 पतों तक; कॉमा, स्पेस और नई लाइन सभी चलती हैं।",
   "batch.label": "MAC पते",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a आउटपुट\nDE:AD:BE:EF:00:01",
   "batch.submit": "पते खोजें",

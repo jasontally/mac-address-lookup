@@ -12,7 +12,7 @@ export const gu = {
   "examples.random": "રેન્ડમ",
   "status.loadingRegistry": "રજિસ્ટ્રી લોડ થઈ રહી છે…",
   "batch.title": "સમૂહ લુકઅપ",
-  "batch.description": "MAC સરનામાં અથવા CLI આઉટપુટ પેસ્ટ કરો — 100 સુધી; અલ્પવિરામ, સ્પેસ અને નવી લાઇન બધું ચાલે છે.",
+  "batch.description": "MAC સરનામાં અથવા CLI આઉટપુટ પેસ્ટ કરો — 250 સુધી; અલ્પવિરામ, સ્પેસ અને નવી લાઇન બધું ચાલે છે.",
   "batch.label": "MAC સરનામાં",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a આઉટપુટ\nDE:AD:BE:EF:00:01",
   "batch.submit": "સરનામાં શોધો",

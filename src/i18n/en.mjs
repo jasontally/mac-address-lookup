@@ -22,7 +22,7 @@ export const en = {
   // Batch
   'batch.title': 'Batch lookup',
   'batch.description':
-    'Paste MAC addresses or CLI output — up to 100 addresses, commas, spaces, and new lines all work.',
+    'Paste MAC addresses or CLI output — up to 250 addresses, commas, spaces, and new lines all work.',
   'batch.label': 'MAC addresses',
   'batch.placeholder': '00:1B:21:3C:4D:5E\narp -a output\nDE:AD:BE:EF:00:01',
   'batch.submit': 'Look up addresses',

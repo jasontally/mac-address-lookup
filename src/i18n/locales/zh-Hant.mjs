@@ -12,7 +12,7 @@ export const zhHant = {
   "examples.random": "隨機",
   "status.loadingRegistry": "正在載入註冊表…",
   "batch.title": "批次查詢",
-  "batch.description": "貼上 MAC 位址或命令列輸出 — 最多 100 個位址；逗號、空格與換行皆可。",
+  "batch.description": "貼上 MAC 位址或命令列輸出 — 最多 250 個位址；逗號、空格與換行皆可。",
   "batch.label": "MAC 位址",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a 輸出\nDE:AD:BE:EF:00:01",
   "batch.submit": "查詢位址",

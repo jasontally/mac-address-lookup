@@ -31,7 +31,7 @@ import {
 import { canonicalQuery, parseLookup, splitBatch } from './router.mjs';
 import { initTheme } from './theme.mjs';
 
-const MAX_BATCH = 100;
+const MAX_BATCH = 250;
 
 const ui = {
   result: document.getElementById('result'),
@@ -268,7 +268,7 @@ async function runSearch(query, { push = true } = {}) {
   try {
     const manifest = await ensureManifest();
     const [loaded, lineage] = await Promise.all([loadSearchIndex(manifest, { cache: data }), ensureLineage()]);
-    const outcome = searchRegistry(loaded.registry, lineage, query, { limit: 200 });
+    const outcome = searchRegistry(loaded.registry, lineage, query, { limit: 500 });
     renderSearchResults(ui.result, {
       query,
       matches: outcome.matches,

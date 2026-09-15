@@ -12,7 +12,7 @@ export const de = {
   "examples.random": "Zufällig",
   "status.loadingRegistry": "Registrierung wird geladen…",
   "batch.title": "Stapelsuche",
-  "batch.description": "MAC-Adressen oder CLI-Ausgabe einfügen — bis zu 100 Adressen, Kommas, Leerzeichen und Zeilenumbrüche funktionieren.",
+  "batch.description": "MAC-Adressen oder CLI-Ausgabe einfügen — bis zu 250 Adressen, Kommas, Leerzeichen und Zeilenumbrüche funktionieren.",
   "batch.label": "MAC-Adressen",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a Ausgabe\nDE:AD:BE:EF:00:01",
   "batch.submit": "Adressen nachschlagen",

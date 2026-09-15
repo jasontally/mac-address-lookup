@@ -12,7 +12,7 @@ export const ml = {
   "examples.random": "ക്രമരഹിതം",
   "status.loadingRegistry": "രജിസ്ട്രി ലോഡ് ചെയ്യുന്നു…",
   "batch.title": "ബാച്ച് ലുക്കപ്പ്",
-  "batch.description": "MAC വിലാസങ്ങളോ CLI ഔട്ട്പുട്ടോ ഒട്ടിക്കുക — 100 വരെ; കോമ, സ്പേസ്, പുതിയ വരി എല്ലാം പ്രവർത്തിക്കും.",
+  "batch.description": "MAC വിലാസങ്ങളോ CLI ഔട്ട്പുട്ടോ ഒട്ടിക്കുക — 250 വരെ; കോമ, സ്പേസ്, പുതിയ വരി എല്ലാം പ്രവർത്തിക്കും.",
   "batch.label": "MAC വിലാസങ്ങൾ",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a ഔട്ട്പുട്ട്\nDE:AD:BE:EF:00:01",
   "batch.submit": "വിലാസങ്ങൾ തിരയുക",

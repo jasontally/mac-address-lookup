@@ -12,7 +12,7 @@ export const fr = {
   "examples.random": "Aléatoire",
   "status.loadingRegistry": "Chargement du registre…",
   "batch.title": "Recherche par lot",
-  "batch.description": "Collez des adresses MAC ou une sortie CLI — jusqu'à 100 adresses, les virgules, espaces et retours à la ligne fonctionnent.",
+  "batch.description": "Collez des adresses MAC ou une sortie CLI — jusqu'à 250 adresses, les virgules, espaces et retours à la ligne fonctionnent.",
   "batch.label": "Adresses MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nsortie de arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Rechercher les adresses",

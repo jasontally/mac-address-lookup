@@ -12,7 +12,7 @@ export const ur = {
   "examples.random": "بے ترتیب",
   "status.loadingRegistry": "رجسٹری لوڈ ہو رہی ہے…",
   "batch.title": "اجتماعی تلاش",
-  "batch.description": "MAC پتے یا CLI آؤٹ پٹ پیسٹ کریں — 100 پتوں تک؛ کامے، خالی جگہیں اور نئی لائنیں سب چلتی ہیں۔",
+  "batch.description": "MAC پتے یا CLI آؤٹ پٹ پیسٹ کریں — 250 پتوں تک؛ کامے، خالی جگہیں اور نئی لائنیں سب چلتی ہیں۔",
   "batch.label": "MAC پتے",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a آؤٹ پٹ\nDE:AD:BE:EF:00:01",
   "batch.submit": "پتے تلاش کریں",

@@ -12,7 +12,7 @@ export const es = {
   "examples.random": "Aleatorio",
   "status.loadingRegistry": "Cargando registro…",
   "batch.title": "Búsqueda por lotes",
-  "batch.description": "Pega direcciones MAC o salida de CLI — hasta 100 direcciones, funcionan comas, espacios y saltos de línea.",
+  "batch.description": "Pega direcciones MAC o salida de CLI — hasta 250 direcciones, funcionan comas, espacios y saltos de línea.",
   "batch.label": "Direcciones MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nsalida de arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Buscar direcciones",

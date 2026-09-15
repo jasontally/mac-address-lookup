@@ -12,7 +12,7 @@ export const ta = {
   "examples.random": "சீரற்ற",
   "status.loadingRegistry": "பதிவேடு ஏற்றப்படுகிறது…",
   "batch.title": "தொகுதி தேடல்",
-  "batch.description": "MAC முகவரிகள் அல்லது CLI வெளியீட்டை ஒட்டவும் — 100 வரை; கமா, இடைவெளி, புதிய வரி அனைத்தும் வேலை செய்யும்.",
+  "batch.description": "MAC முகவரிகள் அல்லது CLI வெளியீட்டை ஒட்டவும் — 250 வரை; கமா, இடைவெளி, புதிய வரி அனைத்தும் வேலை செய்யும்.",
   "batch.label": "MAC முகவரிகள்",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a வெளியீடு\nDE:AD:BE:EF:00:01",
   "batch.submit": "முகவரிகளைத் தேடு",

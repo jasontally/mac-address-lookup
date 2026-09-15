@@ -12,7 +12,7 @@ export const ar = {
   "examples.random": "عشوائي",
   "status.loadingRegistry": "جارٍ تحميل السجل…",
   "batch.title": "بحث دفعي",
-  "batch.description": "الصق عناوين MAC أو مخرجات سطر الأوامر — حتى 100 عنوان، تعمل الفواصل والمسافات والأسطر الجديدة.",
+  "batch.description": "الصق عناوين MAC أو مخرجات سطر الأوامر — حتى 250 عنوان، تعمل الفواصل والمسافات والأسطر الجديدة.",
   "batch.label": "عناوين MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nمخرجات arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "البحث عن العناوين",

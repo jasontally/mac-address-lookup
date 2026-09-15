@@ -12,7 +12,7 @@ export const ha = {
   "examples.random": "Bisa yadda ya zo",
   "status.loadingRegistry": "Ana ɗora rajista…",
   "batch.title": "Bincike a taro",
-  "batch.description": "Liƙa adireshunan MAC ko fitowar CLI — har ga adireshuna 100; waƙaɓɓa, sarari, da sababbin layuka duka suna aiki.",
+  "batch.description": "Liƙa adireshunan MAC ko fitowar CLI — har ga adireshuna 250; waƙaɓɓa, sarari, da sababbin layuka duka suna aiki.",
   "batch.label": "Adireshunan MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\nfitowar arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Nemi adireshuna",

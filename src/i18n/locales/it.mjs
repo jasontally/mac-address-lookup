@@ -12,7 +12,7 @@ export const it = {
   "examples.random": "Casuale",
   "status.loadingRegistry": "Caricamento del registro…",
   "batch.title": "Ricerca in blocco",
-  "batch.description": "Incolla indirizzi MAC o output da CLI — fino a 100 indirizzi; virgole, spazi e a capo funzionano.",
+  "batch.description": "Incolla indirizzi MAC o output da CLI — fino a 250 indirizzi; virgole, spazi e a capo funzionano.",
   "batch.label": "Indirizzi MAC",
   "batch.placeholder": "00:1B:21:3C:4D:5E\noutput di arp -a\nDE:AD:BE:EF:00:01",
   "batch.submit": "Cerca indirizzi",

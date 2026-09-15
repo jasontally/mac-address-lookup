@@ -45,7 +45,7 @@ export function llmsTxt({ dataFiles = {} } = {}) {
   address resolves to its vendor. Pages are pre-rendered HTML.
 - \`/{vendor-name}\` — free-text search over vendors, former owners, countries,
   block types, prefixes, and registration years. Results are an HTML table.
-- \`/{a},{b}\` — batch lookup of comma-separated addresses (up to 100).
+- \`/{a},{b}\` — batch lookup of comma-separated addresses (up to 250).
 - \`/?q={text}\` — legacy query form; redirects to the path scheme.
 
 No JavaScript is required to read any page; results pages for lookups are

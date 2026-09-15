@@ -12,7 +12,7 @@ export const mr = {
   "examples.random": "यादृच्छिक",
   "status.loadingRegistry": "रजिस्ट्री लोड होत आहे…",
   "batch.title": "गट लुकअप",
-  "batch.description": "MAC पत्ते किंवा CLI आउटपुट पेस्ट करा — १०० पर्यंत; स्वल्पविराम, स्पेस आणि ओळी सर्व चालतात.",
+  "batch.description": "MAC पत्ते किंवा CLI आउटपुट पेस्ट करा — २५० पर्यंत; स्वल्पविराम, स्पेस आणि ओळी सर्व चालतात.",
   "batch.label": "MAC पत्ते",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a आउटपुट\nDE:AD:BE:EF:00:01",
   "batch.submit": "पत्ते शोधा",
