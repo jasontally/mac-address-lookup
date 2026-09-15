@@ -11,6 +11,8 @@ import { DEFAULT_SITE } from './source-files.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { generatePages } from './generate-pages.mjs';
+import { writeAgentFiles } from './agent-files.mjs';
+import { writeRecentPage } from './recent.mjs';
 import { REGISTRIES } from './registries.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -190,7 +192,7 @@ if (!flags.has('--no-pages')) {
     pageBudget,
     vendorPriority,
     lastmod: refreshDate,
-    extraUrls: ['/help'],
+    extraUrls: ['/help', '/recent'],
     assets: staticAssets,
   });
   console.log(
@@ -203,6 +205,26 @@ if (!flags.has('--no-pages')) {
   );
   console.log(`  sitemap: ${pages.sitemap.files.join(', ')} (${pages.sitemap.urls} URLs)`);
 }
+
+const agentFiles = await writeAgentFiles({
+  distDir,
+  records,
+  lineageEvents: lineageEntries.flatMap((entry) =>
+    entry.events.map((event, index) => ({
+      prefix: entry.prefix,
+      date: event.date,
+      orgName: event.orgName,
+      seq: index,
+    })),
+  ),
+});
+console.log(
+  `  agent files: llms.txt, help.md, registry.ndjson (${formatBytes(agentFiles.registryBytes)}), ` +
+    `lineage.ndjson (${formatBytes(agentFiles.lineageBytes)})`,
+);
+
+const recent = await writeRecentPage({ distDir, records, assets: staticAssets });
+console.log(`  /recent: ${recent.length} newest blocks, first ${recent[0]?.prefix ?? 'n/a'} (${recent[0]?.firstSeen ?? ''})`);
 
 const files = await walkDir(distDir);
 const budget = checkBudget({ files });

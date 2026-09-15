@@ -100,9 +100,11 @@ a vanilla-JS project, and our privacy stance complicates shipping any OCR
 bundle (even on-device). Park unless demand appears.
 
 ### 10. Adjacent datasets
-- **Wireshark manufacturer DB** as a secondary source (catches renames and
-  pseudo-allocations IEEE CSVs miss). Easy to add in the build pipeline;
-  would need the same raw-source archival treatment.
+- **Wireshark manufacturer DB** as a secondary source — **assessed 2026-09-15 and
+  closed: adds nothing.** A full overlap check against the deployed registry
+  (58,257 manuf rows at 24/28/36-bit widths) found **0 prefixes missing** from
+  the IEEE-derived data; there is nothing to gap-fill and IEEE remains
+  authoritative on names. No pipeline integration needed.
 - **Router default-login directory** (ssid.ai) — adjacent, off-mission,
   privacy-reputation risk. Skip.
 - **DHCP/Satori fingerprints** (Huginn-Muninn, fingerbank) — needs captured
@@ -151,23 +153,24 @@ than most competitor sites; what's missing is *discovery and documentation*:
 
 ## Priorities if acted on later
 
-| # | Feature | Effort | Unique value |
-| --- | --- | --- | --- |
-| 1 | `/llms.txt` + `/help.md` + rel links | Tiny | Makes the site directly agent-usable |
-| 2 | Batch export (CSV/JSON) | Small | Most-asked-for utility feature |
-| 3 | "OUI subdivided" classification | Small | Accuracy differentiator |
-| 4 | `/data/registry.ndjson` download | Small | Free "API" for scripts |
-| 5 | Latest-OUIs page | Small | Repeat-visit hook |
-| 6 | Fuzzy vendor search | Medium | Fixes typo searches |
-| 7 | Random MAC generator | Medium | Adjacent utility demand |
-| 8 | PWA/service-worker offline | Medium | Differentiated vs all web rivals |
-| 9 | Notes/tags/favorites | Large | Only for inventory-oriented use |
-| 10 | Wireshark manuf as 2nd source | Medium | Coverage/accuracy redundancy |
+Status after the 2026-09-15 execution pass (batches 1–3):
+
+| # | Feature | Status |
+| --- | --- | --- |
+| 1 | `/llms.txt` + `/help.md` + rel links | **Shipped** (build-generated; robots.txt AI-crawler policy documented) |
+| 2 | Batch export (CSV/JSON) | **Shipped** (client-side Blob + clipboard) |
+| 3 | "OUI subdivided" classification | **Shipped** (badge on 435 IEEE-held MA-L pages) |
+| 4 | `/data/registry.ndjson` download | **Shipped** (+ `/data/lineage.ndjson` — the unique lineage dataset) |
+| 5 | Latest-OUIs page | **Shipped** (`/recent`, sitemapped, footer-linked) |
+| 6 | Fuzzy vendor search | **Shipped** (deterministic typo fallback in searchRegistry) |
+| 7 | Random MAC generator | **Shipped** (Random chip in the Try section; generates + looks up) |
+| 8 | PWA/service-worker offline | Not started (medium; interacts with hashed-asset caching) |
+| 9 | Notes/tags/favorites | Parked (large; only for inventory-oriented use) |
+| 10 | Wireshark manuf as 2nd source | **Closed — no-op** (0 prefixes missing from IEEE data) |
 
 ## Note on the Lighthouse matrix run
 
-The background Lighthouse run was partially successful and already found one
-thing worth a dedicated follow-up: the vendor-search URL (`/apple`) rendered
-with an **LCP of 22.3 s** on desktop — the search path fetches the full
-registry *and* lineage before rendering anything. Home 84, help 87, batch 67
-(desktop). Mobile runs failed in this environment and need a re-run.
+Resolved 2026-09-14: the search path's 22.3 s LCP was fixed with a lean
+search index (`/data/search.*.parquet`, 1.12 MB vs the 3.01 MB registry) plus
+Web-Worker Parquet decoding. Mobile `/apple` is now LCP 10.6 s, TBT 0 ms,
+perf 68 with every audit ≥ 90; all other page types measure 95–99 on mobile.

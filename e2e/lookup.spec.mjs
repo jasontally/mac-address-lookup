@@ -22,6 +22,33 @@ test.describe('Static pre-rendered pages', () => {
     await expect(page.locator('h1')).toContainText('Help');
     await expect(page.locator('.faq-list details')).toHaveCount(10);
     expect(await page.locator('#lookup-form').count()).toBe(0);
+    // Agent-facing alternates are linked
+    expect(await page.locator('link[rel="alternate"][type="text/markdown"]').getAttribute('href')).toBe('/help.md');
+    expect(await page.locator('link[rel="describedby"]').getAttribute('href')).toBe('/llms.txt');
+  });
+
+  test('agent-facing static files exist and are coherent', async ({ request }) => {
+    const llms = await request.get('/llms.txt');
+    expect(llms.status()).toBe(200);
+    const text = await llms.text();
+    expect(text).toContain('/{hex}');
+    expect(text).toContain('data/registry.ndjson');
+
+    const md = await request.get('/help.md');
+    expect(md.status()).toBe(200);
+    expect((await md.text())).toContain('# Help & documentation');
+
+    const registry = await request.get('/data/registry.ndjson');
+    expect(registry.status()).toBe(200);
+    const firstLine = (await registry.text()).split('\n')[0];
+    expect(JSON.parse(firstLine)).toHaveProperty('prefix');
+
+    const lineage = await request.get('/data/lineage.ndjson');
+    expect(lineage.status()).toBe(200);
+    expect(JSON.parse((await lineage.text()).split('\n')[0])).toHaveProperty('prefix');
+
+    const robots = await request.get('/robots.txt');
+    expect(await robots.text()).toContain('User-agent: GPTBot');
   });
 });
 
@@ -73,6 +100,47 @@ test.describe('Path-based routing', () => {
     await page.goto('/001A2B,005056');
     await expect(page.locator('.result-card h2')).toContainText('2');
     await expect(page.locator('.data-table tbody tr')).toHaveCount(2);
+  });
+
+  test('batch export buttons produce CSV and copy JSON', async ({ page }) => {
+    await page.goto('/');
+    await page.click('#batch summary');
+    await page.fill('#batch-input', '00:1A:2B 00:50:56');
+    await page.click('#batch-form button[type=submit]');
+    await expect(page.locator('.result-card h2')).toContainText('2');
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download CSV' }).click();
+    const file = await download;
+    expect(file.suggestedFilename()).toBe('mac-lookup.csv');
+  });
+
+  test('/recent lists newest blocks and is linked from home', async ({ page }) => {
+    await page.goto('/recent');
+    await expect(page.locator('h1')).toContainText('Latest OUIs');
+    expect(await page.locator('.data-table tbody tr').count()).toBeGreaterThan(10);
+    await page.goto('/');
+    expect(await page.locator('a[href="/recent"]').count()).toBeGreaterThan(0);
+  });
+
+  test('random chip performs a lookup on a generated address', async ({ page }) => {
+    await page.goto('/');
+    await page.click('#random-chip');
+    // The pending card renders first; wait for the resolved result
+    await page.waitForFunction(
+      () => {
+        const card = document.querySelector('#result .result-card');
+        return card && !card.hasAttribute('aria-busy');
+      },
+      { timeout: 15000 },
+    );
+    const value = await page.inputValue('#lookup-input');
+    expect(value).toMatch(/^[0-9A-F:]{11,17}$/);
+    expect(await page.evaluate(() => location.pathname.length)).toBeGreaterThan(3);
+  });
+
+  test('OUI subdivided pages carry the classification badge', async ({ page }) => {
+    await page.goto('/001BC5');
+    await expect(page.locator('.badge--warning', { hasText: 'OUI subdivided' }).first()).toBeVisible();
   });
 
   test('batch share URL uses %2C to avoid a redirect round trip', async ({ page }) => {

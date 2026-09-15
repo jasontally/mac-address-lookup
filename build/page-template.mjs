@@ -6,6 +6,7 @@
 
 import { analyzeBits } from '../src/engine/input.mjs';
 import { formatAddress } from '../src/engine/formats.mjs';
+import { isSubdivided } from '../src/engine/subdivided.mjs';
 import { classifyRandomization, detectHypervisor } from '../src/engine/vendors.mjs';
 import { en } from '../src/i18n/en.mjs';
 import { addressRange, colonize, formatCount, formatDate } from '../src/ui/format.mjs';
@@ -161,6 +162,7 @@ function renderResult(record, lineage) {
 
   const badges = [
     badge(`${record.blockType} · ${record.prefixLen}-bit`),
+    isSubdivided(record) ? badge('OUI subdivided — vendor lookup does not apply', 'warning', 'badge.subdivided') : '',
     record.isPrivate ? badge('Private registration', 'warning', 'badge.private') : '',
     hypervisor ? badge(`Virtual machine: ${hypervisor.name}`, 'neutral', 'badge.vm', { name: hypervisor.name }) : '',
     randomization.likely ? badge('Likely randomized', 'warning', 'badge.randomized') : '',

@@ -129,6 +129,30 @@ export function searchRegistry(registry, lineage, query, { limit = 200 } = {}) {
     if (matchedAll) matches.push({ record, score, reason });
   }
 
+  // Typos: when the exact pass finds nothing, fall back to a deterministic
+  // fuzzy match over vendor names (no library; 58k names stay fast).
+  if (matches.length === 0) {
+    for (const record of registry.records()) {
+      const org = normalizeOrg(record.orgName).toLowerCase();
+      if (!org) continue;
+      let score = 0;
+      let matchedAll = true;
+      for (const token of tokens) {
+        const hit = fuzzyMatchOrg(org, token);
+        if (!hit) {
+          matchedAll = false;
+          break;
+        }
+        score += hit;
+      }
+      if (matchedAll) matches.push({ record, score, reason: { type: 'vendor' } });
+    }
+    matches.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.record.prefix < b.record.prefix ? -1 : 1;
+    });
+  }
+
   matches.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return a.record.prefix < b.record.prefix ? -1 : 1;
@@ -148,6 +172,59 @@ export function searchRegistry(registry, lineage, query, { limit = 200 } = {}) {
   }
 
   return { matches: matches.slice(0, limit), total, truncated: total > limit, portfolio };
+}
+
+/** Random unicast MAC: I/G bit clear, all other bits uniform. */
+export function randomMac({ random = Math.random } = {}) {
+  let hex = '';
+  for (let index = 0; index < 6; index += 1) {
+    const octet = Math.floor(random() * 256);
+    // Clear the I/G (multicast) bit so the address is a unicast device
+    // address; the U/L bit stays random, so results mix registered vendors
+    // with locally administered (randomized) addresses.
+    const value = index === 0 ? octet & 0b11111110 : octet;
+    hex += value.toString(16).padStart(2, '0');
+  }
+  return hex.toUpperCase();
+}
+
+/**
+ * Deterministic typo tolerance for one token against one org name.
+ * Returns a score or 0 when the token is not a plausible fuzzy match.
+ */
+export function fuzzyMatchOrg(org, token) {
+  for (const word of org.split(' ')) {
+    if (word.startsWith(token)) return 60;
+    if (token.startsWith(word) && word.length >= 3) return 50;
+    if (nearSameLength(word, token)) return 40;
+    if (word.includes(token)) return 35;
+  }
+  if (org.includes(token)) return 25;
+  if (isSubsequence(org, token)) return 10;
+  return 0;
+}
+
+/** Same length and ≤1 substitution at length 4, ≤2 for length 5+. */
+function nearSameLength(word, token) {
+  if (word.length !== token.length || word.length < 4) return false;
+  const allowed = word.length === 4 ? 1 : 2;
+  let differences = 0;
+  for (let index = 0; index < word.length; index += 1) {
+    if (word[index] !== token[index]) {
+      differences += 1;
+      if (differences > allowed) return false;
+    }
+  }
+  return true;
+}
+
+function isSubsequence(haystack, needle) {
+  let position = 0;
+  for (const char of haystack) {
+    if (char === needle[position]) position += 1;
+    if (position === needle.length) return true;
+  }
+  return needle.length === 0;
 }
 
 /** Aggregate batch/extraction results into one compact summary. */

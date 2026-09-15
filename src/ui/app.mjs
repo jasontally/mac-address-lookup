@@ -5,6 +5,7 @@ import {
   extractMacs,
   lookup,
   normalizeInput,
+  randomMac,
   searchRegistry,
   summarizeLookups,
 } from '../engine/index.mjs';
@@ -14,6 +15,8 @@ import { wireCopyButtons } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
 import { colonize, formatCount, formatRelativeTime } from './format.mjs';
 import { addHistory, clearHistory, loadHistory } from './history.mjs';
+import { downloadText, toCsv, toJson } from './export.mjs';
+import { copyText } from './clipboard.mjs';
 import {
   renderBatch,
   renderDataError,
@@ -224,6 +227,16 @@ async function runBatch(text, { push = true } = {}) {
     renderBatch(ui.result, entries, {
       summary: summarizeLookups(entries),
       extracted: fromText,
+      onExportCsv: () => downloadText('mac-lookup.csv', toCsv(entries)),
+      onExportJson: async (event) => {
+        const button = event?.currentTarget;
+        const ok = await copyText(toJson(entries));
+        if (button) {
+          const original = button.textContent;
+          button.textContent = ok ? t('format.copied') : t('format.copyFailed');
+          setTimeout(() => { button.textContent = original; }, 1200);
+        }
+      },
     });
 
     if (ui.batchStatus) {
@@ -376,9 +389,9 @@ if (!staticPage) {
   });
 
   ui.examples?.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-value]');
+    const button = event.target.closest('[data-value], [data-random]');
     if (!button) return;
-    const value = button.dataset.value;
+    const value = button.dataset.random ? randomMac() : button.dataset.value;
     ui.input.value = value;
     runSingle(value);
   });

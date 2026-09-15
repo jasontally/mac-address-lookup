@@ -1,6 +1,7 @@
 /** Result renderers. All external data goes through textContent. */
 
 import { formatAddress } from '../engine/formats.mjs';
+import { isSubdivided } from '../engine/subdivided.mjs';
 import { analyzeBits } from '../engine/input.mjs';
 import { t, tCount, getLocale } from '../i18n/index.mjs';
 import { copyButton } from './clipboard.mjs';
@@ -255,6 +256,7 @@ export function renderMatch(container, result, { lineage = null, portfolio = nul
         el('h2', { class: 'vendor', text: match.orgName || t('result.unknownOrg') }),
         el('div', { class: 'badges' }, [
           badge(`${match.blockType} · ${match.prefixLen}-bit`),
+          isSubdivided(match) ? badge(t('badge.subdivided'), 'warning') : null,
           match.isPrivate ? badge(t('badge.private'), 'warning') : null,
           hypervisor ? badge(t('badge.vm', { name: hypervisor.name })) : null,
           randomization?.likely ? badge(t('badge.randomized'), 'warning') : null,
@@ -375,7 +377,7 @@ function summaryLine(summary) {
   return el('p', { class: 'summary-line', text: parts.join(' · ') });
 }
 
-export function renderBatch(container, entries, { summary = null, extracted = false } = {}) {
+export function renderBatch(container, entries, { summary = null, extracted = false, onExportCsv = null, onExportJson = null } = {}) {
   clear(container);
 
   const rows = entries.map(({ raw, result }) => {
@@ -403,11 +405,34 @@ export function renderBatch(container, entries, { summary = null, extracted = fa
     ? t('batch.lookups', { count: 1 })
     : tCount('batch.lookups', entries.length, { count: formatCount(entries.length) });
 
+  const exports =
+    onExportCsv || onExportJson
+      ? el('p', { class: 'export-row' }, [
+          onExportCsv
+            ? el('button', {
+                type: 'button',
+                class: 'button button--ghost button--small',
+                text: t('batch.exportCsv'),
+                onClick: onExportCsv,
+              })
+            : null,
+          onExportJson
+            ? el('button', {
+                type: 'button',
+                class: 'button button--ghost button--small',
+                text: t('batch.exportJson'),
+                onClick: onExportJson,
+              })
+            : null,
+        ])
+      : null;
+
   container.append(
     el('article', { class: 'card result-card' }, [
       el('h2', { text: heading }),
       summaryLine(summary),
       extracted ? el('p', { class: 'section-note', text: t('batch.extracted') }) : null,
+      exports,
       resultsTable(['table.input', 'table.result', 'table.flags'], rows),
     ]),
   );

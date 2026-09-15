@@ -27,6 +27,20 @@
 /sitemap*
   Cache-Control: public, max-age=604800
 
+# Agent-facing documentation and downloads: stable names, refreshed weekly
+# with the data, so revalidate daily rather than caching long.
+/llms.txt
+  Cache-Control: public, max-age=86400
+
+/help.md
+  Cache-Control: public, max-age=86400
+
+/data/registry.ndjson
+  Cache-Control: public, max-age=86400
+
+/data/lineage.ndjson
+  Cache-Control: public, max-age=86400
+
 # Security headers (catch-all last so specific cache rules apply first).
 /*
   X-Content-Type-Options: nosniff

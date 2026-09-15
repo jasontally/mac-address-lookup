@@ -14,6 +14,7 @@ export const en = {
 
   // Examples
   'examples.label': 'Try:',
+  'examples.random': 'Random',
 
   // Status
   'status.loadingRegistry': 'Loading registry…',
@@ -25,6 +26,8 @@ export const en = {
   'batch.label': 'MAC addresses',
   'batch.placeholder': '00:1B:21:3C:4D:5E\narp -a output\nDE:AD:BE:EF:00:01',
   'batch.submit': 'Look up addresses',
+  'batch.exportCsv': 'Download CSV',
+  'batch.exportJson': 'Copy JSON',
 
   // History
   'history.title': 'Recent lookups',
@@ -79,6 +82,7 @@ export const en = {
   'badge.private': 'Private registration',
   'badge.vm': 'Virtual machine: {name}',
   'badge.randomized': 'Likely randomized',
+  'badge.subdivided': 'OUI subdivided — vendor lookup does not apply',
 
   // Vendor portfolio
   'portfolio.label': 'Vendor portfolio: {blocks} · {addresses}',
@@ -201,6 +205,10 @@ export const en = {
     'All lookups run in your browser — the addresses you look up are never sent to a server.',
   'footer.help': 'Help & documentation',
   'footer.source': 'Source on GitHub',
+  'footer.recent': 'Latest OUIs',
+
+  // Recent page
+  'recent.title': 'Latest OUIs',
 
   // Skip link
   'a11y.skip': 'Skip to content',
