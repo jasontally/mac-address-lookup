@@ -177,6 +177,7 @@ main {
 
 .site-footer p {
   margin-bottom: var(--space-2);
+  max-width: none;
 }
 
 /* ---------- Hero / search ---------- */
