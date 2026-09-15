@@ -14,7 +14,7 @@ export const fa = {
   "batch.title": "جست‌وجوی گروهی",
   "batch.description": "آدرس‌های MAC یا خروجی CLI را بچسبانید — تا ۲۵۰ آدرس؛ کاما، فاصله و خط جدید همه کار می‌کنند.",
   "batch.label": "آدرس‌های MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nخروجی arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nخروجی arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "جست‌وجوی آدرس‌ها",
   "batch.exportCsv": "دانلود CSV",
   "batch.exportJson": "رونویسی JSON",

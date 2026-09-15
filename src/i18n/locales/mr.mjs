@@ -14,7 +14,7 @@ export const mr = {
   "batch.title": "गट लुकअप",
   "batch.description": "MAC पत्ते किंवा CLI आउटपुट पेस्ट करा — २५० पर्यंत; स्वल्पविराम, स्पेस आणि ओळी सर्व चालतात.",
   "batch.label": "MAC पत्ते",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a आउटपुट\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a आउटपुट\nFA:CA:DE:00:00:01",
   "batch.submit": "पत्ते शोधा",
   "batch.exportCsv": "CSV डाउनलोड करा",
   "batch.exportJson": "JSON कॉपी करा",

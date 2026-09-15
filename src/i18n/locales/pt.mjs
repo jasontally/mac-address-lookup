@@ -14,7 +14,7 @@ export const pt = {
   "batch.title": "Consulta em lote",
   "batch.description": "Cole endereços MAC ou saída de CLI — até 250 endereços; vírgulas, espaços e novas linhas funcionam.",
   "batch.label": "Endereços MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nsaída do arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nsaída do arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Consultar endereços",
   "batch.exportCsv": "Baixar CSV",
   "batch.exportJson": "Copiar JSON",

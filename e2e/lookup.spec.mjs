@@ -75,10 +75,16 @@ test.describe('Dynamic lookups (SPA fallback)', () => {
     expect(lineageFetched).toBe(false);
   });
 
-  test('/DEADBEEF0001 shows unregistered prefix with randomized flag', async ({ page }) => {
-    await page.goto('/DEADBEEF0001');
+  test('/FACADE000001 shows unregistered prefix with randomized flag', async ({ page }) => {
+    await page.goto('/FACADE000001');
     await expect(page.locator('.vendor')).toHaveText('Unregistered prefix');
     await expect(page.locator('.badge--warning').first()).toContainText('randomized');
+  });
+
+  test('/FFFFFFFFFFFF shows the broadcast info banner', async ({ page }) => {
+    await page.goto('/FFFFFFFFFFFF');
+    await expect(page.locator('.banner--info')).toContainText(/broadcast/i);
+    await expect(page.locator('.bits')).toContainText('Broadcast address');
   });
 });
 

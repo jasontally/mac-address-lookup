@@ -14,7 +14,7 @@ export const ha = {
   "batch.title": "Bincike a taro",
   "batch.description": "Liƙa adireshunan MAC ko fitowar CLI — har ga adireshuna 250; waƙaɓɓa, sarari, da sababbin layuka duka suna aiki.",
   "batch.label": "Adireshunan MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nfitowar arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nfitowar arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Nemi adireshuna",
   "batch.exportCsv": "Zazzage CSV",
   "batch.exportJson": "Kwafi JSON",

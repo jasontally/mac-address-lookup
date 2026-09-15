@@ -14,7 +14,7 @@ export const ru = {
   "batch.title": "Пакетный поиск",
   "batch.description": "Вставьте MAC-адреса или вывод консоли — до 250 адресов; запятые, пробелы и переводы строк работают.",
   "batch.label": "MAC-адреса",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nвывод arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nвывод arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Найти адреса",
   "batch.exportCsv": "Скачать CSV",
   "batch.exportJson": "Скопировать JSON",

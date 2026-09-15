@@ -14,7 +14,7 @@ export const fr = {
   "batch.title": "Recherche par lot",
   "batch.description": "Collez des adresses MAC ou une sortie CLI — jusqu'à 250 adresses, les virgules, espaces et retours à la ligne fonctionnent.",
   "batch.label": "Adresses MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nsortie de arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nsortie de arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Rechercher les adresses",
   "batch.exportCsv": "Télécharger le CSV",
   "batch.exportJson": "Copier le JSON",

@@ -14,7 +14,7 @@ export const pa = {
   "batch.title": "ਸਮੂਹ ਲੁੱਕਅੱਪ",
   "batch.description": "MAC ਪਤੇ ਜਾਂ CLI ਆਉਟਪੁੱਟ ਪੇਸਟ ਕਰੋ — 250 ਪਤਿਆਂ ਤੱਕ; ਕਾਮੇ, ਸਪੇਸ ਅਤੇ ਨਵੀਆਂ ਲਾਈਨਾਂ ਸਭ ਚੱਲਦੀਆਂ ਹਨ।",
   "batch.label": "MAC ਪਤੇ",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a ਆਉਟਪੁੱਟ\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a ਆਉਟਪੁੱਟ\nFA:CA:DE:00:00:01",
   "batch.submit": "ਪਤੇ ਲੱਭੋ",
   "batch.exportCsv": "CSV ਡਾਊਨਲੋਡ ਕਰੋ",
   "batch.exportJson": "JSON ਕਾਪੀ ਕਰੋ",

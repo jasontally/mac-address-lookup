@@ -14,7 +14,7 @@ export const ja = {
   "batch.title": "一括検索",
   "batch.description": "MAC アドレスまたは CLI 出力を貼り付け — 最大 250 件、カンマ・スペース・改行すべて対応。",
   "batch.label": "MAC アドレス",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a の出力\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a の出力\nFA:CA:DE:00:00:01",
   "batch.submit": "アドレスを検索",
   "batch.exportCsv": "CSVをダウンロード",
   "batch.exportJson": "JSONをコピー",

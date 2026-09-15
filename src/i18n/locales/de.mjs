@@ -14,7 +14,7 @@ export const de = {
   "batch.title": "Stapelsuche",
   "batch.description": "MAC-Adressen oder CLI-Ausgabe einfügen — bis zu 250 Adressen, Kommas, Leerzeichen und Zeilenumbrüche funktionieren.",
   "batch.label": "MAC-Adressen",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a Ausgabe\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a Ausgabe\nFA:CA:DE:00:00:01",
   "batch.submit": "Adressen nachschlagen",
   "batch.exportCsv": "CSV herunterladen",
   "batch.exportJson": "JSON kopieren",

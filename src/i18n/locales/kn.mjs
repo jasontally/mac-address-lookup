@@ -14,7 +14,7 @@ export const kn = {
   "batch.title": "ಸಾಮೂಹಿಕ ಹುಡುಕಾಟ",
   "batch.description": "MAC ವಿಳಾಸಗಳು ಅಥವಾ CLI ಔಟ್‌ಪುಟ್ ಅಂಟಿಸಿ — 250 ರವರೆಗೆ; ಅಲ್ಪವಿರಾಮ, ಸ್ಪೇಸ್, ಹೊಸ ಸಾಲು ಎಲ್ಲವೂ ಕೆಲಸ ಮಾಡುತ್ತವೆ.",
   "batch.label": "MAC ವಿಳಾಸಗಳು",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a ಔಟ್‌ಪುಟ್\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a ಔಟ್‌ಪುಟ್\nFA:CA:DE:00:00:01",
   "batch.submit": "ವಿಳಾಸಗಳನ್ನು ಹುಡುಕಿ",
   "batch.exportCsv": "CSV ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
   "batch.exportJson": "JSON ನಕಲಿಸಿ",

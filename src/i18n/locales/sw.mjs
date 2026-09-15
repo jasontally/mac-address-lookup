@@ -14,7 +14,7 @@ export const sw = {
   "batch.title": "Utafutaji wa wingi",
   "batch.description": "Bandika anwani za MAC au matokeo ya CLI — hadi anwani 250; makomo, nafasi na mistari yote inafanya kazi.",
   "batch.label": "Anwani za MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nmatokeo ya arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nmatokeo ya arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Tafuta anwani",
   "batch.exportCsv": "Pakua CSV",
   "batch.exportJson": "Nakili JSON",

@@ -14,7 +14,7 @@ export const es = {
   "batch.title": "Búsqueda por lotes",
   "batch.description": "Pega direcciones MAC o salida de CLI — hasta 250 direcciones, funcionan comas, espacios y saltos de línea.",
   "batch.label": "Direcciones MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nsalida de arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nsalida de arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Buscar direcciones",
   "batch.exportCsv": "Descargar CSV",
   "batch.exportJson": "Copiar JSON",

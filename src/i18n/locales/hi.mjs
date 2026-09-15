@@ -14,7 +14,7 @@ export const hi = {
   "batch.title": "समूह लुकअप",
   "batch.description": "MAC पते या CLI आउटपुट पेस्ट करें — 250 पतों तक; कॉमा, स्पेस और नई लाइन सभी चलती हैं।",
   "batch.label": "MAC पते",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a आउटपुट\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a आउटपुट\nFA:CA:DE:00:00:01",
   "batch.submit": "पते खोजें",
   "batch.exportCsv": "CSV डाउनलोड करें",
   "batch.exportJson": "JSON कॉपी करें",

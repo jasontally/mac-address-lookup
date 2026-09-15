@@ -14,7 +14,7 @@ export const ar = {
   "batch.title": "بحث دفعي",
   "batch.description": "الصق عناوين MAC أو مخرجات سطر الأوامر — حتى 250 عنوان، تعمل الفواصل والمسافات والأسطر الجديدة.",
   "batch.label": "عناوين MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nمخرجات arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nمخرجات arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "البحث عن العناوين",
   "batch.exportCsv": "تنزيل CSV",
   "batch.exportJson": "نسخ JSON",

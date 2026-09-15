@@ -14,7 +14,7 @@ export const ko = {
   "batch.title": "일괄 조회",
   "batch.description": "MAC 주소나 CLI 출력을 붙여넣으세요 — 최대 250개까지, 쉼표·공백·줄바꿈 모두 지원합니다.",
   "batch.label": "MAC 주소",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a 출력\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a 출력\nFA:CA:DE:00:00:01",
   "batch.submit": "주소 조회",
   "batch.exportCsv": "CSV 다운로드",
   "batch.exportJson": "JSON 복사",

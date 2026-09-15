@@ -14,7 +14,7 @@ export const bn = {
   "batch.title": "গুচ্ছ লুকআপ",
   "batch.description": "MAC ঠিকানা বা CLI আউটপুট পেস্ট করুন — ২৫০টি পর্যন্ত; কমা, স্পেস ও নতুন লাইন সবই কাজ করে।",
   "batch.label": "MAC ঠিকানা",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a আউটপুট\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a আউটপুট\nFA:CA:DE:00:00:01",
   "batch.submit": "ঠিকানা খুঁজুন",
   "batch.exportCsv": "CSV ডাউনলোড করুন",
   "batch.exportJson": "JSON কপি করুন",

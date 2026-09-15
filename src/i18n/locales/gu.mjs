@@ -14,7 +14,7 @@ export const gu = {
   "batch.title": "સમૂહ લુકઅપ",
   "batch.description": "MAC સરનામાં અથવા CLI આઉટપુટ પેસ્ટ કરો — 250 સુધી; અલ્પવિરામ, સ્પેસ અને નવી લાઇન બધું ચાલે છે.",
   "batch.label": "MAC સરનામાં",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a આઉટપુટ\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a આઉટપુટ\nFA:CA:DE:00:00:01",
   "batch.submit": "સરનામાં શોધો",
   "batch.exportCsv": "CSV ડાઉનલોડ કરો",
   "batch.exportJson": "JSON કૉપિ કરો",

@@ -14,7 +14,7 @@ export const id = {
   "batch.title": "Pencarian massal",
   "batch.description": "Tempel alamat MAC atau keluaran CLI — hingga 250 alamat; koma, spasi, dan baris baru semuanya berfungsi.",
   "batch.label": "Alamat MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\nkeluaran arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\nkeluaran arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Cari alamat",
   "batch.exportCsv": "Unduh CSV",
   "batch.exportJson": "Salin JSON",

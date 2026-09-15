@@ -14,7 +14,7 @@ export const te = {
   "batch.title": "బ్యాచ్ లుకప్",
   "batch.description": "MAC చిరునామాలు లేదా CLI అవుట్‌పుట్ పేస్ట్ చేయండి — 250 వరకు; కామాలు, స్పేస్‌లు, కొత్త లైన్లు అన్నీ పనిచేస్తాయి.",
   "batch.label": "MAC చిరునామాలు",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a అవుట్‌పుట్\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a అవుట్‌పుట్\nFA:CA:DE:00:00:01",
   "batch.submit": "చిరునామాలు వెతకండి",
   "batch.exportCsv": "CSV డౌన్‌లోడ్ చేయండి",
   "batch.exportJson": "JSON కాపీ చేయండి",

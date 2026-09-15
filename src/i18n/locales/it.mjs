@@ -14,7 +14,7 @@ export const it = {
   "batch.title": "Ricerca in blocco",
   "batch.description": "Incolla indirizzi MAC o output da CLI — fino a 250 indirizzi; virgole, spazi e a capo funzionano.",
   "batch.label": "Indirizzi MAC",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\noutput di arp -a\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\noutput di arp -a\nFA:CA:DE:00:00:01",
   "batch.submit": "Cerca indirizzi",
   "batch.exportCsv": "Scarica CSV",
   "batch.exportJson": "Copia JSON",

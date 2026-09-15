@@ -14,7 +14,7 @@ export const tr = {
   "batch.title": "Toplu sorgu",
   "batch.description": "MAC adresleri veya CLI çıktısı yapıştırın — 250 adrese kadar; virgül, boşluk ve satır sonu çalışır.",
   "batch.label": "MAC adresleri",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a çıktısı\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a çıktısı\nFA:CA:DE:00:00:01",
   "batch.submit": "Adresleri sorgula",
   "batch.exportCsv": "CSV indir",
   "batch.exportJson": "JSON kopyala",

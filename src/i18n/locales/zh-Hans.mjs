@@ -14,7 +14,7 @@ export const zhHans = {
   "batch.title": "批量查询",
   "batch.description": "粘贴 MAC 地址或 CLI 输出 — 最多 250 个地址，支持逗号、空格和换行。",
   "batch.label": "MAC 地址",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a 输出\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a 输出\nFA:CA:DE:00:00:01",
   "batch.submit": "查询地址",
   "batch.exportCsv": "下载 CSV",
   "batch.exportJson": "复制 JSON",

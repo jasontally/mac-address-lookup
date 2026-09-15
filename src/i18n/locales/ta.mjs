@@ -14,7 +14,7 @@ export const ta = {
   "batch.title": "தொகுதி தேடல்",
   "batch.description": "MAC முகவரிகள் அல்லது CLI வெளியீட்டை ஒட்டவும் — 250 வரை; கமா, இடைவெளி, புதிய வரி அனைத்தும் வேலை செய்யும்.",
   "batch.label": "MAC முகவரிகள்",
-  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a வெளியீடு\nDE:AD:BE:EF:00:01",
+  "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a வெளியீடு\nFA:CA:DE:00:00:01",
   "batch.submit": "முகவரிகளைத் தேடு",
   "batch.exportCsv": "CSV பதிவிறக்கவும்",
   "batch.exportJson": "JSON நகலெடு",
