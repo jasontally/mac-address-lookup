@@ -25,7 +25,7 @@ Build (Workers Builds)                          Runtime (Cloudflare edge)
 | Stack | Vanilla HTML/CSS/JS, no framework, no Tailwind, no React |
 | Hosting | Cloudflare Workers Static Assets, assets-only (no Worker script), paid plan |
 | Fallback | `not_found_handling: "single-page-application"` → `200` + shell for unmatched paths |
-| Data | Apache Parquet files (registry + lineage), read in-browser with Hyparquet; Apache Arrow JS not used |
+| Data | Apache Parquet files (registry + lean search index + lineage), read in-browser with Hyparquet; Apache Arrow JS not used |
 | Indexing | Pre-rendered priority tiers, flat `<prefix>.html` pages, canonical uppercase URLs, sitemap for pre-rendered pages only (provisional) |
 | Design | Kumo-inspired semantic tokens, monochrome + status colors, system font stack, system-aware dark mode + toggle |
 | Deep links | Every single-segment path: `/001A2B`, `/apple`, `/001A2B,005056` (comma-separated batch, cap 100); legacy `?q=` still accepted and canonicalized to the path form |

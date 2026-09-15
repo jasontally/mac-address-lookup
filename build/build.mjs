@@ -5,7 +5,7 @@ import { fetchRegistries } from './fetch-registries.mjs';
 import { fetchLineage, LINEAGE_SOURCE } from './fetch-lineage.mjs';
 import { buildFirstSeen, buildLineage, countLineageEvents, normalizeOrgName } from './lineage.mjs';
 import { normalizeRegistries } from './normalize.mjs';
-import { writeLineageParquet, writeRegistryParquet, writeShardParquets } from './write-parquet.mjs';
+import { writeLineageParquet, writeRegistryParquet, writeSearchParquet, writeShardParquets } from './write-parquet.mjs';
 import { writeSourceCache } from './source-cache.mjs';
 import { DEFAULT_SITE } from './source-files.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
@@ -135,6 +135,9 @@ console.log(`  ${parquet.filename} (${formatBytes(parquet.bytes)})`);
 const shards = await writeShardParquets(records, { outDir: dataDir });
 console.log(`  shards: ${shards.count} files (${formatBytes(shards.bytes)} total)`);
 
+const search = await writeSearchParquet(records, { outDir: dataDir });
+console.log(`  ${search.filename} (${formatBytes(search.bytes)})`);
+
 const refreshDate = (await readFile(path.join(root, 'data', 'refresh.txt'), 'utf8')).trim();
 const manifest = {
   schemaVersion: 1,
@@ -144,6 +147,11 @@ const manifest = {
     file: `data/${parquet.filename}`,
     bytes: parquet.bytes,
     sha256: parquet.sha256,
+  },
+  search: {
+    file: `data/${search.filename}`,
+    bytes: search.bytes,
+    sha256: search.sha256,
   },
   shards: shards.files,
   counts: {

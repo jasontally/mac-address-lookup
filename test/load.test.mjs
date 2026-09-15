@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { checkSchemaVersion, MAX_SHARDS, shardKeysFor, SUPPORTED_SCHEMA_VERSION } from '../src/engine/load.mjs';
+import { checkSchemaVersion, loadSearchIndex, MAX_SHARDS, shardKeysFor, SUPPORTED_SCHEMA_VERSION } from '../src/engine/load.mjs';
 
 const shardManifest = {
   shards: {
@@ -72,4 +72,53 @@ test('checkSchemaVersion rejects newer schemas with a user-facing message', () =
     assert.match(error.message, /newer than this app supports/);
     assert.match(error.userMessage, /Reload to update/);
   }
+});
+
+test('loadSearchIndex prefers the lean search file and falls back to data', async () => {
+  const { mkdir, mkdtemp, readFile, rm, writeFile } = await import('node:fs/promises');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const { writeSearchParquet, writeRegistryParquet } = await import('../build/write-parquet.mjs');
+
+  const records = [
+    {
+      prefix: '001B21', prefixLen: 6, blockType: 'MA-L', addressCount: 100,
+      orgName: 'Intel Corporate', orgAddress: 'Lot 8', country: 'MY',
+      isPrivate: false, firstSeen: '2007-01-16', lineageCount: 1,
+      vendorBlocks: null, vendorAddresses: null,
+    },
+    {
+      prefix: '005056', prefixLen: 6, blockType: 'MA-L', addressCount: 50,
+      orgName: 'VMware, Inc.', orgAddress: '3401 Hillview', country: 'US',
+      isPrivate: false, firstSeen: '2005-02-01', lineageCount: 0,
+      vendorBlocks: null, vendorAddresses: null,
+    },
+  ];
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'mal-search-'));
+  await mkdir(dir, { recursive: true });
+  const search = await writeSearchParquet(records, { outDir: dir });
+  const full = await writeRegistryParquet(records, { outDir: dir });
+
+  const toArrayBuffer = (buf) => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  const buffers = {
+    [`/data/${search.filename}`]: toArrayBuffer(await readFile(path.join(dir, search.filename))),
+    [`/data/${full.filename}`]: toArrayBuffer(await readFile(path.join(dir, full.filename))),
+  };
+  const fetchImpl = (url) => Promise.resolve({ ok: true, arrayBuffer: async () => buffers[url] });
+
+  // Lean file: resolve + portfolio work without org_address or vendor totals.
+  const leanManifest = { search: { file: `data/${search.filename}` }, data: { file: `data/${full.filename}` } };
+  const lean = await loadSearchIndex(leanManifest, { fetchImpl });
+  assert.equal(lean.mode, 'search');
+  const resolved = lean.registry.resolve('001B21AABBCC');
+  assert.equal(resolved.record.orgName, 'Intel Corporate');
+  assert.equal(resolved.record.orgAddress, '');
+  assert.deepEqual(lean.registry.portfolio('Intel Corporate'), { blocks: 1, addresses: 100 });
+
+  // Without manifest.search, the full registry file is used.
+  const fallbackManifest = { data: { file: `data/${full.filename}` } };
+  const fallback = await loadSearchIndex(fallbackManifest, { fetchImpl });
+  assert.equal(fallback.registry.resolve('001B21AABBCC').record.orgAddress, 'Lot 8');
+
+  await rm(dir, { recursive: true, force: true });
 });

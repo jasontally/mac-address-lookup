@@ -60,6 +60,13 @@ test.describe('Path-based routing', () => {
     await page.goto('/apple');
     await expect(page.locator('.result-card h2')).toContainText('matching prefixes');
     await expect(page.locator('.data-table tbody tr').first()).toContainText('Apple');
+    // Search uses the lean index, never the full 3 MB registry
+    await page.waitForLoadState('networkidle');
+    const fetched = await page.evaluate(() =>
+      performance.getEntriesByType('resource').map((e) => e.name),
+    );
+    expect(fetched.some((r) => r.includes('/data/registry.'))).toBe(false);
+    expect(fetched.some((r) => r.includes('/data/search.'))).toBe(true);
   });
 
   test('/001A2B,005056 renders batch results', async ({ page }) => {

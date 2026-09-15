@@ -37,6 +37,24 @@ export async function writeRegistryParquet(records, { outDir }) {
   return writeHashedParquet({ columnData: registryColumnData(records), dir: outDir, baseName: 'registry' });
 }
 
+/** Columns the free-text search needs; drops org_address and lookup-only fields. */
+function searchColumnData(records) {
+  return [
+    { name: 'prefix', data: records.map((record) => record.prefix), type: 'STRING' },
+    { name: 'prefix_len', data: records.map((record) => record.prefixLen), type: 'INT32' },
+    { name: 'block_type', data: records.map((record) => record.blockType), type: 'STRING' },
+    { name: 'address_count', data: records.map((record) => record.addressCount), type: 'INT32' },
+    { name: 'org_name', data: records.map((record) => record.orgName), type: 'STRING' },
+    { name: 'country', data: records.map((record) => record.country), type: 'STRING' },
+    { name: 'first_seen', data: records.map((record) => record.firstSeen ?? null), type: 'STRING' },
+  ];
+}
+
+/** Write the free-text search index (no org addresses, is_private, or lineage counts). */
+export async function writeSearchParquet(records, { outDir }) {
+  return writeHashedParquet({ columnData: searchColumnData(records), dir: outDir, baseName: 'search' });
+}
+
 /** Maximum rows per shard before the group is split by the next hex digit. */
 export const SHARD_MAX_ROWS = 1500;
 

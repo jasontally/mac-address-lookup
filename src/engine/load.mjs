@@ -159,6 +159,25 @@ export async function registryFromParquetUrl(url, { fetchImpl = fetch } = {}) {
   return createRegistry(await fetchParquetRowsFromUrl(url, fetchImpl));
 }
 
+/**
+ * Load the lean free-text search index when the manifest provides one;
+ * otherwise fall back to the full registry (older deployments, tests).
+ */
+export async function loadSearchIndex(manifest, { fetchImpl = fetch, cache = {} } = {}) {
+  const file = manifest?.search?.file ?? manifest?.data?.file;
+  if (cache.searchIndexPromise && cache.searchIndexPromise.file === file) {
+    return { registry: await cache.searchIndexPromise.registry, mode: 'search' };
+  }
+  const promise = (async () => {
+    let buffer = null;
+    const preloaded = await usePreload(preload()?.searchIndex);
+    buffer = preloaded ?? (await fetchBuffer(`/${file}`, fetchImpl));
+    return createRegistry(await fetchParquetRows(buffer));
+  })();
+  cache.searchIndexPromise = { file, registry: promise };
+  return { registry: await promise, mode: 'search' };
+}
+
 /** Read a Parquet lineage file from a URL into a lineage index. */
 export async function lineageFromParquetUrl(url, { fetchImpl = fetch } = {}) {
   return createLineageIndex(await fetchParquetRowsFromUrl(url, fetchImpl));

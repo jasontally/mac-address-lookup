@@ -114,6 +114,11 @@
               : manifest.then(function (data) {
                   return buffer(data && data.lineage && data.lineage.file);
                 }),
+            searchIndex: addressOnly
+              ? null
+              : manifest.then(function (data) {
+                  return buffer((data && data.search && data.search.file) || (data && data.data && data.data.file));
+                }),
           };
         } catch (error) {
           /* preloading is best-effort */

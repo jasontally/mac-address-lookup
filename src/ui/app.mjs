@@ -9,7 +9,7 @@ import {
   summarizeLookups,
 } from '../engine/index.mjs';
 import { initI18n, t, tCount, applyDom, getLocale, setLocale, LOCALE_NAMES, SUPPORTED_LOCALES } from '../i18n/index.mjs';
-import { loadLineage, loadManifest, loadRegistryFor } from '../engine/load.mjs';
+import { loadLineage, loadManifest, loadRegistryFor, loadSearchIndex } from '../engine/load.mjs';
 import { wireCopyButtons } from './clipboard.mjs';
 import { clear, el } from './dom.mjs';
 import { colonize, formatCount, formatRelativeTime } from './format.mjs';
@@ -253,7 +253,8 @@ async function runBatch(text, { push = true } = {}) {
 
 async function runSearch(query, { push = true } = {}) {
   try {
-    const [loaded, lineage] = await Promise.all([registryFor(null), ensureLineage()]);
+    const manifest = await ensureManifest();
+    const [loaded, lineage] = await Promise.all([loadSearchIndex(manifest, { cache: data }), ensureLineage()]);
     const outcome = searchRegistry(loaded.registry, lineage, query, { limit: 200 });
     renderSearchResults(ui.result, {
       query,
