@@ -261,7 +261,7 @@ a second block), so the portal/prefix split inside the 90,000 cap self-balances.
 ## Performance
 
 - Pre-rendered pages fetch only the content-hashed CSS and JS bundles — no Parquet, no data fetch.
-- Large hub tables render in chunks before first paint: rows past the initial 500-ship batch carry `hidden` in the source (complete data stays in the document for crawlers and noscript), and a tiny inline script reveals further 1,000-row batches. Measured on `/country/us` (mobile): TBT 1,080 → 20 ms, perf 76 → 99.
+- Large hub tables render in chunks before first paint: rows past the initial 500-ship batch carry `hidden` in the source (complete data stays in the document for crawlers and noscript), and a tiny inline script reveals further 1,000-row batches. Measured on `/country/us` (mobile): TBT 1,080 → 20 ms, perf 76 → **100** (vendor hubs likewise 100; Apple's 1,553-row hub 99–100). Desktop hub runs read 87–92 — the desktop lab weighs the shared chunk load and run-to-run traces vary; LCP/FCP stay ~1.5 s in both forms now that static pages ship a chrome-only bundle (src/ui/static.mjs, shared locale chunks with the app build).
 - Dynamic routes start the manifest and Parquet fetches from an inline head script, in parallel with the app bundle download.
 - Content below the result is hidden until a dynamic lookup renders (removing the layout shift from inserting the result card; desktop CLS was 0.296 before this change).
 - Asset filenames are content-hashed and cached immutably; the manifest is always revalidated.

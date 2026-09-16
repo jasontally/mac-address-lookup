@@ -17,10 +17,11 @@ test.describe('Vendor and country hub pages', () => {
     const visible = await page.locator('.data-table tbody tr:not([hidden])').count();
     expect(visible).toBe(500);
     const note = await page.locator('#hub-rows-note').textContent();
-    expect(note).toContain('Showing the first 500 of 8879');
+    // Row totals drift a few orgs per data refresh; derive from the note.
+    const [, total] = /of (\d+)/.exec(note);
     await page.getByRole('button', { name: 'Show more' }).click();
     await expect(page.locator('.data-table tbody tr:not([hidden])')).toHaveCount(1500, { timeout: 10_000 });
-    await expect(page.locator('#hub-rows-note')).toContainText('Showing the first 1500 of 8879');
+    await expect(page.locator('#hub-rows-note')).toContainText(`Showing the first 1500 of ${total}`);
   });
 
   test('/vendor/qualcomm-inc renders a mid-size hub with static chrome', async ({ page }) => {
@@ -33,7 +34,11 @@ test.describe('Vendor and country hub pages', () => {
   test('/country/us renders every org, sorted by address space', async ({ page }) => {
     await page.goto('/country/us');
     await expect(page.locator('h1')).toContainText('United States MAC address blocks');
-    await expect(page.locator('.data-table tbody tr')).toHaveCount(8879, { timeout: 20_000 });
+    // Row counts drift a few orgs per data refresh; the page's note states the total.
+    const note = await page.locator('#hub-rows-note').textContent();
+    const total = Number(/of (\d+)/.exec(note)[1]);
+    expect(total).toBeGreaterThan(8000);
+    await expect(page.locator('.data-table tbody tr')).toHaveCount(total, { timeout: 20_000 });
     // Hub-linked orgs appear in the table (biggest portfolios first).
     await expect(
       page.locator('.data-table tbody tr').first().locator('a[href^="/vendor/"]'),
