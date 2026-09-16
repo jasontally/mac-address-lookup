@@ -109,6 +109,28 @@ export function applyPrerenderedI18n(root = document) {
     const reasons = JSON.parse(text.getAttribute('data-reasons'));
     text.textContent = reasonText(reasons);
   }
+
+  // Computed context sentences carry raw params; re-format for the locale.
+  for (const node of root.querySelectorAll('[data-enrich]')) {
+    const sentences = JSON.parse(node.getAttribute('data-enrich'));
+    node.textContent = sentences
+      .map(({ key, params }) => t(key, enrichDisplayParams(params, locale)))
+      .join(' ');
+  }
+}
+
+function enrichDisplayParams(params, locale) {
+  const formats = {
+    count: (value) => formatCount(value, locale),
+    addresses: (value) => formatAddresses(value, locale),
+    date: (value) => formatDate(value, locale),
+  };
+  return Object.fromEntries(
+    Object.entries(params).map(([key, value]) => {
+      const format = formats[key];
+      return [key, format ? format(value) : value];
+    }),
+  );
 }
 
 function randomizationBanner(randomization) {

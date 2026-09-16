@@ -9,7 +9,8 @@ import { formatAddress } from '../src/engine/formats.mjs';
 import { isSubdivided } from '../src/engine/subdivided.mjs';
 import { classifyRandomization, detectHypervisor } from '../src/engine/vendors.mjs';
 import { en } from '../src/i18n/en.mjs';
-import { addressRange, colonize, formatCount, formatDate } from '../src/ui/format.mjs';
+import { addressRange, colonize, formatAddresses, formatCount, formatDate } from '../src/ui/format.mjs';
+import { enrichDisplayParams } from './enrich.mjs';
 
 export const SITE = 'https://mac.jasontally.com';
 
@@ -297,6 +298,21 @@ export function renderRelated(related, { record = null, vendorHub = null } = {})
   return parts.length > 0 ? `${parts.join('\n')}\n` : '';
 }
 
+/**
+ * Computed context sentences (prerender-only). Static English for crawlers;
+ * `data-enrich` carries raw params so applyPrerenderedI18n can re-format and
+ * re-translate with the active locale.
+ */
+export function renderEnrichment(sentences) {
+  if (!sentences?.length) return '';
+  const text = sentences
+    .map(({ key, params }) => interpolate(en[key], enrichDisplayParams(params, { formatted: true })))
+    .join(' ');
+  return `      <p class="section-note" data-enrich='${escapeHtml(
+    JSON.stringify(sentences),
+  )}'>${escapeHtml(text)}</p>\n`;
+}
+
 const THEME_BOOT = `(function () {
         try {
           var mode = localStorage.getItem('mal.theme');
@@ -315,6 +331,7 @@ export function renderPrefixPage({
   related = null,
   vendorHub = null,
   countryHub = null,
+  enrich = null,
 }) {
   const colon = colonize(record.prefix);
   const canonical = `${site}/${record.prefix}`;
@@ -452,7 +469,7 @@ export function renderPrefixPage({
           data-blocktype="${escapeHtml(record.blockType)}"
         >
 ${renderResult(record, lineage, { vendorHub, countryHub })}
-${renderRelated(related, { record, vendorHub })}
+${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
         </section>
       </div>
     </main>

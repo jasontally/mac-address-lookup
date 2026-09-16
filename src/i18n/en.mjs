@@ -88,6 +88,12 @@ export const en = {
   'portfolio.label': 'Vendor portfolio: {blocks} · {addresses}',
   'portfolio.viewAll': 'View all prefixes',
 
+  // Pre-rendered computed context (client swaps via data-enrich)
+  'enrich.portfolio': "One of {org}'s {count} registered blocks; together they span {addresses}.",
+  'enrich.blockSize': 'Unlike the classic 24-bit OUI, a {type} assignment covers {addresses} addresses.',
+  'enrich.cid': 'CID assignments are company identifiers; they are not used on network hardware.',
+  'enrich.oldest': "First observed {date} — among {org}'s oldest registrations.",
+
   // Related prefixes (pre-rendered pages)
   'related.sameOrg': 'More blocks from',
   'related.adjacent': 'Adjacent prefixes',

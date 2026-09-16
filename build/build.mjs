@@ -133,7 +133,9 @@ for (const record of records) {
 const hubIndex = {
   vendorHub: (record) => {
     const hub = hubByKey.get(normalizeOrgName(record.orgName));
-    return hub ? { url: hub.url, blocks: hub.blocks } : null;
+    return hub
+      ? { url: hub.url, blocks: hub.blocks, firstSeen: hub.firstSeen }
+      : null;
   },
 };
 

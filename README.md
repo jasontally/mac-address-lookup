@@ -33,9 +33,11 @@ Navigate directly to a result — no form submission needed. Everything after `/
 | --- | --- |
 | `https://mac.jasontally.com/001A2B` | OUI / prefix lookup |
 | `https://mac.jasontally.com/001B213C4D5E` | Full address lookup |
-| `https://mac.jasontally.com/001A2B,005056` | Batch lookup (comma-separated, cap 100) |
+| `https://mac.jasontally.com/001A2B,005056` | Batch lookup (comma-separated, cap 250) |
 | `https://mac.jasontally.com/apple` | Vendor search |
 | `https://mac.jasontally.com/tekelec` | Former-owner search |
+| `https://mac.jasontally.com/vendor/apple-inc` | Vendor page: every block registered to one organization |
+| `https://mac.jasontally.com/country/us` | Country page: every organization with registered blocks |
 | `https://mac.jasontally.com/?q=001A2B` | Legacy form (canonicalizes to `/001A2B`) |
 
 The page consumes the value from the URL path and displays the result without any manual input.
@@ -43,6 +45,8 @@ The page consumes the value from the URL path and displays the result without an
 ## Pre-rendered pages
 
 A build step pre-renders a real HTML page for every registered IEEE assignment — each OUI (MA-L), MA-M, MA-S, IAB, and CID prefix — so that search engines can index those pages and people can find them when they look up a prefix or a vendor. Every page contains the vendor record without requiring JavaScript, and the interactive tool hydrates on top to resolve everything else in the browser: full addresses, partial prefixes, batch lists, vendor names, former owners, countries, and registration years. Generated pages include canonical URLs, schema.org metadata, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
+
+On top of the prefix pages, the build generates **vendor pages** (`/vendor/<slug>`, every block registered to one organization — 3,469 today) and **country pages** (`/country/<code>`, every organization with blocks registered in a country — 249). Both are complete static tables with no row caps, plus an internal relational link web: related-prefix sections (same vendor, adjacent prefixes, same registration year) on every prefix page, hub links from prefix pages, and org directory links on country pages. Rationale and capacity accounting: [`docs/thin-content-mitigation.md`](docs/thin-content-mitigation.md).
 
 ## Data sources
 

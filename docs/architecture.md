@@ -38,15 +38,19 @@ Build (Workers Builds)                          Runtime (Cloudflare edge)
 ```
 mac-address-lookup/
 ├── src/                    # client app (committed)
-│   ├── engine/             # normalization, lookup, bits, formats, lineage
+│   ├── engine/             # normalization, lookup, bits, formats, lineage, slugs
 │   ├── ui/                 # rendering, deep links, batch, history, theme
 │   └── styles/             # token layer + component CSS
 ├── build/                  # Node build pipeline (committed)
 │   ├── build.mjs           # orchestrator
 │   ├── fetch-registries.mjs  fetch-lineage.mjs
-│   ├── normalize.mjs         lineage.mjs
+│   ├── normalize.mjs         # normalize IEEE CSV rows
+│   ├── lineage.mjs           # runZero history → lineage records + org keys
 │   ├── write-parquet.mjs
 │   ├── select-pages.mjs    # budget + priority scoring
+│   ├── related.mjs         # related-prefix links on prefix pages
+│   ├── hubs.mjs            # vendor + country hub pages (compute/render/write)
+│   ├── enrich.mjs          # computed context sentences for prefix pages
 │   ├── page-template.mjs   # static prefix page HTML
 │   ├── generate-pages.mjs  # page writes + sitemaps
 │   ├── generate-sitemaps.mjs  # sitemap renderers
@@ -76,7 +80,7 @@ mac-address-lookup/
 2. **Fetch lineage** (`build/fetch-lineage.mjs`): the runZero mac-tracker history JSON (MIT, updated twice daily) — dated `add`/`change` records per prefix going back to ~1998. Uses the same retry helper as the registries.
 3. **Normalize registries**: trim and validate hex assignments; uppercase; derive `prefixLength` (24/28/36 bits), `addressCount`, and `country` (parsed from the address tail); mark `Private`/empty organizations; dedupe; sort by prefix value.
 4. **Build lineage** (`build/lineage.mjs`): normalize organization names (case, punctuation), drop `Private`/empty glitches, collapse consecutive identical organizations, and keep prefixes with at least two distinct organizations. `buildFirstSeen` also derives the earliest observed date for every tracked prefix. **Measured 2026-09-12: 5,665 changed prefixes / 14,350 events.**
-5. **Write Parquet** (`dist/data/registry.<hash>.parquet`, prefix-trie shards under `dist/data/shards/`, and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`, `firstSeen`, `lineageCount` (events for changed prefixes), `vendorBlocks`, `vendorAddresses` (global vendor totals repeated per row so a single shard reports correct portfolio stats). Shards split any prefix group over 1,500 rows by the next hex digit, so hot ranges (IAB under `00:50:C2`, MA-S under `8C:1F:64`) get deep keys while quiet ranges stay shallow. **Measured: registry 3.01 MB / 58,694 records; lineage 232 KB; 293 shards totaling 4.20 MB (largest ~63 KB, `001B` shard 30 KB).**
+5. **Write Parquet** (`dist/data/registry.<hash>.parquet`, prefix-trie shards under `dist/data/shards/`, and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`, `firstSeen`, `lineageCount` (events for changed prefixes), `vendorBlocks`, `vendorAddresses` (global vendor totals repeated per row so a single shard reports correct portfolio stats), `vendorHub` (hub slug for orgs with ≥ 2 blocks — see [thin-content-mitigation](thin-content-mitigation.md); additive, resolved at build time so client links and static hub files always agree). Shards split any prefix group over 1,500 rows by the next hex digit, so hot ranges (IAB under `00:50:C2`, MA-S under `8C:1F:64`) get deep keys while quiet ranges stay shallow. **Measured 2026-09-16: registry 3.11 MB / 58,694 records; lineage 232 KB; search index 1.22 MB; 293 shards totaling 4.58 MB.**
 6. **Emit manifest** (`dist/data/manifest.json`): content-hashed filenames, `generatedAt`, counts by block type, schema version, and lineage source attribution (name, homepage, license, retrieval time).
 7. **Budget checks** (`build/budget.mjs`): file-count and file-size assertions — see [Capacity & page budget](#capacity--page-budget).
 
@@ -112,7 +116,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Lineage**: `createLineageIndex` groups event rows per prefix and exposes `forPrefix(prefix)`; `loadRegistry` returns `{ manifest, registry, lineage }`.
 - **Normalization**: strip separators (`:` `-` `.` space), uppercase, validate `[0-9A-F]`, accept 1–12 hex digits.
 - **Lookup**: longest-prefix match over 9-hex (MA-S/IAB), 7-hex (MA-M), 6-hex (MA-L/CID), using a first-byte index over sorted prefix arrays.
-- **Partials**: 1–5 hex digits return all matching assignments, capped at 500 rows plus a total count.
+- **Partials**: 1–5 hex digits return all matching assignments, capped at 500 rows plus a total count; a "show more" reveal re-queries `listPartials` in 500-row chunks (measured render budget in `e2e/measure-limits.mjs`), never refetching data.
 - **Bit analysis**: I/G bit (multicast), U/L bit (locally administered → likely randomized when unregistered); broadcast (`FF:FF:FF:FF:FF:FF`) and all-zero special cases.
 - **VM/hypervisor detection**: known prefix map (VMware, VirtualBox, Microsoft Hyper-V/Virtual PC, Parallels, Xen, QEMU/KVM, Docker).
 - **Format conversions**: colon, hyphen, Cisco dot, plain hex, EUI-64, IPv6 link-local.
@@ -120,7 +124,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Text extraction** (`extractMacs`): colon, hyphen, Cisco-dot, space-separated, and bare 12-hex formats; bare matches require clean boundaries so UUID tails and longer identifiers are ignored; deduped, capped at 100.
 - **Free-text search** (`searchRegistry`): matches current organizations, former organizations from lineage, country names and codes, registry types, prefixes, and registration years; all tokens must match; ranked by match quality; capped at 500; results are `noindex`.
 - **Summaries** (`summarizeLookups`): batch and extraction views show counts by vendor, randomized addresses, virtual machines, unregistered prefixes, and invalid inputs.
-- **Vendor portfolios** (`registry.portfolio`): registered block count and total address space per organization, shown on results with a "View all prefixes" action.
+- **Vendor portfolios** (`registry.portfolio`): registered block count and total address space per organization, shown on results with a "View all prefixes" action that navigates to the org's static hub (`/vendor/<slug>`, resolved via the registry's `vendor_hub` column); search-result portfolio lines link there too.
 - **Batch**: split on comma/whitespace/newline, dedupe, cap 250, results table (collapses to cards on mobile).
 
 ## UI structure
@@ -174,7 +178,7 @@ Behavior notes:
 Measured from a live build on 2026-09-12 (3 cross-registry duplicates skipped).
 
 - One pre-rendered page per assignment = **58,694 files today**: 64% of the paid file budget, but 293% of the free budget.
-- Build output: **~479 MB across 59,010 files** (including the ~22 MB raw source cache); page generation 2.6s; sitemaps 50,000 + 8,695 URLs (4.8 MB + 0.9 MB).
+- Build output: **~753 MB across 62,763 files** (including the ~22 MB raw source cache); hub generation 2.1s, page generation 4.7s; sitemaps 62,415 URLs (50,000 + 12,415; ~6 MB total). 2026-09-16 measurements; hub counting follows the thin-content plan's budget policy.
 - The paid plan is required to pre-render the full registry; the free plan can only pre-render a subset (dev/preview budget: 15,000 pages).
 - Growth assumption: MA-L grows ~2,000/year and MA-M/MA-S are growing faster. The registry is on a path to 100,000 assignments; device-level data (future feature) would add many more potential pages. The page budget policy below is designed for that.
 
@@ -226,23 +230,30 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 
 | Item | Files |
 | --- | --- |
-| Pre-rendered pages (budget capped) | 90,000 |
-| Parquet data (registry + lineage + shards) | 3–300 |
+| Pre-rendered pages (budget capped: prefixes + vendor hubs + country hubs) | 90,000 |
+| Parquet data (registry + lineage + search + shards) | 3–300 |
 | Raw source copies | 7 |
 | Sitemaps (100k URLs) | 3 |
 | App shell + static assets | ~30 |
 | Reserved headroom | 9,959 |
 | **Total** | **100,000** |
 
+Hub classes grow slower than assignments (roughly one new hub per new org reaching
+a second block), so the portal/prefix split inside the 90,000 cap self-balances.
+
 ## Pre-rendered pages
 
 - Page selection follows the page budget policy above.
 - Each page is a flat `<PREFIX>.html` file; Cloudflare's `html_handling` serves it at `/<PREFIX>` and 307-redirects `.html`/trailing-slash variants to the canonical URL.
 - Page content: unique vendor record (name, block type, range, address count, country), lineage timeline when present, all format conversions, randomization/VM notes, canonical link, JSON-LD (`WebPage`, vendor `Organization`, `BreadcrumbList`).
+- **Related-prefix links** (`build/related.mjs`): same-org siblings (≤ 6), adjacent prefixes (2), same-year cohort (≤ 4), deduped and capped at 12 links per page, targets limited to pre-rendered pages. Sections live inside `#result`, so a follow-up lookup clears them with the card ([thin-content-mitigation](thin-content-mitigation.md)).
+- **Per-page context** (`build/enrich.mjs`): at most three computed sentences — portfolio position (`vendorBlocks`/`vendorAddresses`), block-type note for non-MA-L assignments, and a "org's oldest registration" note. English rendered statically; raw params ride in `data-enrich` for the client locale swap. Omitted, never padded, when data is missing.
+- **Hub pages** (`build/hubs.mjs`): `/vendor/<slug>` for every org with ≥ 2 blocks (3,469; grouping uses the same `normalizeOrgName` key as the portfolio stats, slugs resolve collisions by sorted org key) and `/country/<code>` for every country (249). Complete static tables (no row caps — the plan's sizing holds: Apple 227 KB, US 1.05 MB raw; ~10:1 compression at the edge), lookup form wired via the static-page path, `CollectionPage` + `BreadcrumbList` JSON-LD, canonical URLs, `data-static-page` hydration.
+- Sitemap order: home, `/help`, `/recent`, hub pages, then prefixes — hubs ahead of the bulk.
 - The home page is generated at build time with ten FAQ entries; the visible content and `FAQPage` schema come from a single source (`build/faq.mjs`), and a `WebSite` + `SearchAction` node covers `?q=` deep links.
 - Batch (`?q=`) results set `noindex, follow` client-side; single lookups remove it once the URL is canonicalized to `/<prefix>`; unrecognized paths are `noindex` too.
 - Security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) ship via the `_headers` catch-all rule.
-- `sitemap.xml` (index + 50k-URL chunks) lists pre-rendered pages; `robots.txt` points to it.
+- `sitemap.xml` (index + 50k-URL chunks) lists pre-rendered pages and hubs; `robots.txt` points to it.
 - `_redirects` is not used for per-prefix canonicalization (2,100-rule cap); client-side `replaceState` normalizes case and variants instead.
 - Long-tail/full-MAC paths return the SPA shell with `200`; the engine renders them after load.
 - Pre-rendered pages hydrate without fetching the Parquet data: the app detects `data-prerendered` and only wires copy buttons and history.
@@ -279,7 +290,7 @@ production edge.
 - **Local development:** `npm install`; `npm run build` (or `npm run build -- --no-pages` for quick iterations, `PAGE_BUDGET=500 npm run build` to limit pages); `npm run serve` previews `dist/` at `http://localhost:8788` with the SPA fallback; `npm test` runs the unit tests; `node build/check-sources.mjs` performs the weekly source check locally.
 - **Limits:** 3,000 build min/month free, 6,000 paid (+$0.005/min after); 20-minute build timeout; concurrent builds 1 free / 6 paid; paid build environment: 4 vCPU / 8 GB RAM / 20 GB disk.
 - **Runtime cost:** static asset requests are free and unlimited; an assets-only deployment has no billed Worker invocations.
-- **Measured duration:** ~5 minutes end-to-end for 58,707 files / ~448 MB (2026-09-12), comfortably inside the 20-minute timeout. If the file set grows, the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.
+- **Measured duration:** ~6 minutes end-to-end for 62,763 files / ~753 MB (2026-09-16), comfortably inside the 20-minute timeout. Added page weight grows roughly linearly with the registry; the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.
 - **No in-app analytics:** page-priority demand comes from the seed vendor list. Note: the Cloudflare zone injects a Web Analytics beacon — see open items.
 
 ## Production verification (2026-09-12)

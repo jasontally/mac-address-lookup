@@ -5,6 +5,7 @@ import path from 'node:path';
 import { renderPrefixPage } from './page-template.mjs';
 import { selectPages } from './select-pages.mjs';
 import { computeRelatedLinks } from './related.mjs';
+import { buildEnrichment } from './enrich.mjs';
 import { writeSitemaps } from './generate-sitemaps.mjs';
 
 async function mapConcurrent(items, limit, fn) {
@@ -48,14 +49,16 @@ export async function generatePages({
     : () => null;
 
   await mapConcurrent(selected, 64, async (record) => {
+    const vendorHub = hubFor(record);
     const html = renderPrefixPage({
       record,
       lineage: lineageByPrefix.get(record.prefix) ?? null,
       site,
       assets,
       related: related.get(record.prefix) ?? null,
-      vendorHub: hubFor(record),
+      vendorHub,
       countryHub: !record.isPrivate && record.country ? `/country/${record.country.toLowerCase()}` : null,
+      enrich: buildEnrichment(record, { orgFirstSeen: vendorHub?.firstSeen ?? null }),
     });
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });
