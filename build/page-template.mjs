@@ -214,7 +214,7 @@ function renderResult(record, lineage, { vendorHub = null, countryHub = null } =
   return `    <article class="card result-card">
       <header class="result-header">
         <p class="eyebrow" data-i18n="result.eyebrow">Vendor</p>
-        <h2 class="vendor">${vendorLink(record, vendorHub)}
+        <h2 class="vendor">${vendorLink(record, vendorHub)}</h2>
         <div class="badges">
           ${badges}
         </div>

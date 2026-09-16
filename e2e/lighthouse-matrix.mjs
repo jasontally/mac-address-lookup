@@ -14,6 +14,10 @@ const PAGES = [
   ['fullmac', '/001B21AABBCC'],
   ['search', '/apple'],
   ['batch', '/001A2B,005056'],
+  // New page types from the thin-content plan (worst cases included).
+  ['vendor-hub', '/vendor/qualcomm-inc'],
+  ['vendor-hub-big', '/vendor/apple-inc'],
+  ['country-hub', '/country/us'],
 ];
 
 const which = process.argv[2] ?? 'all';

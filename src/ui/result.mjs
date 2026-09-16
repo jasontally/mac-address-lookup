@@ -493,26 +493,28 @@ export function renderSearchResults(
       ? t('search.matching', { count: formatCount(total) })
       : tCount('search.matching', total, { count: formatCount(total) });
 
-  // Vendor-shaped queries: the dynamic view is capped, the static hub carries
-  // the complete list. The build writes the hub slug into the rows.
+  // The dynamic view is capped at 500; the build writes the org's hub slug
+  // into matching rows, so any vendor match links the complete static hub.
   const hubUrl = vendorHubUrl ?? matches.find((entry) => entry.record.vendorHub)?.record.vendorHub;
-  const portfolioLine = portfolio
-    ? el('p', { class: 'summary-line' }, [
-        `${portfolio.orgName} — ${formatCount(portfolio.blocks, getLocale())} · ${formatAddresses(portfolio.addresses, getLocale())}`,
-        hubUrl
-          ? el('a', {
-              href: `/vendor/${hubUrl}`,
-              class: 'button button--ghost button--small',
-              text: t('portfolio.viewAll'),
-            })
-          : null,
-      ])
-    : null;
 
   container.append(
     el('article', { class: 'card result-card' }, [
       el('h2', { text: heading }),
-      portfolioLine,
+      portfolio
+        ? el('p', {
+            class: 'summary-line',
+            text: `${portfolio.orgName} — ${formatCount(portfolio.blocks, getLocale())} · ${formatAddresses(portfolio.addresses, getLocale())}`,
+          })
+        : null,
+      hubUrl
+        ? el('p', { class: 'summary-line' }, [
+            el('a', {
+              href: `/vendor/${hubUrl}`,
+              class: 'button button--ghost button--small',
+              text: t('portfolio.viewAll'),
+            }),
+          ])
+        : null,
       el('p', {
         class: 'section-note',
         text:
