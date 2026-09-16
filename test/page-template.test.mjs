@@ -1,6 +1,7 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
 import { renderPrefixPage } from '../build/page-template.mjs';
+import { computeRelatedLinks } from '../build/related.mjs';
 import { chunkUrls, renderSitemapIndex, renderUrlSet } from '../build/generate-sitemaps.mjs';
 
 const record = {
@@ -107,4 +108,68 @@ test('sitemap renderers escape URLs and chunk at the limit', () => {
   const index = renderSitemapIndex([{ loc: 'https://example.test/sitemap-1.xml' }]);
   assert.match(index, /<sitemapindex/);
   assert.match(index, /sitemap-1\.xml/);
+});
+
+const related = {
+  sameOrg: [
+    { prefix: '001A2C', orgName: 'Intel Corporate' },
+    { prefix: '001A2D', orgName: 'Intel Corporate' },
+  ],
+  adjacent: [{ prefix: '001A2A', orgName: 'Other Org' }],
+  sameYear: [{ prefix: '001B21', orgName: 'Raspberry Pi' }],
+};
+
+test('renderPrefixPage renders related-link sections inside #result', () => {
+  const html = renderPrefixPage({ record, related, site: 'https://example.test' });
+
+  assert.match(html, /data-related="sameOrg"/);
+  assert.match(html, /data-related="adjacent"/);
+  assert.match(html, /data-related="sameYear"/);
+  assert.match(html, /More blocks from<\/span> <span class="related-org-name">Intel Corporate<\/span>/);
+  assert.match(
+    html,
+    /<a href="\/001A2A"><code>00:1A:2A<\/code><\/a><span class="related-org">Other Org<\/span>/,
+  );
+  assert.match(html, /Adjacent prefixes/);
+  assert.match(html, /Registered the same year/);
+  // Related sections must sit inside #result so a new lookup clears them.
+  const resultStart = html.indexOf('<section id="result"');
+  const relatedStart = html.indexOf('data-related="sameOrg"');
+  const bodyEnd = html.indexOf('<footer');
+  assert.ok(relatedStart > resultStart && relatedStart < bodyEnd);
+});
+
+test('renderPrefixPage renders a hub link only when a vendor hub exists', () => {
+  const withHub = renderPrefixPage({ record, related, site: 'https://example.test' });
+  assert.ok(!withHub.includes('View all prefixes')); // no hub passed yet
+
+  const linked = renderPrefixPage({
+    record,
+    related,
+    vendorHub: { url: '/vendor/intel-corporate', blocks: 667 },
+    site: 'https://example.test',
+  });
+  assert.match(linked, /<a href="\/vendor\/intel-corporate" data-i18n="portfolio.viewAll">View all prefixes<\/a>/);
+});
+
+test('renderPrefixPage escapes related-link org names', () => {
+  const html = renderPrefixPage({
+    record,
+    related: { ...related, adjacent: [{ prefix: '001A2A', orgName: 'Acme <b>Corp</b>' }] },
+    site: 'https://example.test',
+  });
+  assert.ok(!html.includes('<b>Corp</b>'));
+  assert.match(html, /Acme &lt;b&gt;Corp&lt;\/b&gt;/);
+});
+
+test('renderPrefixPage omits empty related groups and empty related payload', () => {
+  const html = renderPrefixPage({
+    record,
+    related: { sameOrg: [], adjacent: [], sameYear: [] },
+    site: 'https://example.test',
+  });
+  assert.ok(!html.includes('data-related='));
+
+  const none = renderPrefixPage({ record, site: 'https://example.test' });
+  assert.ok(!none.includes('data-related='));
 });

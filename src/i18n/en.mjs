@@ -88,6 +88,11 @@ export const en = {
   'portfolio.label': 'Vendor portfolio: {blocks} · {addresses}',
   'portfolio.viewAll': 'View all prefixes',
 
+  // Related prefixes (pre-rendered pages)
+  'related.sameOrg': 'More blocks from',
+  'related.adjacent': 'Adjacent prefixes',
+  'related.cohort': 'Registered the same year',
+
   // Lineage
   'lineage.note':
     'This prefix has changed hands. Dates are when each change was first observed in public registration data (runZero mac-tracker).',

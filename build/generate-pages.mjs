@@ -4,6 +4,7 @@ import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { renderPrefixPage } from './page-template.mjs';
 import { selectPages } from './select-pages.mjs';
+import { computeRelatedLinks } from './related.mjs';
 import { writeSitemaps } from './generate-sitemaps.mjs';
 
 async function mapConcurrent(items, limit, fn) {
@@ -32,6 +33,7 @@ export async function generatePages({
   lastmod,
   extraUrls = [],
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
+  hubIndex = null,
 }) {
   const { selected, dropped, selectedByType, droppedByType } = selectPages(records, {
     pageBudget,
@@ -40,17 +42,28 @@ export async function generatePages({
 
   const lineageByPrefix = new Map(lineageEntries.map((entry) => [entry.prefix, entry]));
 
+  const related = computeRelatedLinks(selected);
+  const hubFor = hubIndex
+    ? (record) => hubIndex.vendorHub(record) ?? null
+    : () => null;
+
   await mapConcurrent(selected, 64, async (record) => {
     const html = renderPrefixPage({
       record,
       lineage: lineageByPrefix.get(record.prefix) ?? null,
       site,
       assets,
+      related: related.get(record.prefix) ?? null,
+      vendorHub: hubFor(record),
     });
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });
 
-  const urls = [`${site}/`, `${site}/help`, ...selected.map((record) => `${site}/${record.prefix}`)];
+  const urls = [
+    `${site}/`,
+    ...extraUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
+    ...selected.map((record) => `${site}/${record.prefix}`),
+  ];
   const sitemap = await writeSitemaps({ urls, site, outDir, lastmod });
 
   return {

@@ -503,6 +503,38 @@ main {
   max-width: var(--measure);
 }
 
+/* Related-prefix links (pre-rendered pages only) */
+.related-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1) 0;
+}
+
+.related-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.related-list code {
+  font-size: var(--text-sm);
+}
+
+.related-org,
+.related-org-name {
+  color: var(--text-subtle);
+}
+
+.related-org-name {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: var(--text-sm);
+}
+
 .export-row {
   display: flex;
   flex-wrap: wrap;

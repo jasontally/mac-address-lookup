@@ -213,6 +213,70 @@ ${lineageSection(lineage)}
     </article>`;
 }
 
+/**
+ * Related-prefix link sections appended inside `#result` on pre-rendered
+ * pages (prerender-only: the app clears `#result` on the next lookup,
+ * discarding these sections along with the stale record).
+ */
+export function renderRelated(related, { record = null, vendorHub = null } = {}) {
+  if (!related) return '';
+
+  const list = (name, entries) =>
+    `<ul class="related-list">\n${entries
+      .map(
+        (entry) =>
+          `          <li><a href="/${escapeHtml(entry.prefix)}"><code>${escapeHtml(
+            colonize(entry.prefix),
+          )}</code></a><span class="related-org">${escapeHtml(entry.orgName)}</span></li>`,
+      )
+      .join('\n')}\n        </ul>`;
+
+  const section = (name, inner) =>
+    `      <section class="result-section" data-related="${name}">\n${inner}      </section>`;
+
+  const parts = [];
+  if (related.sameOrg?.length > 0) {
+    const orgLabel = record?.orgName || related.sameOrg[0].orgName;
+    const seeAll = vendorHub
+      ? `        <p class="summary-line"><a href="${escapeHtml(
+          vendorHub.url,
+        )}" data-i18n="portfolio.viewAll">${escapeHtml(label('portfolio.viewAll'))}</a></p>\n`
+      : '';
+    parts.push(
+      section(
+        'sameOrg',
+        `        <h3><span data-i18n="related.sameOrg">${escapeHtml(
+          label('related.sameOrg'),
+        )}</span> <span class="related-org-name">${escapeHtml(orgLabel)}</span></h3>\n` +
+          list('sameOrg', related.sameOrg) +
+          '\n' +
+          seeAll,
+      ),
+    );
+  }
+  if (related.adjacent?.length > 0) {
+    parts.push(
+      section(
+        'adjacent',
+        `        <h3 data-i18n="related.adjacent">${escapeHtml(label('related.adjacent'))}</h3>\n` +
+          list('adjacent', related.adjacent) +
+          '\n',
+      ),
+    );
+  }
+  if (related.sameYear?.length > 0) {
+    parts.push(
+      section(
+        'sameYear',
+        `        <h3 data-i18n="related.cohort">${escapeHtml(label('related.cohort'))}</h3>\n` +
+          list('sameYear', related.sameYear) +
+          '\n',
+      ),
+    );
+  }
+  return parts.length > 0 ? `${parts.join('\n')}\n` : '';
+}
+
 const THEME_BOOT = `(function () {
         try {
           var mode = localStorage.getItem('mal.theme');
@@ -228,6 +292,8 @@ export function renderPrefixPage({
   lineage = null,
   site = SITE,
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css', workerFile: '/assets/parquet-worker.js' },
+  related = null,
+  vendorHub = null,
 }) {
   const colon = colonize(record.prefix);
   const canonical = `${site}/${record.prefix}`;
@@ -365,6 +431,7 @@ export function renderPrefixPage({
           data-blocktype="${escapeHtml(record.blockType)}"
         >
 ${renderResult(record, lineage)}
+${renderRelated(related, { record, vendorHub })}
         </section>
       </div>
     </main>
