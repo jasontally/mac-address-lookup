@@ -27,8 +27,50 @@ const BOOT = `(function () {
         }
       })();`;
 
-const LOOKUP_FORM = `          <form class="lookup-form" id="lookup-form" novalidate>
-            <label class="visually-hidden" for="lookup-input" data-i18n="lookup.label">MAC address or OUI prefix</label>
+/**
+ * Chunked rendering for very large hub tables (thin-content plan's fallback):
+ * rows stay in the HTML — no data removed — but those past the initial batch
+ * are hidden synchronously during parse, before first paint, so the browser
+ * never lays out 8,881 rows at boot. "Show more" reveals the next batch;
+ * without JavaScript the complete table renders as-is.
+ */
+const HUB_ROW_VIRTUALIZER = `<script>
+      (function () {
+        var rows = document.querySelectorAll('.hub tbody tr');
+        var SHOW = 500;
+        var STEP = 1000;
+        var total = rows.length;
+        if (total <= SHOW) return;
+        for (var i = SHOW; i < total; i++) rows[i].style.display = 'none';
+        var host = document.querySelector('#hub-rows-note');
+        if (!host) return;
+        var note = document.createElement('span');
+        note.className = 'hub-rows-count';
+        var refresh = function () {
+          note.textContent = 'Showing the first ' + SHOW + ' of ' + total + '.';
+        };
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'button button--ghost button--small';
+        button.setAttribute('data-i18n', 'partial.showMore');
+        button.textContent = 'Show more';
+        button.addEventListener('click', function () {
+          var until = Math.min(total, SHOW + STEP);
+          for (var i = SHOW; i < until; i++) rows[i].style.display = '';
+          SHOW = until;
+          if (SHOW >= total) {
+            button.remove();
+            note.textContent = '';
+          } else {
+            refresh();
+          }
+        });
+        refresh();
+        host.append(note, ' ', button);
+      })();
+    </script>`;;
+
+const LOOKUP_FORM = `          <form class="lookup-form" id="lookup-form" novalidate>            <label class="visually-hidden" for="lookup-input" data-i18n="lookup.label">MAC address or OUI prefix</label>
             <input
               class="lookup-input"
               id="lookup-input"
@@ -241,7 +283,9 @@ ${LOOKUP_FORM}
         <article class="hub">
 ${body}
         </article>
+        <p class="section-note" id="hub-rows-note"></p>
         <p class="section-note">Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.</p>
+${HUB_ROW_VIRTUALIZER}
       </div>
     </main>
 

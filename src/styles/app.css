@@ -720,15 +720,6 @@ main {
   font-size: var(--text-sm);
 }
 
-/* Large reference tables (country hubs list ~9k orgs): skip layout and
-   paint for rows that are off-screen, without removing anything from the
-   document. contain-intrinsic-size sketches the reserved height so the
-   scrollbar stays truthful. (thin-content-mitigation fallback.) */
-.data-table tbody tr {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 45px;
-}
-
 .data-table th,
 .data-table td {
   text-align: left;
