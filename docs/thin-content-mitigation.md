@@ -164,11 +164,13 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   table rows compress ~10:1 at the edge, so the worst pages stay small on the wire
   (Apple ~23 KB, US ~130 KB) and the complete data is crawlable in one document.
   Totals are stated in the lede ("1,553 blocks"), not as a truncation notice. DOM
-  weight is the real cost (US ≈ 9k rows ≈ ~150k nodes): acceptable for a reference
-  page, and the table is a genuine data table on all breakpoints rather than the
-  collapsing batch-results pattern. If profiling on low-end mobile ever disagrees,
-  the fallback is chunked *rendering* (progressive reveal), never removal of rows
-  from the HTML.
+  weight is the real cost, and the shipped adjustment (2026-09-16, after Lighthouse
+  mobile runs) is the plan's fallback: rows past an initial 500-row batch ship
+  `hidden` in the source (complete table stays in the document for crawlers and
+  noscript; nothing is removed), so the browser never lays out 8,881 rows at boot —
+  main-thread blocking on `/country/us` dropped from ~1.2 s to ~20 ms. A tiny
+  inline script adds the "show more" reveal (1,000 rows per click) with the
+  existing `showing-first-of` note; the same key (`partial.showMore`) is reused.
 - Excluded from hubs: `Private` and empty-org records (consistent with page
   selection). Former owners from lineage are out of scope for v1 — the prefix page's
   lineage timeline already covers them.
