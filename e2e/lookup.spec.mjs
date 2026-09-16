@@ -37,11 +37,11 @@ test.describe('Static pre-rendered pages', () => {
     const md = await request.get('/help.md');
     expect(md.status()).toBe(200);
     expect((await md.text())).toContain('# Help & documentation');
-    expect(md.headers().get('content-type')).toContain('text/plain');
+    expect(md.headers()['content-type']).toContain('text/plain');
 
     const txt = await request.get('/help.txt');
     expect(txt.status()).toBe(200);
-    expect(txt.headers().get('content-type')).toContain('text/plain');
+    expect(txt.headers()['content-type']).toContain('text/plain');
     expect((await txt.text())).toContain('## Vendors, countries, and former owners');
 
     const registry = await request.get('/data/registry.ndjson');
