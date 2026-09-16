@@ -23,7 +23,9 @@ test.describe('Vendor and country hub pages', () => {
     await expect(page.locator('h1')).toContainText('United States MAC address blocks');
     await expect(page.locator('.data-table tbody tr')).toHaveCount(8881, { timeout: 20_000 });
     // Hub-linked orgs appear in the table (biggest portfolios first).
-    await expect(page.locator('.data-table tbody tr').first()).toContainText('a[href="/vendor/"]');
+    await expect(
+      page.locator('.data-table tbody tr').first().locator('a[href^="/vendor/"]'),
+    ).toHaveCount(1);
   });
 
   test('missing hubs fall through to the SPA soft 404 (noindex)', async ({ page }) => {
