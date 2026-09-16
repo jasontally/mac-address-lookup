@@ -32,7 +32,13 @@
 /llms.txt
   Cache-Control: public, max-age=86400
 
+# help.md carries Markdown source; some tools refuse the text/markdown media
+# type, so present it as plain text (the content reads fine either way).
 /help.md
+  Cache-Control: public, max-age=86400
+  Content-Type: text/plain; charset=utf-8
+
+/help.txt
   Cache-Control: public, max-age=86400
 
 /data/registry.ndjson

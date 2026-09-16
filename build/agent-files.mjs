@@ -35,6 +35,8 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 > keys, no auth, no tracking. Run by Jason Tally.
 
 - [Help & documentation](${SITE}/help): how lookup works, block types, finding your own MAC, FAQ
+- [Help (Plain text)](${SITE}/help.txt): the same documentation as plain text, for tools that
+  refuse the markdown media type — it is valid Markdown either way
 - [Help (Markdown)](${SITE}/help.md): the same documentation as Markdown
 - [Latest OUIs](${SITE}/recent): the most recently registered blocks, refreshed every deploy
 
@@ -198,6 +200,7 @@ export async function writeAgentFiles({ distDir, records, lineageEvents = [] } =
     }),
   );
   await writeFile(path.join(distDir, 'help.md'), helpMarkdown());
+  await writeFile(path.join(distDir, 'help.txt'), helpMarkdown());
 
   return {
     registryBytes: registryNdjson.length,
