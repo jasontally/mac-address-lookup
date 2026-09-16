@@ -81,6 +81,10 @@ const data = {
 };
 let dataReady = false;
 
+/** Show-more reveal for partial prefix listings (measured cap per chunk). */
+const PARTIAL_STEP = 500;
+const partialState = { hex: null, limit: PARTIAL_STEP };
+
 /** Load the manifest once, on first use. */
 function ensureManifest() {
   if (!data.manifestPromise) {
@@ -140,11 +144,18 @@ async function runSingle(raw, { push = true } = {}) {
     return;
   }
 
+  // Show-more reveal for partial listings (docs/thin-content-mitigation.md):
+  // 500 rows per render follows the measured caps in e2e/measure-limits.mjs.
+  if (partialState.hex !== normalized.hex) {
+    partialState.hex = normalized.hex;
+    partialState.limit = PARTIAL_STEP;
+  }
+
   if (!dataReady) renderPending(ui.result, normalized.hex);
 
   try {
     const loaded = await registryFor([normalized.hex]);
-    const result = lookup(loaded.registry, raw);
+    const result = lookup(loaded.registry, raw, { partialLimit: partialState.limit });
     // Only prefixes that changed hands need the lineage file at all.
     const needsLineage = result.kind === 'match' && (result.match.lineageCount ?? 0) > 1;
     const lineage = needsLineage ? await ensureLineage() : null;
@@ -157,6 +168,10 @@ async function runSingle(raw, { push = true } = {}) {
         lineage: lineageEntry,
         portfolio,
         onViewAll: () => {
+          if (result.match.vendorHub) {
+            location.assign(`/vendor/${result.match.vendorHub}`);
+            return;
+          }
           ui.input.value = result.match.orgName;
           runSearch(result.match.orgName);
         },
@@ -168,6 +183,10 @@ async function runSingle(raw, { push = true } = {}) {
         onSelect: (prefix) => {
           ui.input.value = prefix;
           runSingle(prefix);
+        },
+        onShowMore: () => {
+          partialState.limit += PARTIAL_STEP;
+          runSingle(raw, { push: false });
         },
       });
     } else {
@@ -426,4 +445,12 @@ if (!staticPage) {
       setCanonical(`${location.origin}/`);
     }
   }
+} else {
+  // Static pages (help, recent, hub pages): submit navigates to the deep-link
+  // path, which the SPA fallback resolves on the fresh page load.
+  ui.form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const value = ui.input.value.trim();
+    if (value !== '') location.assign(`/${encodeURIComponent(value)}`);
+  });
 }

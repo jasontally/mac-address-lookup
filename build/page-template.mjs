@@ -106,8 +106,8 @@ function detailRows(rows) {
   const body = rows
     .filter(([, value]) => value !== null && value !== undefined && value !== '')
     .map(
-      ([key, value, mono]) =>
-        `      <dt data-i18n="${key}">${escapeHtml(label(key))}</dt>\n      <dd>${mono ? `<code>${escapeHtml(value)}</code>` : escapeHtml(value)}</dd>`,
+      ([key, value, mono, raw]) =>
+        `      <dt data-i18n="${key}">${escapeHtml(label(key))}</dt>\n      <dd>${mono ? `<code>${escapeHtml(value)}</code>` : raw === true ? value : escapeHtml(value)}</dd>`,
     )
     .join('\n');
   return `<dl class="detail-grid">\n${body}\n    </dl>`;
@@ -151,7 +151,27 @@ ${events}
       </section>`;
 }
 
-function renderResult(record, lineage) {
+/** Org heading text; links to the vendor hub when one exists (raw HTML). */
+function vendorLink(record, vendorHub) {
+  const name = record.orgName || 'Unknown organization';
+  if (!vendorHub) return escapeHtml(name);
+  return `<a class="vendor-link" href="${escapeHtml(vendorHub.url)}">${escapeHtml(name)}</a>`;
+}
+
+/** Country detail row; raw HTML links to the country hub when one exists. */function countryDetail(record, countryHub) {
+  if (!record.country) return [];
+  if (!countryHub) return [['detail.country', record.country]];
+  return [
+    [
+      'detail.country',
+      `<a href="/country/${escapeHtml(record.country.toLowerCase())}">${escapeHtml(record.country)}</a>`,
+      false,
+      true,
+    ],
+  ];
+}
+
+function renderResult(record, lineage, { vendorHub = null, countryHub = null } = {}) {
   const bits = analyzeBits(record.prefix);
   const formats = formatAddress(record.prefix);
   const hypervisor = detectHypervisor(record.prefix);
@@ -185,7 +205,7 @@ function renderResult(record, lineage) {
     ['detail.match', `${record.blockType} assignment`],
     ['detail.addressRange', `${range.start} – ${range.end}`, true],
     ['detail.addressesInBlock', formatCount(record.addressCount, 'en')],
-    ['detail.country', record.country],
+    ...countryDetail(record, countryHub),
     ['detail.orgAddress', record.orgAddress || null],
     ['detail.firstRegistered', firstSeen ? formatDate(firstSeen, 'en') : null],
   ]);
@@ -193,7 +213,7 @@ function renderResult(record, lineage) {
   return `    <article class="card result-card">
       <header class="result-header">
         <p class="eyebrow" data-i18n="result.eyebrow">Vendor</p>
-        <h2 class="vendor">${escapeHtml(record.orgName || 'Unknown organization')}</h2>
+        <h2 class="vendor">${vendorLink(record, vendorHub)}
         <div class="badges">
           ${badges}
         </div>
@@ -294,6 +314,7 @@ export function renderPrefixPage({
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css', workerFile: '/assets/parquet-worker.js' },
   related = null,
   vendorHub = null,
+  countryHub = null,
 }) {
   const colon = colonize(record.prefix);
   const canonical = `${site}/${record.prefix}`;
@@ -430,7 +451,7 @@ export function renderPrefixPage({
           data-prefixlen="${escapeHtml(record.prefixLen)}"
           data-blocktype="${escapeHtml(record.blockType)}"
         >
-${renderResult(record, lineage)}
+${renderResult(record, lineage, { vendorHub, countryHub })}
 ${renderRelated(related, { record, vendorHub })}
         </section>
       </div>

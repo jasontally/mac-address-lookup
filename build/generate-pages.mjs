@@ -55,6 +55,7 @@ export async function generatePages({
       assets,
       related: related.get(record.prefix) ?? null,
       vendorHub: hubFor(record),
+      countryHub: !record.isPrivate && record.country ? `/country/${record.country.toLowerCase()}` : null,
     });
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });

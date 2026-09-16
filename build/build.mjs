@@ -11,6 +11,7 @@ import { DEFAULT_SITE } from './source-files.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { generatePages } from './generate-pages.mjs';
+import { computeHubs, writeHubPages } from './hubs.mjs';
 import { writeAgentFiles } from './agent-files.mjs';
 import { writeRecentPage } from './recent.mjs';
 import { REGISTRIES } from './registries.mjs';
@@ -116,6 +117,26 @@ for (const record of records) {
   record.lineageCount = lineageCounts.get(record.prefix) ?? 0;
 }
 
+// Hub populations (docs/thin-content-mitigation.md step 2): org-grouping and
+// slug assignment run before Parquet writes so every row can carry its
+// vendor hub slug (`vendor_hub` column) for dynamic deep links. Hub *files*
+// are written later, after the static assets exist.
+const hubData = computeHubs(records);
+const hubByKey = new Map(hubData.orgs.map((hub) => [hub.key, hub]));
+const hubSlugByKey = new Map(hubData.orgs.map((hub) => [hub.key, hub.slug]));
+for (const record of records) {
+  record.vendorHub = record.isPrivate
+    ? null
+    : (hubSlugByKey.get(normalizeOrgName(record.orgName)) ?? null);
+}
+
+const hubIndex = {
+  vendorHub: (record) => {
+    const hub = hubByKey.get(normalizeOrgName(record.orgName));
+    return hub ? { url: hub.url, blocks: hub.blocks } : null;
+  },
+};
+
 // Deploy the raw sources: an emergency cache for future builds and the
 // baseline the weekly change-detection workflow diffs against.
 const sourceCache = await writeSourceCache(
@@ -179,6 +200,17 @@ console.log(
 
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
 if (!flags.has('--no-pages')) {
+  console.log(
+    `Generating ${hubData.orgs.length.toLocaleString('en-US')} vendor and ` +
+      `${hubData.countries.length.toLocaleString('en-US')} country hub pages...`,
+  );
+  const hubWriteStartedAt = Date.now();
+  const hubFiles = await writeHubPages({ hubData, outDir: distDir, assets: staticAssets });
+  console.log(
+    `  hubs in ${((Date.now() - hubWriteStartedAt) / 1000).toFixed(1)}s ` +
+      `(${hubFiles.vendorUrls.length} vendor, ${hubFiles.countryUrls.length} country)`,
+  );
+
   console.log(`Generating up to ${pageBudget.toLocaleString('en-US')} prefix pages...`);
   const vendorPriority = JSON.parse(
     await readFile(path.join(root, 'build', 'vendor-priority.json'), 'utf8'),
@@ -192,8 +224,14 @@ if (!flags.has('--no-pages')) {
     pageBudget,
     vendorPriority,
     lastmod: refreshDate,
-    extraUrls: ['/help', '/recent'],
+    extraUrls: [
+      '/help',
+      '/recent',
+      ...hubFiles.vendorUrls,
+      ...hubFiles.countryUrls,
+    ],
     assets: staticAssets,
+    hubIndex,
   });
   console.log(
     `  ${pages.selected.toLocaleString('en-US')} pages in ` +
@@ -234,7 +272,9 @@ if (budget.errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    `Budget OK: ${budget.stats.files} files, ${budget.stats.pages} pages, ` +
+    `Budget OK: ${budget.stats.files} files, ${budget.stats.pages} pages ` +
+      `(prefixes ${budget.stats.pagesByType.prefixes} · vendor ${budget.stats.pagesByType.vendor} · ` +
+      `country ${budget.stats.pagesByType.country}), ` +
       `${formatBytes(budget.stats.totalBytes)} total`,
   );
 }

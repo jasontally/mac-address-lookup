@@ -43,6 +43,10 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 - \`/{hex}\` — lookup a MAC address or prefix. 6+ hex characters resolve via
   longest-prefix match across MA-L, MA-M, MA-S, IAB, and CID; a full 12-hex
   address resolves to its vendor. Pages are pre-rendered HTML.
+- \`/vendor/{slug}\` — pre-rendered provider page: every MAC block registered
+  to one organization (vendors with two or more blocks), as a complete table.
+- \`/country/{code}\` — pre-rendered country page: every organization with
+  blocks registered in that country, with block counts and address space.
 - \`/{vendor-name}\` — free-text search over vendors, former owners, countries,
   block types, prefixes, and registration years. Results are an HTML table.
 - \`/{a},{b}\` — batch lookup of comma-separated addresses (up to 250).

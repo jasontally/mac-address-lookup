@@ -16,6 +16,10 @@ function toRecord(row) {
     lineageCount: typeof row.lineage_count === 'number' ? row.lineage_count : 0,
     vendorBlocks: typeof row.vendor_blocks === 'number' ? row.vendor_blocks : null,
     vendorAddresses: typeof row.vendor_addresses === 'number' ? row.vendor_addresses : null,
+    // Hub slug (/vendor/<slug>), added when the org owns >= 2 blocks; the
+    // value is resolved at build time so the client and static pages agree.
+    vendorHub:
+      typeof row.vendor_hub === 'string' && row.vendor_hub !== '' ? row.vendor_hub : null,
   };
 }
 

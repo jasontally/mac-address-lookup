@@ -18,6 +18,7 @@ function registryColumnData(records) {
     { name: 'lineage_count', data: records.map((record) => record.lineageCount ?? 0), type: 'INT32' },
     { name: 'vendor_blocks', data: records.map((record) => record.vendorBlocks ?? null), type: 'INT32' },
     { name: 'vendor_addresses', data: records.map((record) => record.vendorAddresses ?? null), type: 'DOUBLE' },
+    { name: 'vendor_hub', data: records.map((record) => record.vendorHub ?? null), type: 'STRING' },
   ];
 }
 
@@ -47,6 +48,7 @@ function searchColumnData(records) {
     { name: 'org_name', data: records.map((record) => record.orgName), type: 'STRING' },
     { name: 'country', data: records.map((record) => record.country), type: 'STRING' },
     { name: 'first_seen', data: records.map((record) => record.firstSeen ?? null), type: 'STRING' },
+    { name: 'vendor_hub', data: records.map((record) => record.vendorHub ?? null), type: 'STRING' },
   ];
 }
 

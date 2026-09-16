@@ -120,6 +120,8 @@ export const en = {
   'table.prefix': 'Prefix',
   'table.block': 'Block',
   'table.org': 'Organization',
+  'table.addresses': 'Addresses',
+  'table.blocks': 'Blocks',
   'table.match': 'Match',
   'table.input': 'Input',
   'table.result': 'Result',
@@ -148,6 +150,7 @@ export const en = {
   'partial.note.start': 'Prefixes beginning with {prefix}',
   'partial.note.cap': ', showing the first {shown}',
   'partial.note.end': '. Select a prefix for full details.',
+  'partial.showMore': 'Show more',
 
   // Search
   'search.matching': '{count} matching prefix',

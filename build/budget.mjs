@@ -28,15 +28,23 @@ export async function walkDir(dir, base = dir, files = []) {
   return files;
 }
 
-/** Count pre-rendered prefix pages (root-level `.html`, excluding shell files). */
+/**
+ * Count pre-rendered pages by class: root-level prefix `<PREFIX>.html` files
+ * plus hub pages under `vendor/` and `country/`. Shell files (`index.html`)
+ * are not pages. The Workers limit is on all files; directory pages count as
+ * pages against the page budget, not the non-page allowance.
+ */
 export function countPages(files) {
-  return files.filter(
-    (file) =>
-      file.path.endsWith('.html') &&
-      !file.path.includes('/') &&
-      file.path !== 'index.html' &&
-      file.path !== '404.html',
-  ).length;
+  const counts = { prefixes: 0, vendor: 0, country: 0 };
+  for (const { path } of files) {
+    if (!path.endsWith('.html')) continue;
+    if (path.startsWith('vendor/')) counts.vendor += 1;
+    else if (path.startsWith('country/')) counts.country += 1;
+    else if (!path.includes('/') && path !== 'index.html' && path !== '404.html') {
+      counts.prefixes += 1;
+    }
+  }
+  return { ...counts, total: counts.prefixes + counts.vendor + counts.country };
 }
 
 /** Assert the build output fits the Workers Static Assets limits. */
@@ -44,15 +52,15 @@ export function checkBudget({ files, limits = {} }) {
   const { pageBudget, nonPageAllowance, maxFileBytes } = { ...DEFAULT_LIMITS, ...limits };
   const errors = [];
   const warnings = [];
-  const pages = countPages(files);
-  const nonPage = files.length - pages;
+  const pageCounts = countPages(files);
+  const nonPage = files.length - pageCounts.total;
   const totalBudget = pageBudget + nonPageAllowance;
   const totalBytes = files.reduce((sum, file) => sum + file.bytes, 0);
   const warningBytes = 800 * 1024 * 1024;
 
   if (files.length > totalBudget) {
     errors.push(
-      `Asset count ${files.length} exceeds budget ${totalBudget} (pages ${pages}, other ${nonPage})`,
+      `Asset count ${files.length} exceeds budget ${totalBudget} (pages ${pageCounts.total}, other ${nonPage})`,
     );
   } else if (files.length > totalBudget * 0.9) {
     warnings.push(`Asset count ${files.length} is above 90% of budget ${totalBudget}`);
@@ -70,7 +78,17 @@ export function checkBudget({ files, limits = {} }) {
     }
   }
 
-  return { errors, warnings, stats: { files: files.length, pages, nonPage, totalBytes } };
+  return {
+    errors,
+    warnings,
+    stats: {
+      files: files.length,
+      pages: pageCounts.total,
+      pagesByType: { prefixes: pageCounts.prefixes, vendor: pageCounts.vendor, country: pageCounts.country },
+      nonPage,
+      totalBytes,
+    },
+  };
 }
 
 export function formatBytes(bytes) {

@@ -8,7 +8,7 @@ import { classifyRandomization, detectHypervisor } from './vendors.mjs';
  * Run a full lookup against a registry built with `createRegistry`.
  * Result kinds: `invalid` | `partial` | `none` | `match`.
  */
-export function lookup(registry, raw) {
+export function lookup(registry, raw, { partialLimit } = {}) {
   const input = normalizeInput(raw);
   if (!input.ok) {
     return { kind: 'invalid', error: input.error, raw: typeof raw === 'string' ? raw : '' };
@@ -21,7 +21,7 @@ export function lookup(registry, raw) {
   const base = { input: { raw, hex, length: hex.length }, bits, formats, hypervisor };
 
   if (hex.length < 6) {
-    const { matches, total, truncated } = registry.listPartials(hex);
+    const { matches, total, truncated } = registry.listPartials(hex, partialLimit);
     return { ...base, kind: 'partial', matches, total, truncated };
   }
 

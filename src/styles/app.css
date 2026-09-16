@@ -535,6 +535,18 @@ main {
   font-size: var(--text-sm);
 }
 
+/* Vendor hub links on result headings */
+.vendor-link {
+  color: inherit;
+  text-decoration-color: var(--color-hairline);
+  text-underline-offset: 6px;
+}
+
+.hub-countries {
+  font-size: var(--text-sm);
+  color: var(--text-subtle);
+}
+
 .export-row {
   display: flex;
   flex-wrap: wrap;

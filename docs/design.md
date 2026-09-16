@@ -149,5 +149,9 @@ When a prefix has lineage (scope and provenance: [architecture](architecture.md#
 - [x] Styling: vanilla CSS + semantic token layer (no Tailwind, no React).
 - [x] Palette: monochrome base + status colors only when meaningful; high contrast in both modes.
 - [x] Typography: system UI stack; system monospace for addresses.
-- [x] Short partials (< 6 hex): list matching prefixes, capped at 200, with total count.
+- [x] Short partials (< 6 hex): list matching prefixes at a **measured** cap of
+  500 rows (23 ms throttled; `e2e/measure-limits.mjs`) with a total count and a
+  "show more" reveal in 500-row chunks. Static pages ship complete data with no
+  row caps (static HTML compresses ~10:1 at the edge) — see
+  [thin-content-mitigation](thin-content-mitigation.md).
 - [x] Data ops: Cloudflare Workers Builds triggered by push; manual refresh via a committed refresh date; no analytics initially.

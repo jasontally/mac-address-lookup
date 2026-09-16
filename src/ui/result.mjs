@@ -330,7 +330,7 @@ export function renderNone(container, result) {
   );
 }
 
-export function renderPartial(container, result, { onSelect } = {}) {
+export function renderPartial(container, result, { onSelect, onShowMore = null } = {}) {
   clear(container);
   const { matches, total, truncated, input } = result;
 
@@ -353,10 +353,20 @@ export function renderPartial(container, result, { onSelect } = {}) {
         class: 'section-note',
         text:
           t('partial.note.start', { prefix: colonize(input.hex) }) +
-          (truncated ? t('search.showing', { shown: formatCount(matches.length) }) : '') +
+          (truncated ? t('partial.note.cap', { shown: formatCount(matches.length) }) : '') +
           t('partial.note.end'),
       }),
       resultsTable(['table.prefix', 'table.block', 'table.org'], rows),
+      truncated && onShowMore
+        ? el('p', { class: 'summary-line' }, [
+            el('button', {
+              type: 'button',
+              class: 'button button--ghost button--small',
+              text: t('partial.showMore'),
+              onClick: onShowMore,
+            }),
+          ])
+        : null,
     ]),
   );
 }
@@ -440,7 +450,7 @@ export function renderBatch(container, entries, { summary = null, extracted = fa
 
 export function renderSearchResults(
   container,
-  { query, matches = [], total = 0, truncated = false, portfolio = null, onSelect } = {},
+  { query, matches = [], total = 0, truncated = false, portfolio = null, onSelect, vendorHubUrl = null } = {},
 ) {
   clear(container);
 
@@ -461,15 +471,26 @@ export function renderSearchResults(
       ? t('search.matching', { count: formatCount(total) })
       : tCount('search.matching', total, { count: formatCount(total) });
 
+  // Vendor-shaped queries: the dynamic view is capped, the static hub carries
+  // the complete list. The build writes the hub slug into the rows.
+  const hubUrl = vendorHubUrl ?? matches.find((entry) => entry.record.vendorHub)?.record.vendorHub;
+  const portfolioLine = portfolio
+    ? el('p', { class: 'summary-line' }, [
+        `${portfolio.orgName} — ${formatCount(portfolio.blocks, getLocale())} · ${formatAddresses(portfolio.addresses, getLocale())}`,
+        hubUrl
+          ? el('a', {
+              href: `/vendor/${hubUrl}`,
+              class: 'button button--ghost button--small',
+              text: t('portfolio.viewAll'),
+            })
+          : null,
+      ])
+    : null;
+
   container.append(
     el('article', { class: 'card result-card' }, [
       el('h2', { text: heading }),
-      portfolio
-        ? el('p', {
-            class: 'summary-line',
-            text: `${portfolio.orgName} — ${formatCount(portfolio.blocks, getLocale())} · ${formatAddresses(portfolio.addresses, getLocale())}`,
-          })
-        : null,
+      portfolioLine,
       el('p', {
         class: 'section-note',
         text:
