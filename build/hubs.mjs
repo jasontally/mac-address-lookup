@@ -29,26 +29,29 @@ const BOOT = `(function () {
 
 /**
  * Chunked rendering for very large hub tables (thin-content plan's fallback):
- * rows stay in the HTML — no data removed — but those past the initial batch
- * are hidden synchronously during parse, before first paint, so the browser
- * never lays out 8,881 rows at boot. "Show more" reveals the next batch;
- * without JavaScript the complete table renders as-is.
+ * rows past the initial batch ship with `hidden` in the source HTML — the
+ * complete data remains in the document for non-JS crawlers, but the browser
+ * never lays out 8,881 rows at boot. A tiny inline script adds the "show
+ * more" reveal; without JavaScript the note tells the reader, and the full
+ * table remains in the page source either way.
  */
+const HUB_ROWS_SHOWN = 500;
+const HUB_ROWS_STEP = 1000;
+
+/** Rows beyond the initial batch get `hidden`; caller tracks no state. */
+export function hubRowHidden(index) {
+  return index >= HUB_ROWS_SHOWN;
+}
+
 const HUB_ROW_VIRTUALIZER = `<script>
       (function () {
         var rows = document.querySelectorAll('.hub tbody tr');
-        var SHOW = 500;
-        var STEP = 1000;
+        var SHOW = ${HUB_ROWS_SHOWN};
+        var STEP = ${HUB_ROWS_STEP};
         var total = rows.length;
         if (total <= SHOW) return;
-        for (var i = SHOW; i < total; i++) rows[i].style.display = 'none';
         var host = document.querySelector('#hub-rows-note');
         if (!host) return;
-        var note = document.createElement('span');
-        note.className = 'hub-rows-count';
-        var refresh = function () {
-          note.textContent = 'Showing the first ' + SHOW + ' of ' + total + '.';
-        };
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'button button--ghost button--small';
@@ -56,17 +59,15 @@ const HUB_ROW_VIRTUALIZER = `<script>
         button.textContent = 'Show more';
         button.addEventListener('click', function () {
           var until = Math.min(total, SHOW + STEP);
-          for (var i = SHOW; i < until; i++) rows[i].style.display = '';
+          for (var i = 0; i < until; i++) rows[i].removeAttribute('hidden');
           SHOW = until;
           if (SHOW >= total) {
             button.remove();
-            note.textContent = '';
-          } else {
-            refresh();
+            var note = host.querySelector('.hub-rows-count');
+            if (note) note.textContent = 'Showing all ' + total + ' rows.';
           }
         });
-        refresh();
-        host.append(note, ' ', button);
+        host.append(' ', button);
       })();
     </script>`;;
 
@@ -222,7 +223,7 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-function renderPage({ title, description, canonical, breadcrumbLabel, heading, ledeHtml, body, assets, jsonLdNodes = [] }) {
+function renderPage({ title, description, canonical, breadcrumbLabel, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0 }) {
   const breadcrumb = breadcrumbLd([
     { name: 'MAC Address Lookup', url: `${SITE}/` },
     { name: breadcrumbLabel, url: canonical },
@@ -283,7 +284,7 @@ ${LOOKUP_FORM}
         <article class="hub">
 ${body}
         </article>
-        <p class="section-note" id="hub-rows-note"></p>
+        <p class="section-note" id="hub-rows-note">${totalRows > HUB_ROWS_SHOWN ? `Showing the first ${HUB_ROWS_SHOWN} of ${totalRows} — the rest is in this page's source HTML.` : ''}</p>
         <p class="section-note">Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.</p>
 ${HUB_ROW_VIRTUALIZER}
       </div>
@@ -329,8 +330,8 @@ export function renderOrgHubPage({ hub, assets, site = SITE }) {
 
   const rows = hub.records
     .map(
-      (record) =>
-        `            <tr>` +
+      (record, index) =>
+        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
         `<td class="mono"><a href="/${escapeHtml(record.prefix)}">${escapeHtml(colonize(record.prefix))}</a></td>` +
         `<td>${escapeHtml(record.blockType)}</td>` +
         `<td>${escapeHtml(formatAddresses(record.addressCount, 'en'))}</td>` +
@@ -378,6 +379,7 @@ ${rows}
     body: `${body}\n`,
     assets,
     jsonLdNodes: [collectionLd],
+    totalRows: hub.blocks,
   });
 }
 
@@ -400,8 +402,8 @@ export function renderCountryHubPage({ hub, assets, site = SITE }) {
 
   const rows = ranked
     .map(
-      (entry) =>
-        `            <tr>` +
+      (entry, index) =>
+        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
         `<td class="org">${orgAnchor(entry)}</td>` +
         `<td>${escapeHtml(formatCount(entry.blocks, 'en'))}</td>` +
         `<td>${escapeHtml(formatAddresses(entry.addresses, 'en'))}</td>` +
@@ -445,6 +447,7 @@ ${rows}
     body: `${body}\n`,
     assets,
     jsonLdNodes: [collectionLd],
+    totalRows: ranked.length,
   });
 }
 

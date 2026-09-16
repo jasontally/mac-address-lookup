@@ -109,9 +109,13 @@ test('renderOrgHubPage renders the complete table without caps', () => {
   assert.match(html, /CollectionPage/);
   assert.match(html, /"name":"Apple Inc."/);
   assert.match(html, /BreadcrumbList/);
-  assert.equal((html.match(/<tr>/g) ?? []).length, 1201, 'header row plus all 1200 rows');
+  assert.equal((html.match(/<tr/g) ?? []).length, 1201, 'header row plus all 1200 rows, count via <tr prefix');
+  assert.equal((html.match(/<tr hidden>/g) ?? []).length, 700, 'rows past the initial batch ship hidden');
+  assert.match(html, /00001199/, 'late rows carry real prefixes');
   assert.match(html, /1200 blocks registered to/, 'lede states the full total');
-  assert.ok(!html.includes('showing the first'), 'no truncation notice');
+  assert.match(html, /Showing the first 500 of 1200/, 'display-cap note states the total');
+  // Complete data is still in the source: the last row exists.
+  assert.match(html, /<a href="\/00001199">/);
 });
 
 test('renderOrgHubPage links country hubs and the free-text search', () => {

@@ -26,12 +26,14 @@ for (const form of which === 'all' ? ['mobile', 'desktop'] : [which]) {
     const file = path.join(OUT, `${form}-${slug}.json`);
     if (existsSync(file) && process.env.REUSE === '1') continue;
     console.log(`running ${form} ${slug} …`);
-    execFileSync('npx', [
+    const args = [
       '--yes', 'lighthouse', BASE + route,
       '--preset=perf', `--form-factor=${form}`,
+      ...(form === 'desktop' ? ['--screenEmulation.mobile=false', '--screenEmulation.width=1350', '--screenEmulation.height=940'] : []),
       '--quiet', '--chrome-flags=--headless',
       '--output=json', `--output-path=${file}`,
-    ], { stdio: ['ignore', 'ignore', 'inherit'] });
+    ];
+    execFileSync('npx', args, { stdio: ['ignore', 'ignore', 'inherit'] });
     console.log(`  ${form} ${slug} done`);
   }
 }
