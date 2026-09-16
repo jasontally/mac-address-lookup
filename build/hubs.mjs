@@ -61,11 +61,13 @@ const HUB_ROW_VIRTUALIZER = `<script>
           var until = Math.min(total, SHOW + STEP);
           for (var i = 0; i < until; i++) rows[i].removeAttribute('hidden');
           SHOW = until;
-          if (SHOW >= total) {
-            button.remove();
-            var note = host.querySelector('.hub-rows-count');
-            if (note) note.textContent = 'Showing all ' + total + ' rows.';
+          var note = host.querySelector('.hub-rows-count');
+          if (note) {
+            note.textContent = SHOW >= total
+              ? 'Showing all ' + total
+              : 'Showing the first ' + SHOW + ' of ' + total;
           }
+          if (SHOW >= total) button.remove();
         });
         host.append(' ', button);
       })();
@@ -98,7 +100,7 @@ export function displayNameOf(nameCounts) {
  * collisions take `-2`, `-3`, … Org names without ASCII fall back to a hash
  * of the normalized key. Deterministic across builds.
  */
-export function assignSlugs(orgs) {
+export function assignSlugs(orgs, { urlPrefix = '/vendor/' } = {}) {
   const claims = new Map(); // slug → key
   const ranked = [...orgs].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   for (const hub of ranked) {
@@ -114,12 +116,111 @@ export function assignSlugs(orgs) {
     }
     claims.set(candidate, hub.key);
     hub.slug = candidate;
-    hub.url = `/vendor/${candidate}`;
+    hub.url = `${urlPrefix}${candidate}`;
   }
 }
 
 /**
- * Group the registry into hub populations.
+ * Group the lineage history by every organization that no longer holds a
+ * prefix: all event owners except each prefix's final one. `vendors` (an org
+ * hub Map, key → hub with slug/displayName) links the current owner's vendor
+ * page. Returns a list sorted by key, slugged under /former/, plus a reverse
+ * index for vendor hubs.
+ */
+export function computeFormerHubs(lineageEntries, { vendors = new Map() } = {}) {
+  const formers = new Map(); // former key → hub entry
+
+  for (const entry of lineageEntries) {
+    const events = entry.events ?? [];
+    if (events.length < 2) continue;
+    const final = events[events.length - 1];
+    const finalName = String(final?.orgName ?? '').trim();
+    const finalKey = normalizeOrgName(finalName);
+    for (let i = 0; i < events.length - 1; i++) {
+      const name = String(events[i]?.orgName ?? '').trim();
+      if (!name) continue;
+      const key = normalizeOrgName(name);
+      if (!key || key === finalKey) continue;
+
+      if (!formers.has(key)) {
+        formers.set(key, {
+          key,
+          nameCounts: new Map(),
+          prefixes: new Map(),
+          owners: new Map(), // current-owner key → { nameCounts: Map }
+        });
+      }
+      const hub = formers.get(key);
+      hub.nameCounts.set(name, (hub.nameCounts.get(name) ?? 0) + 1);
+      // The same former owner can appear twice in one prefix's history only
+      // when it lost and re-acquired the block; the earliest date wins.
+      if (!hub.prefixes.has(entry.prefix)) {
+        hub.prefixes.set(entry.prefix, {
+          prefix: entry.prefix,
+          firstDate: events[i]?.date ?? null,
+          firstSeen: entry.firstSeen ?? null,
+          currentOwner: finalName,
+        });
+      }
+    }
+  }
+
+  const hubs = [];
+  for (const hub of formers.values()) {
+    if (hub.prefixes.size < 2) continue;
+    hub.blocks = hub.prefixes.size;
+    hub.displayName = displayNameOf(hub.nameCounts);
+    // Roll up who holds the prefix today; rows link the owner's vendor page.
+    for (const instance of hub.prefixes.values()) {
+      const ownerKey = normalizeOrgName(instance.currentOwner);
+      if (!ownerKey) continue;
+      if (!hub.owners.has(ownerKey)) {
+        hub.owners.set(ownerKey, { nameCounts: new Map() });
+      }
+      const owner = hub.owners.get(ownerKey);
+      owner.nameCounts.set(instance.currentOwner, (owner.nameCounts.get(instance.currentOwner) ?? 0) + 1);
+      const vendor = vendors.get(ownerKey);
+      owner.slug = vendor?.slug ?? null;
+      owner.display = vendor?.displayName ?? instance.currentOwner;
+      instance.currentSlug = owner.slug;
+      instance.currentDisplay = owner.display;
+    }
+    hubs.push(hub);
+  }
+
+  assignSlugs(hubs, { urlPrefix: '/former/' });
+  hubs.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+
+  // Reverse index for vendor hubs: former-owner pages a vendor's portfolio absorbed.
+  const absorbedByVendor = new Map();
+  for (const hub of hubs) {
+    for (const [ownerKey] of hub.owners) {
+      if (!(vendors.get(ownerKey)?.slug)) continue;
+      if (!absorbedByVendor.has(ownerKey)) absorbedByVendor.set(ownerKey, []);
+      absorbedByVendor.get(ownerKey).push({
+        slug: hub.slug,
+        displayName: hub.displayName,
+        count: countOwnerBlocks(hub, ownerKey),
+      });
+    }
+  }
+  for (const list of absorbedByVendor.values()) {
+    list.sort((a, b) => b.count - a.count || (a.displayName < b.displayName ? -1 : 1));
+  }
+
+  const byKey = new Map(hubs.map((hub) => [hub.key, hub]));
+  return { formers: hubs, byKey, absorbedByVendor };
+}
+
+function countOwnerBlocks(hub, ownerKey) {
+  let count = 0;
+  for (const instance of hub.prefixes.values()) {
+    if (normalizeOrgName(instance.currentOwner) === ownerKey) count += 1;
+  }
+  return count;
+}
+
+/**
  * Orgs with a single block get no hub (their prefix page already serves as
  * the org page). Private and empty organizations are excluded, matching
  * page selection. Returns `{ orgs, countries }`, both sorted and sluged.
@@ -250,7 +351,7 @@ function renderPage({ title, description, canonical, breadcrumbLabel, heading, l
       ${BOOT}
       window.__malWorker = '${escapeHtml(assets.workerFile)}';
     </script>
-${jsonLdNodes.map(jsonLdScript).join('')}${jsonLdScript(breadcrumb)}    <script type="module" src="${assets.appFile}"></script>
+${jsonLdNodes.map(jsonLdScript).join('')}${jsonLdScript(breadcrumb)}    <script type="module" src="${assets.staticFile ?? assets.appFile}"></script>
   </head>
   <body data-static-page="true">
     <a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>
@@ -284,7 +385,7 @@ ${LOOKUP_FORM}
         <article class="hub">
 ${body}
         </article>
-        <p class="section-note" id="hub-rows-note">${totalRows > HUB_ROWS_SHOWN ? `Showing the first ${HUB_ROWS_SHOWN} of ${totalRows} — the rest is in this page's source HTML.` : ''}</p>
+        <p class="section-note" id="hub-rows-note">${totalRows > HUB_ROWS_SHOWN ? `<span class="hub-rows-count">Showing the first ${HUB_ROWS_SHOWN} of ${totalRows}</span> — the rest is in this page's source HTML.` : ''}</p>
         <p class="section-note">Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.</p>
 ${HUB_ROW_VIRTUALIZER}
       </div>
@@ -309,7 +410,110 @@ ${HUB_ROW_VIRTUALIZER}
 `;
 }
 
-export function renderOrgHubPage({ hub, assets, site = SITE }) {
+/**
+ * Former-owner hub: an organization that no longer holds any of the prefixes
+ * it was once registered to. Every row states what happened to the block,
+ * and the lede states the current owner(s) — including full acquisitions
+ * ("X took over all of them"), the takeover case this page class exists for.
+ */
+export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, site = SITE }) {
+  const canonical = `${site}/former/${hub.slug}`;
+  const title = `Former ${hub.displayName} MAC address blocks | MAC Address Lookup`;
+  const description =
+    `${hub.blocks} MAC address blocks were once registered to ${hub.displayName}; ` +
+    `each has been renamed, reassigned, or absorbed. Complete table with what happened to every block.`;
+  const heading = `${escapeHtml(hub.displayName)} — former MAC address blocks`;
+
+  const owners = [...hub.owners.entries()].sort(
+    (a, b) => ownerWeight(b[1]) - ownerWeight(a[1]) || (a[0] < b[0] ? -1 : 1),
+  );
+  const sole = owners.length === 1 ? owners[0] : null;
+  const soleDisplay = sole ? (sole[1].display ?? displayNameOf(sole[1].nameCounts)) : null;
+
+  let takeoverHtml;
+  if (sole) {
+    takeoverHtml =
+      `All ${hub.blocks} blocks are now registered to ${escapeHtml(soleDisplay)}. ` +
+      (sole[1].slug
+        ? `<a href="/vendor/${escapeHtml(sole[1].slug)}">${escapeHtml(soleDisplay)}</a> took over all of them.`
+        : '');
+  } else {
+    takeoverHtml =
+      `They are now registered across ${owners.length} organizations: ` +
+      owners
+        .map(([key, owner]) => escapeHtml(displayNameOf(owner.nameCounts)) + ' × ' + ownerWeight(owner))
+        .join(', ') +
+      '.';
+  }
+  const ledeHtml =
+    `          <p class="lede">The IEEE registry once carried ${hub.blocks} blocks registered to ` +
+    `${escapeHtml(hub.displayName)}. ${takeoverHtml}</p>`;
+
+  const rows = [...hub.prefixes.values()]
+    .sort((a, b) => (a.prefix < b.prefix ? -1 : a.prefix > b.prefix ? 1 : 0))
+    .map((instance, index) => {
+      const record = recordsByPrefix.get(instance.prefix);
+      const blockLabel = record ? record.blockType : '—';
+      const addresses = record ? formatAddresses(record.addressCount, 'en') : '—';
+      const ownerHtml = instance.currentSlug
+        ? `<a href="/vendor/${escapeHtml(instance.currentSlug)}">${escapeHtml(instance.currentDisplay)}</a>`
+        : escapeHtml(instance.currentDisplay || '—');
+      return (
+        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
+        `<td class="mono"><a href="/${escapeHtml(instance.prefix)}">${escapeHtml(colonize(instance.prefix))}</a></td>` +
+        `<td>${escapeHtml(blockLabel)}</td>` +
+        `<td>${escapeHtml(addresses)}</td>` +
+        `<td>${escapeHtml(formatDate(instance.firstDate, 'en') || '—')}</td>` +
+        `<td class="org">${ownerHtml}</td>` +
+        `</tr>`
+      );
+    })
+    .join('\n');
+
+  const body = `        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="table.prefix">Prefix</th>
+                <th scope="col" data-i18n="table.block">Block</th>
+                <th scope="col" data-i18n="table.addresses">Addresses</th>
+                <th scope="col" data-i18n="detail.firstRegistered">First registered</th>
+                <th scope="col" data-i18n="table.org">Organization</th>
+              </tr>
+            </thead>
+            <tbody>
+${rows}
+            </tbody>
+          </table>
+        </div>`;
+
+  const collectionLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    url: canonical,
+    isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${SITE}/` },
+    about: { '@type': 'Organization', name: hub.displayName },
+  }).replace(/</g, '\\u003c');
+
+  return renderPage({
+    title,
+    description,
+    canonical,
+    breadcrumbLabel: hub.displayName,
+    heading,
+    ledeHtml,
+    body: `${body}\n`,
+    assets,
+    jsonLdNodes: [collectionLd],
+    totalRows: hub.blocks,
+  });
+}
+
+function ownerWeight(owner) {
+  return [...owner.nameCounts.values()].reduce((sum, count) => sum + count, 0);
+}
+export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [] }) {
   const canonical = `${site}${hub.url}`;
   const title = `${hub.displayName} MAC address blocks | MAC Address Lookup`;
   const suffix =
@@ -326,6 +530,9 @@ export function renderOrgHubPage({ hub, assets, site = SITE }) {
     `first observed ${escapeHtml(formatDate(hub.firstSeen, 'en') || 'before tracked records')}${escapeHtml(suffix)}.</p>` +
     (hub.countryCodes.length > 0
       ? `\n          <p class="hub-countries">Registered in ${countryLinks(hub.countryCodes)}.</p>`
+      : '') +
+    (absorbed.length > 0
+      ? `\n          <p class="hub-countries">Its portfolio also includes blocks acquired from ${absorbedListLink(absorbed)}.</p>`
       : '');
 
   const rows = hub.records
@@ -465,6 +672,14 @@ function countryLinks(codes) {
     .join(' · ');
 }
 
+/** Former-owner links for the vendor hub lede: "F1 ×N · F2 ×M". */
+function absorbedListLink(absorbed) {
+  return absorbed
+    .slice(0, 10)
+    .map((entry) => `<a href="/former/${escapeHtml(entry.slug)}">${escapeHtml(entry.displayName)}</a> × ${entry.count}`)
+    .join(' · ');
+}
+
 function displayNameForCountry(code) {
   return countryName(code) ?? code;
 }
@@ -473,7 +688,7 @@ function displayNameForCountry(code) {
  * Write all hub pages and return relative URL arrays for the sitemap plus
  * the data, for wiring vendor hub links into prefix pages.
  */
-export async function writeHubPages({ hubData, outDir, assets }) {
+export async function writeHubPages({ hubData, outDir, assets, formerData = null, recordsByPrefix = new Map() }) {
   const vendorDir = path.join(outDir, 'vendor');
   const countryDir = path.join(outDir, 'country');
   await mkdir(vendorDir, { recursive: true });
@@ -481,7 +696,11 @@ export async function writeHubPages({ hubData, outDir, assets }) {
 
   const vendorUrls = [];
   for (const hub of hubData.orgs) {
-    await writeFile(path.join(vendorDir, `${hub.slug}.html`), renderOrgHubPage({ hub, assets }));
+    const absorbed = formerData?.absorbedByVendor?.get(hub.key) ?? [];
+    await writeFile(
+      path.join(vendorDir, `${hub.slug}.html`),
+      renderOrgHubPage({ hub, assets, absorbed }),
+    );
     vendorUrls.push(hub.url);
   }
 
@@ -495,5 +714,18 @@ export async function writeHubPages({ hubData, outDir, assets }) {
     countryUrls.push(`/country/${hub.code.toLowerCase()}`);
   }
 
-  return { vendorUrls, countryUrls };
+  const formerUrls = [];
+  if (formerData?.formers?.length) {
+    const formerDir = path.join(outDir, 'former');
+    await mkdir(formerDir, { recursive: true });
+    for (const hub of formerData.formers) {
+      await writeFile(
+        path.join(formerDir, `${hub.slug}.html`),
+        renderFormerHubPage({ hub, recordsByPrefix, assets }),
+      );
+      formerUrls.push(hub.url);
+    }
+  }
+
+  return { vendorUrls, countryUrls, formerUrls };
 }

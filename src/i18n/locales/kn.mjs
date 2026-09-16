@@ -159,5 +159,15 @@ export const kn = {
   "detail.addressesInBlock": "ಬ್ಲಾಕ್‌ನಲ್ಲಿ ವಿಳಾಸಗಳು",
   "detail.country": "ದೇಶ",
   "detail.orgAddress": "ಸಂಸ್ಥೆಯ ವಿಳಾಸ",
-  "detail.firstRegistered": "ಮೊದಲ ನೋಂದಣಿ"
+  "detail.firstRegistered": "ಮೊದಲ ನೋಂದಣಿ",
+  "related.sameOrg": "ಈ ಸಂಸ್ಥೆಯ ಇತರ ಬ್ಲಾಕ್‌ಗಳು:",
+  "related.adjacent": "ಸನ್ನಿಹಿತ ಪೂರ್ವಪ್ರತ್ಯಯಗಳು",
+  "related.cohort": "ಅದೇ ವರ್ಷ ನೋಂದಾಯಿತು",
+  "partial.showMore": "ಇನ್ನೂ ತೋರಿಸಿ",
+  "table.addresses": "ವಿಳಾಸಗಳು",
+  "table.blocks": "ಬ್ಲಾಕ್‌ಗಳು",
+  "enrich.portfolio": "{org} ನೋಂದಾದ {count} ಬ್ಲಾಕ್‌ಗಳಲ್ಲಿ ಒಂದು; ಒಟ್ಟು {addresses} ಇವು.",
+  "enrich.blockSize": "ಶಾಸ್ತ್ರೀಯ 24-ಬಿಟ್ OUI ಕ್ಕೆ ವಿರುದ್ಧವಾಗಿ, {type} ನಿಯೋಜನೆ {addresses} ವಿಳಾಸಗಳನ್ನು ಒಳಗೊಳ್ಳುತ್ತದೆ.",
+  "enrich.cid": "CID ನಿಯೋಜನೆಗಳು ಕಂಪನಿ ಗುರುತಿಸುವಿಕೆಗಳು; ನೆಟ್‌ವರ್ಕ್ ಹಾರ್ಡ್‌ವೇರ್ ಬಳಕೆಯಾಗುವುದಿಲ್ಲ.",
+  "enrich.oldest": "{date} ನ ಮೊದಲು ಕಾಣಿಸಿದವು — {org} ನ ಅತ್ಯಂತ ಹಳೆಯ ನೋಂದಣಿಗಳಲ್ಲಿ ಒಂದು.",
 };

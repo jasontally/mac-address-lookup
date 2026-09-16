@@ -30,15 +30,19 @@ export async function buildStatic({ root, distDir }) {
   await mkdir(assetsDir, { recursive: true });
 
   const appPath = path.join(assetsDir, 'app.js');
+  const staticPath = path.join(assetsDir, 'static.js');
   await esbuild.build({
-    entryPoints: [path.join(root, 'src', 'ui', 'app.mjs')],
+    entryPoints: [
+      path.join(root, 'src', 'ui', 'app.mjs'),
+      path.join(root, 'src', 'ui', 'static.mjs'),
+    ],
     bundle: true,
     format: 'esm',
     minify: true,
     target: ['es2022'],
     splitting: true,
     outdir: assetsDir,
-    entryNames: 'app',
+    entryNames: '[name]',
     chunkNames: 'chunk.[hash]',
     legalComments: 'none',
     logLevel: 'silent',
@@ -67,10 +71,11 @@ export async function buildStatic({ root, distDir }) {
     logLevel: 'silent',
   });
 
-  const [app, css, worker] = await Promise.all([
+  const [app, css, worker, staticBundle] = await Promise.all([
     hashAsset(appPath),
     hashAsset(cssPath),
     hashAsset(workerPath),
+    hashAsset(staticPath),
   ]);
 
   const hyparquetLicense = await readFile(
@@ -86,6 +91,7 @@ export async function buildStatic({ root, distDir }) {
   const appToken = `/assets/${app.name}`;
   const cssToken = `/assets/${css.name}`;
   const workerToken = `/assets/${worker.name}`;
+  const staticToken = `/assets/${staticBundle.name}`;
   for (const file of await readdir(distDir)) {
     if (!file.endsWith('.html')) continue;
     const htmlPath = path.join(distDir, file);
@@ -93,6 +99,7 @@ export async function buildStatic({ root, distDir }) {
     html = html
       .replaceAll('{{APP_CSS}}', cssToken)
       .replaceAll('{{APP_JS}}', appToken)
+      .replaceAll('{{STATIC_JS}}', staticToken)
       .replaceAll('{{WORKER_JS}}', workerToken);
     await writeFile(htmlPath, html);
   }
@@ -107,7 +114,9 @@ export async function buildStatic({ root, distDir }) {
     appFile: `/assets/${app.name}`,
     cssFile: `/assets/${css.name}`,
     workerFile: workerToken,
+    staticFile: staticToken,
     appBytes: appStat.size,
     cssBytes: cssStat.size,
+    staticBytes: staticBundle.bytes,
   };
 }

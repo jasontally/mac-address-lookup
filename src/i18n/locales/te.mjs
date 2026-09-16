@@ -159,5 +159,15 @@ export const te = {
   "detail.addressesInBlock": "బ్లాక్‌లో చిరునామాలు",
   "detail.country": "దేశం",
   "detail.orgAddress": "సంస్థ చిరునామా",
-  "detail.firstRegistered": "మొదటి నమోదు"
+  "detail.firstRegistered": "మొదటి నమోదు",
+  "related.sameOrg": "ఇదే సంస్థ మరికొన్ని బ్లాక్‌లు:",
+  "related.adjacent": "సన్నిహిత ప్రిఫిక్స్‌లు",
+  "related.cohort": "అదే సంవత్సరంలో రిజిస్టర్",
+  "partial.showMore": "మరిన్ని చూపించు",
+  "table.addresses": "అడ్రస్‌లు",
+  "table.blocks": "బ్లాక్‌లు",
+  "enrich.portfolio": "{org} నమోదైన {count} బ్లాక్‌లలో ఒకటి; కలిసి {addresses} అడ్రస్ ల పరిధి.",
+  "enrich.blockSize": "సాంప్రదాయ 24-బిట్ OUI కి భిన్నంగా, {type} నమోదు {addresses} అడ్రస్ లను కవర్ చేస్తుంది.",
+  "enrich.cid": "CID అసైన్‌మెంట్లు కంపెనీ గుర్తింపులు; నెట్‌వర్క్ హార్డ్‌వేర్‌లో వాడబడవు.",
+  "enrich.oldest": "{date} లొ మొదటిసారి గమనించారు — {org} యొక్క పురాతన నమోదులలో ఒకటి.",
 };

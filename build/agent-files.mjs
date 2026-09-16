@@ -47,6 +47,9 @@ export function llmsTxt({ dataFiles = {} } = {}) {
   to one organization (vendors with two or more blocks), as a complete table.
 - \`/country/{code}\` — pre-rendered country page: every organization with
   blocks registered in that country, with block counts and address space.
+- \`/former/{name}\` — pre-rendered former-owner page: organizations that no
+  longer hold any of their once-registered prefixes, with what happened to
+  each block (transfers, renames, full acquisitions).
 - \`/{vendor-name}\` — free-text search over vendors, former owners, countries,
   block types, prefixes, and registration years. Results are an HTML table.
 - \`/{a},{b}\` — batch lookup of comma-separated addresses (up to 250).
@@ -113,6 +116,21 @@ and virtual machines.
 - **macOS:** open System Settings → Network → Details, or run \`ifconfig en0 | grep ether\`.
 - **Linux:** run \`ip link\` and read the \`link/ether\` value.
 - **iPhone / Android:** open the Wi-Fi network details. The "private Wi-Fi address" shown there is randomized and will not resolve to a vendor.
+
+## Vendors, countries, and former owners
+
+Besides prefix pages, the site pre-renders reference pages organized by the
+registration itself, each with its complete table:
+
+- **Vendor pages** — \`${site}/vendor/{slug}\`: every MAC block registered to one
+  organization, with block types, address space, countries, and registration dates.
+- **Country pages** — \`${site}/country/{code}\`: every organization with blocks
+  registered in that country, sorted by address space.
+- **Former-owner pages** — \`${site}/former/{name}\`: organizations that no longer
+  hold any of the prefixes once registered to them, showing what happened to each
+  block — including acquisitions where one new owner took over all of them
+  (for example [Apple Computer](${site}/former/apple-computer), whose blocks are
+  now registered to Apple, Inc.).
 
 ## Frequently asked questions
 

@@ -159,5 +159,15 @@ export const fa = {
   "detail.addressesInBlock": "آدرس‌های درون بلوک",
   "detail.country": "کشور",
   "detail.orgAddress": "نشانی سازمان",
-  "detail.firstRegistered": "نخستین ثبت"
+  "detail.firstRegistered": "نخستین ثبت",
+  "related.sameOrg": "سایر بلوک‌های همین مالک:",
+  "related.adjacent": "پیشوندهای مجاور",
+  "related.cohort": "ثبت‌شده در همان سال",
+  "partial.showMore": "نمایش بیشتر",
+  "table.addresses": "آدرس‌ها",
+  "table.blocks": "بلوک‌ها",
+  "enrich.portfolio": "یکی از {count} بلوک ثبت‌شده {org}؛ در مجموع {addresses} را در بر می‌گیرد.",
+  "enrich.blockSize": "برخلاف OUI کلاسیک ۲۴ بیتی، یک تخصیص {type} {addresses} آدرس را پوشش می‌دهد.",
+  "enrich.cid": "تخصیص‌های CID شناسه‌های شرکتی هستند؛ در سخت‌افزار شبکه به کار نمی‌روند.",
+  "enrich.oldest": "برای اولین بار در {date} مشاهده شد — از قدیمی‌ترین ثبت‌های {org}.",
 };

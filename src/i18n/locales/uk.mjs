@@ -159,5 +159,15 @@ export const uk = {
   "detail.addressesInBlock": "Адреси в блоці",
   "detail.country": "Країна",
   "detail.orgAddress": "Адреса організації",
-  "detail.firstRegistered": "Уперше зареєстровано"
+  "detail.firstRegistered": "Уперше зареєстровано",
+  "related.sameOrg": "Інші блоки того самого власника:",
+  "related.adjacent": "Сусідні префікси",
+  "related.cohort": "Зареєстровано в тому ж році",
+  "partial.showMore": "Показати більше",
+  "table.addresses": "Адреси",
+  "table.blocks": "Блоки",
+  "enrich.portfolio": "Один із {count} зареєстрованих блоків {org}; разом вони охоплюють {addresses}.",
+  "enrich.blockSize": "На відміну від класичного 24-бітного OUI, призначення {type} охоплює {addresses} адрес.",
+  "enrich.cid": "Призначення CID — це ідентифікатори компаній; вони не використовуються в мережевому обладнанні.",
+  "enrich.oldest": "Вперше помічено {date} — серед найстаріших реєстрацій {org}.",
 };

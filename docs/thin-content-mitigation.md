@@ -131,9 +131,11 @@ would land in the 2,000-file non-page allowance. Rework before generating any hu
 | Item | Files |
 | --- | --- |
 | Prefix pages | 58,694 |
-| Org hubs (≥ 2 blocks) | ~3,470 |
-| Country hubs (all 249 countries) | ~249 |
-| Non-page files (unchanged) | ~316 |
+| Vendor hubs (≥ 2 blocks) | 3,469 (measured, 2026-09-16) |
+| Country hubs (all 249 countries) | 249 |
+| Former-owner hubs (former orgs with ≥ 2 prefixes) | 345 |
+| Static page bundle (help, recent, hubs — no engine/hyparquet) | ~15 KB + shared locale chunks |
+| Non-page files (unchanged) | ~330 |
 | **Total** | **~62,730 = 63% of the 100,000 platform cap; 70% of the 90,000 page budget** |
 
 Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9 MB raw
@@ -148,18 +150,26 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   today). Empty slugs (7 non-Latin names): `org-<first 8 chars of sha256>`. Slugs are
   stable across builds; a disappearing org freeing a slug is noted as accepted
   (redirects not worth the 2,100-rule `_redirects` cap).
-- **Org hubs** (`/vendor/<slug>`): `h1` org name; lede with computed portfolio facts
+- **Vendor pages** (`/vendor/<slug>`): `h1` org name; lede with computed portfolio facts
   (N blocks, total addresses, first and latest registration dates, registration
   countries); `.data-table` of **all** of the org's blocks — prefix, block type,
   addresses, country, first registered — linking every row to its prefix page
   (**all** blocks, including non-pre-rendered ones; hydration covers those).
   Cross-links: registration-country hubs; a "search this vendor" link to the existing
-  `/<org name>` free-text search path.
+  `/<org name>` free-text search path; the org's acquired former-owner pages
+  (`computeFormerHubs` reverse index, ≤ 10 shown).
 - **Country hubs** (`/country/<code>`, lowercase code, name via
   `src/engine/countries.mjs`): `h1` country name; lede (N blocks, total addresses,
   distinct orgs); `.data-table` of **all** orgs registered in that country (name →
   org hub, block count, addresses), sorted by address space. The 61 records with no
   country simply get no country link.
+- **Former-owner hubs** (`/former/<slug>`): one per organization that no longer
+  holds any of its once-registered prefixes (≥ 2 of them; 345 today). The lede
+  states the takeaway for each portfolio — e.g. Apple Computer: "Apple, Inc. took
+  over all of them" — and the complete table pairs every block with its current
+  owner (linked to the vendor hub when one exists). Vendor hubs cross-link the
+  former-owner pages they absorbed blocks from; prefix-page lineage timelines link
+  former-owner pages for their org names.
 - **No display caps on static pages.** Static HTML is the fast path — repetitive
   table rows compress ~10:1 at the edge, so the worst pages stay small on the wire
   (Apple ~23 KB, US ~130 KB) and the complete data is crawlable in one document.
@@ -172,8 +182,8 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   inline script adds the "show more" reveal (1,000 rows per click) with the
   existing `showing-first-of` note; the same key (`partial.showMore`) is reused.
 - Excluded from hubs: `Private` and empty-org records (consistent with page
-  selection). Former owners from lineage are out of scope for v1 — the prefix page's
-  lineage timeline already covers them.
+  selection). Former-owner pages were out of scope for v1 and shipped on
+  2026-09-16 (see above).
 - **JSON-LD:** `CollectionPage` + `BreadcrumbList` (Home / Vendors / Org) for org
   hubs, with an `about` `Organization` node (name, address, country) reusing the
   prefix-page pattern; `CollectionPage` + `BreadcrumbList` for country hubs.

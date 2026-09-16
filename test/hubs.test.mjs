@@ -2,9 +2,11 @@ import { strict as assert } from 'node:assert';
 import test from 'node:test';
 import {
   assignSlugs,
+  computeFormerHubs,
   computeHubs,
   displayNameOf,
   renderCountryHubPage,
+  renderFormerHubPage,
   renderOrgHubPage,
   writeHubPages,
 } from '../build/hubs.mjs';
@@ -168,6 +170,186 @@ test('renderCountryHubPage lists orgs sorted by address space, linking hubs', ()
   assert.ok(smallIndex !== -1);
   assert.ok(bigIndex < smallIndex, 'sorted by address space, hub-linked org first');
   assert.match(html, /data-i18n="table.blocks"/);
+});
+
+test('computeFormerHubs rolls up takeovers and skips single-prefix former orgs', () => {
+  const lineage = [
+    {
+      prefix: '000017',
+      prefixLen: 24,
+      firstSeen: '2000-09-08',
+      lastSeen: '2014-01-17',
+      events: [
+        { date: '2000-09-08', orgName: 'TEKELEC' },
+        { date: '2014-01-17', orgName: 'Oracle' },
+      ],
+    },
+    {
+      prefix: '00001A',
+      firstSeen: '1995-01-01',
+      events: [
+        { date: '1995-01-01', orgName: 'TEKELEC' },
+        { date: '2013-05-02', orgName: 'Oracle' },
+      ],
+    },
+    {
+      // Same-name single former: excluded (needs >= 2 prefixes).
+      prefix: '0000AB',
+      firstSeen: '2001-01-01',
+      events: [
+        { date: '2001-01-01', orgName: 'Solo History Inc' },
+        { date: '2010-01-01', orgName: 'Next Inc' },
+      ],
+    },
+    {
+      prefix: '0000AC',
+      firstSeen: '2002-02-02',
+      events: [
+        { date: '2002-02-02', orgName: 'Oracle' },
+        { date: '2011-03-03', orgName: 'Oracle Corp' },
+      ],
+    },
+  ];
+  const vendors = new Map([
+    [
+      'ORACLE',
+      {
+        key: 'ORACLE',
+        displayName: 'Oracle',
+        blocks: 100,
+        slug: 'oracle',
+        url: '/vendor/oracle',
+      },
+    ],
+  ]);
+  const data = computeFormerHubs(lineage, { vendors });
+  const tekelec = data.byKey.get('TEKELEC');
+  assert.ok(tekelec);
+  assert.equal(tekelec.blocks, 2);
+  assert.equal(tekelec.slug, 'tekelec');
+  assert.equal(tekelec.url, '/former/tekelec');
+  // Full takeover: one owner, all blocks, and the sentence detail rides along.
+  const owners = [...tekelec.owners.entries()];
+  assert.equal(owners.length, 1);
+  assert.equal(owners[0][1].slug, 'oracle');
+  assert.equal(tekelec.absorbed ?? 0, 0);
+  // Take over the reverse index: Oracle absorbed 2 blocks from Tekelec.
+  const absorbed = data.absorbedByVendor.get('ORACLE');
+  assert.ok(absorbed.some((a) => a.slug === 'tekelec' && a.count === 2));
+  // Rows carry record join info via current owner display.
+  const first = [...tekelec.prefixes.values()].sort((a, b) => (a.prefix < b.prefix ? -1 : 1))[0];
+  assert.equal(first.currentDisplay, 'Oracle');
+  assert.equal(first.currentSlug, 'oracle');
+  // Former owners with one prefix stay out.
+  assert.ok(!data.byKey.get('SOLO HISTORY INC'));
+});
+
+test('computeFormerHubs marks partial takeovers without a sole owner', () => {
+  const lineage = [
+    {
+      prefix: '0001AB',
+      firstSeen: '2000-01-01',
+      events: [
+        { date: '2000-01-01', orgName: 'Split Inc' },
+        { date: '2010-01-01', orgName: 'Left Corp' },
+      ],
+    },
+    {
+      prefix: '0001CD',
+      firstSeen: '2004-01-01',
+      events: [
+        { date: '2004-01-01', orgName: 'Split Inc' },
+        { date: '2012-02-02', orgName: 'Right Corp' },
+      ],
+    },
+  ];
+  const data = computeFormerHubs(lineage, { vendors: new Map() });
+  const split = data.byKey.get('SPLIT INC');
+  assert.ok(split);
+  assert.ok(split.prefixes.size, 2);
+  // No vendor hub slug - the takeover sentence states the names instead.
+  assert.ok(![...split.owners.values()].some((owner) => owner.slug));
+});
+
+test('renderFormerHubPage shows the full-takeover sentence and hub row link', () => {
+  const hub = {
+    key: 'TEKELEC',
+    slug: 'tekelec',
+    displayName: 'Tekelec',
+    blocks: 2,
+    prefixes: new Map([
+      ['000017', { prefix: '000017', firstDate: '2000-09-08', currentOwner: 'Oracle', currentKey: 'ORACLE', currentSlug: 'oracle', currentDisplay: 'Oracle' }],
+      ['00001A', { prefix: '00001A', firstDate: '1995-01-01', currentOwner: 'Oracle', currentKey: 'ORACLE', currentSlug: 'oracle', currentDisplay: 'Oracle' }],
+    ]),
+    owners: new Map([
+      ['ORACLE', { nameCounts: new Map([['Oracle', 2]]), slug: 'oracle', display: 'Oracle' }],
+    ]),
+  };
+  const html = renderFormerHubPage({
+    hub,
+    recordsByPrefix: new Map([['000017', { blockType: 'MA-L', addressCount: 16777216 }]]),
+    assets: ASSETS,
+    site: 'https://example.test',
+  });
+  assert.match(html, /<title>Former Tekelec MAC address blocks \| MAC Address Lookup<\/title>/);
+  assert.match(html, /took over all of them/);
+  assert.match(html, /href="\/vendor\/oracle"/);
+  assert.match(html, /href="\/000017"/);
+  assert.match(html, /MA-L/);
+  assert.match(html, /CollectionPage/);
+});
+
+test('renderFormerHubPage lists mixed takeovers by name', () => {
+  const hub = {
+    key: 'SPLIT INC',
+    slug: 'split-inc',
+    displayName: 'Split Inc',
+    blocks: 2,
+    prefixes: new Map([
+      ['0001AB', { prefix: '0001AB', firstDate: '2000-01-01', currentOwner: 'Left Corp', currentSlug: null, currentDisplay: 'Left Corp' }],
+      ['0001CD', { prefix: '0001CD', firstDate: '2004-01-01', currentOwner: 'Right Corp', currentSlug: null, currentDisplay: 'Right Corp' }],
+    ]),
+    owners: new Map([
+      ['LEFT CORP', { nameCounts: new Map([['Left Corp', 1]]), slug: null, display: 'Left Corp' }],
+      ['RIGHT CORP', { nameCounts: new Map([['Right Corp', 1]]), slug: null, display: 'Right Corp' }],
+    ]),
+  };
+  const html = renderFormerHubPage({ hub, assets: ASSETS, site: 'https://example.test' });
+  assert.match(html, /registered across 2 organizations/);
+  assert.ok(!html.includes('took over all of them'));
+});
+
+test('writeHubPages writes former pages and their URLs', async () => {
+  const { mkdtemp, readFile } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const ledger = new Map([['TEKELEC', { slug: 'tekelec', displayName: 'Tekelec' }]]);
+  const dir = await mkdtemp(join(tmpdir(), 'hubs-'));
+  const data = {
+    orgs: [],
+    countries: [],
+  };
+  const formerData = {
+    formers: [
+      {
+        key: 'TEKELEC',
+        slug: 'tekelec',
+        url: '/former/tekelec',
+        displayName: 'Tekelec',
+        blocks: 1,
+        prefixes: new Map([
+          ['000017', { prefix: '000017', firstDate: '2000-09-08', currentOwner: 'Oracle', currentSlug: 'oracle', currentDisplay: 'Oracle' }],
+        ]),
+        owners: new Map([['ORACLE', { nameCounts: new Map([['Oracle', 1]]), slug: 'oracle', display: 'Oracle' }]]),
+      },
+    ],
+    byKey: ledger,
+    absorbedByVendor: new Map(),
+  };
+  const result = await writeHubPages({ hubData: data, outDir: dir, assets: ASSETS, formerData, recordsByPrefix: new Map() });
+  assert.deepEqual(result.formerUrls, ['/former/tekelec']);
+  const html = await readFile(join(dir, 'former', 'tekelec.html'), 'utf8');
+  assert.match(html, /MAC Address Lookup/);
 });
 
 test('writeHubPages writes nested files and reports relative URLs', async () => {

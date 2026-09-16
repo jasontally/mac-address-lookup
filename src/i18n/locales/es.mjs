@@ -159,5 +159,15 @@ export const es = {
   "detail.addressesInBlock": "Direcciones en el bloque",
   "detail.country": "País",
   "detail.orgAddress": "Dirección de la organización",
-  "detail.firstRegistered": "Primer registro"
+  "detail.firstRegistered": "Primer registro",
+  "related.sameOrg": "Más bloques de",
+  "related.adjacent": "Prefijos adyacentes",
+  "related.cohort": "Registrado el mismo año",
+  "partial.showMore": "Mostrar más",
+  "table.addresses": "Direcciones",
+  "table.blocks": "Bloques",
+  "enrich.portfolio": "Uno de los {count} bloques registrados de {org}; juntos abarcan {addresses}.",
+  "enrich.blockSize": "A diferencia del OUI clásico de 24 bits, una asignación {type} cubre {addresses} direcciones.",
+  "enrich.cid": "Las asignaciones CID son identificadores de empresa; no se usan en hardware de red.",
+  "enrich.oldest": "Visto por primera vez el {date} — entre los registros más antiguos de {org}.",
 };

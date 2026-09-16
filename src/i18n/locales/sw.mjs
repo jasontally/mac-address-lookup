@@ -159,5 +159,15 @@ export const sw = {
   "detail.addressesInBlock": "Anwani ndani ya kikundi",
   "detail.country": "Nchi",
   "detail.orgAddress": "Anwani ya shirika",
-  "detail.firstRegistered": "Usajili wa kwanza"
+  "detail.firstRegistered": "Usajili wa kwanza",
+  "related.sameOrg": "Blok nyingine kutoka kwa mmiliki huyo huo:",
+  "related.adjacent": "Viambishi jirani",
+  "related.cohort": "Imesajiliwa katika mwaka uleule",
+  "partial.showMore": "Onyesha zaidi",
+  "table.addresses": "Anwani",
+  "table.blocks": "Vikundi",
+  "enrich.portfolio": "Moja ya vikundi {count} vya usajili wa {org}; pamoja vinajumuisha {addresses}.",
+  "enrich.blockSize": "Tofauti na OUI ya kawaida ya biti 24, mgawo wa {type} unajumuisha anwani {addresses}.",
+  "enrich.cid": "Usajili wa CID ni vitambulisho vya kampuni; havitumiki kwenye vifaa vya mtandao.",
+  "enrich.oldest": "Iligunduliwa kwa mara ya kwanza {date} — miongoni mwa usajili wa zamani wa {org}.",
 };

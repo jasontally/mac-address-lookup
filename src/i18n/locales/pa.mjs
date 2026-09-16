@@ -159,5 +159,15 @@ export const pa = {
   "detail.addressesInBlock": "ਬਲਾਕ ਵਿੱਚ ਪਤੇ",
   "detail.country": "ਦੇਸ਼",
   "detail.orgAddress": "ਸੰਸਥਾ ਦਾ ਪਤਾ",
-  "detail.firstRegistered": "ਪਹਿਲੀ ਰਜਿਸਟਰੇਸ਼ਨ"
+  "detail.firstRegistered": "ਪਹਿਲੀ ਰਜਿਸਟਰੇਸ਼ਨ",
+  "related.sameOrg": "ਇਸੇ ਦੇ ਹੋਰ ਬਲਾਕ:",
+  "related.adjacent": "ਨਜ਼ਦੀਕੀ ਪ੍ਰੀਫਿਕਸ",
+  "related.cohort": "ਇਸੇ ਸਾਲ ਰਜਿਸਟਰਡ",
+  "partial.showMore": "ਹੋਰ ਵਿਖਾਓ",
+  "table.addresses": "ਸਿਰਨਾਵੇਂ",
+  "table.blocks": "ਬਲਾਕ",
+  "enrich.portfolio": "{org} ਦੇ ਰਜਿਸਟਰਡ {count} ਬਲਾਕਾਂ ਵਿੱਚੋਂ ਇੱਕ; ਮਿਲ ਕੇ {addresses} ਵਿੱਚ ਫੈਲਦੇ ਹਨ।",
+  "enrich.blockSize": "ਕਲਾਸਿਕ 24-ਬਿੱਟ OUI ਦੇ ਉਲਟ, {type} ਅਸਾਈਨਮੈਂਟ {addresses} ਪਤਿਆਂ ਨੂੰ ਕਵਰ ਕਰਦੀ ਹੈ।",
+  "enrich.cid": "CID ਅਸਾਈਨਮੈਂਟ ਕੰਪਨੀ ਪਛਾਣ ਹਨ; ਨੈੱਟਵਰਕ ਹਾਰਡਵੇਅਰ ਤੇ ਨਹੀਂ ਵਰਤੀਆਂ ਜਾਂਦੀਆਂ।",
+  "enrich.oldest": "ਪਹਿਲੀ ਵਾਰ {date} ਨੂੰ ਦੇਖਿਆ — {org} ਦੀਆਂ ਸਭ ਪੁਰਾਣੀਆਂ ਰਜਿਸਟਰੀਆਂ ਵਿੱਚੋਂ।",
 };

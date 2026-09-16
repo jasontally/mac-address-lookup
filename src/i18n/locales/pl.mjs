@@ -159,5 +159,15 @@ export const pl = {
   "detail.addressesInBlock": "Adresów w bloku",
   "detail.country": "Kraj",
   "detail.orgAddress": "Adres organizacji",
-  "detail.firstRegistered": "Pierwsza rejestracja"
+  "detail.firstRegistered": "Pierwsza rejestracja",
+  "related.sameOrg": "Inne bloki tego samego właściciela:",
+  "related.adjacent": "Sąsiednie prefiksy",
+  "related.cohort": "Zarejestrowane w tym samym roku",
+  "partial.showMore": "Pokaż więcej",
+  "table.addresses": "Adresy",
+  "table.blocks": "Bloki",
+  "enrich.portfolio": "Jeden z {count} zarejestrowanych bloków firmy {org}; łącznie obejmują {addresses}.",
+  "enrich.blockSize": "W przeciwieństwie do klasycznego OUI 24-bitowego, przydział {type} obejmuje {addresses} adresów.",
+  "enrich.cid": "Przydziały CID to identyfikatory firm; nie są używane w sprzęcie sieciowym.",
+  "enrich.oldest": "Zauważony po raz pierwszy {date} — jedna z najstarszych rejestracji {org}.",
 };

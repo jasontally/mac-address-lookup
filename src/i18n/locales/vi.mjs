@@ -159,5 +159,15 @@ export const vi = {
   "detail.addressesInBlock": "Địa chỉ trong khối",
   "detail.country": "Quốc gia",
   "detail.orgAddress": "Địa chỉ tổ chức",
-  "detail.firstRegistered": "Đăng ký lần đầu"
+  "detail.firstRegistered": "Đăng ký lần đầu",
+  "related.sameOrg": "Các khối khác của cùng chủ sở hữu:",
+  "related.adjacent": "Tiền tố liền kề",
+  "related.cohort": "Đăng ký cùng năm",
+  "partial.showMore": "Xem thêm",
+  "table.addresses": "Địa chỉ",
+  "table.blocks": "Khối",
+  "enrich.portfolio": "Một trong {count} khối do {org} đăng ký; tổng cộng trải rộng {addresses}.",
+  "enrich.blockSize": "Khác với OUI 24-bit cổ điển, tiếp nhận {type} bao phủ {addresses} địa chỉ.",
+  "enrich.cid": "Phân bổ CID là mã nhận dạng công ty; không dùng cho phần cứng mạng.",
+  "enrich.oldest": "Lần đầu nhìn thấy {date} — trong số các đăng ký cổ nhất của {org}.",
 };

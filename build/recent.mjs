@@ -62,7 +62,7 @@ export function renderRecentPage({ blocks, assets }) {
       ${BOOT}
       window.__malWorker = '${escapeHtml(assets.workerFile)}';
     </script>
-    <script type="module" src="${assets.appFile}"></script>
+    <script type="module" src="${assets.staticFile ?? assets.appFile}"></script>
   </head>
   <body data-static-page="true">
     <a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>

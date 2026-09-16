@@ -159,5 +159,15 @@ export const ta = {
   "detail.addressesInBlock": "தொகுதியில் முகவரிகள்",
   "detail.country": "நாடு",
   "detail.orgAddress": "அமைப்பின் முகவரி",
-  "detail.firstRegistered": "முதல் பதிவு"
+  "detail.firstRegistered": "முதல் பதிவு",
+  "related.sameOrg": "இதே நிறுவனத்தின் மற்ற தொகுதிகள்:",
+  "related.adjacent": "அடுத்த முன்னொட்டுகள்",
+  "related.cohort": "அதே ஆண்டு பதிவு செய்யப்பட்டது",
+  "partial.showMore": "மேலும் காட்டு",
+  "table.addresses": "முகவரிகள்",
+  "table.blocks": "தொகுதிகள்",
+  "enrich.portfolio": "{org} பதிவு செய்த {count} தொகுதிகளில் ஒன்று; ஒன்றாக {addresses} ஆகும்.",
+  "enrich.blockSize": "பாரம்பரிய 24-பிட் OUI-ஐப் போலல்லாமல், {type} ஒதுக்கீடு {addresses} முகவரிகளை உள்ளடக்குகிறது.",
+  "enrich.cid": "CID ஒதுக்கீடுகள் நிறுவன அடையாளங்கள்; நெட்வொர்க் வன்பொருளில் பயன்படுவதில்லை.",
+  "enrich.oldest": "முதன்முதலில் {date} காணப்பட்டது — {org} இன் மிகப் பழைய பதிவுகளில் ஒன்று.",
 };

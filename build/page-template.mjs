@@ -128,7 +128,7 @@ function formatList(formats) {
   return `<ul class="format-list">\n${rows}\n    </ul>`;
 }
 
-function lineageSection(lineage) {
+function lineageSection(lineage, formerHub = null) {
   if (!lineage || !Array.isArray(lineage.events) || lineage.events.length < 2) return '';
   const events = lineage.events
     .map(
@@ -136,7 +136,7 @@ function lineageSection(lineage) {
         `        <li>\n` +
         `          <span class="timeline-org"${
           event.orgName ? '' : ' data-i18n="lineage.unknown"'
-        }>${escapeHtml(event.orgName || en['lineage.unknown'])}</span>\n` +
+        }>${formerOrgHtml(event, formerHub)}</span>\n` +
         (event.date
           ? `          <span class="timeline-when">${escapeHtml(formatDate(event.date, 'en'))}</span>\n`
           : '') +
@@ -159,6 +159,19 @@ function vendorLink(record, vendorHub) {
   return `<a class="vendor-link" href="${escapeHtml(vendorHub.url)}">${escapeHtml(name)}</a>`;
 }
 
+/**
+ * Timeline organization name; links to the former-owner page when that org
+ * no longer holds any of its prefixes (raw HTML — hub existence is resolved
+ * at build time).
+ */
+function formerOrgHtml(event, formerHub) {
+  if (!event.orgName) return escapeHtml(en['lineage.unknown']);
+  if (formerHub) {
+    return `<a href="${escapeHtml(formerHub)}">${escapeHtml(event.orgName)}</a>`;
+  }
+  return escapeHtml(event.orgName);
+}
+
 /** Country detail row; raw HTML links to the country hub when one exists. */function countryDetail(record, countryHub) {
   if (!record.country) return [];
   if (!countryHub) return [['detail.country', record.country]];
@@ -172,7 +185,7 @@ function vendorLink(record, vendorHub) {
   ];
 }
 
-function renderResult(record, lineage, { vendorHub = null, countryHub = null } = {}) {
+function renderResult(record, lineage, { vendorHub = null, countryHub = null, formerHub = null } = {}) {
   const bits = analyzeBits(record.prefix);
   const formats = formatAddress(record.prefix);
   const hypervisor = detectHypervisor(record.prefix);
@@ -230,7 +243,7 @@ function renderResult(record, lineage, { vendorHub = null, countryHub = null } =
         <h3 data-i18n="result.formats">Formats</h3>
         ${formatList(formats)}
       </section>
-${lineageSection(lineage)}
+${lineageSection(lineage, formerHub)}
     </article>`;
 }
 
@@ -332,6 +345,7 @@ export function renderPrefixPage({
   vendorHub = null,
   countryHub = null,
   enrich = null,
+  formerHub = null,
 }) {
   const colon = colonize(record.prefix);
   const canonical = `${site}/${record.prefix}`;
@@ -468,7 +482,7 @@ export function renderPrefixPage({
           data-prefixlen="${escapeHtml(record.prefixLen)}"
           data-blocktype="${escapeHtml(record.blockType)}"
         >
-${renderResult(record, lineage, { vendorHub, countryHub })}
+${renderResult(record, lineage, { vendorHub, countryHub, formerHub })}
 ${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
         </section>
       </div>

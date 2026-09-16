@@ -159,5 +159,15 @@ export const hi = {
   "detail.addressesInBlock": "ब्लॉक में पते",
   "detail.country": "देश",
   "detail.orgAddress": "संगठन का पता",
-  "detail.firstRegistered": "पहली पंजीकरण"
+  "detail.firstRegistered": "पहली पंजीकरण",
+  "related.sameOrg": "इसी के अन्य ब्लॉक:",
+  "related.adjacent": "आस-पास के प्रिफ़िक्स",
+  "related.cohort": "उसी वर्ष पंजीकृत",
+  "partial.showMore": "और दिखाएँ",
+  "table.addresses": "पते",
+  "table.blocks": "ब्लॉक",
+  "enrich.portfolio": "{org} के पंजीकृत {count} ब्लॉकों में से एक; मिलकर {addresses} तक फैले हैं।",
+  "enrich.blockSize": "क्लासिक 24-बिट OUI के विपरीत, एक {type} असाइनमेंट {addresses} पतों को कवर करता है।",
+  "enrich.cid": "CID असाइनमेंट कंपनी-पहचानकर्ता हैं; नेटवर्क हार्डवेयर पर इनका उपयोग नहीं होता।",
+  "enrich.oldest": "पहली बार {date} को देखा गया — {org} के सबसे पुराने पंजीकरणों में से।",
 };

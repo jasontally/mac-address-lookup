@@ -159,5 +159,15 @@ export const ja = {
   "detail.addressesInBlock": "ブロック内のアドレス数",
   "detail.country": "国",
   "detail.orgAddress": "組織の住所",
-  "detail.firstRegistered": "初回登録"
+  "detail.firstRegistered": "初回登録",
+  "related.sameOrg": "同じ組織の他のブロック：",
+  "related.adjacent": "隣接するプレフィックス",
+  "related.cohort": "同じ年に登録",
+  "partial.showMore": "さらに表示",
+  "table.addresses": "アドレス",
+  "table.blocks": "ブロック",
+  "enrich.portfolio": "{org}が登録した{count}ブロックの1つ。合計で{addresses}を含みます。",
+  "enrich.blockSize": "従来の24ビットOUIとは異なり、{type}割り当ては{addresses}個のアドレスを含みます。",
+  "enrich.cid": "CID割り当ては企業識別子であり、ネットワーク機器には使用されません。",
+  "enrich.oldest": "{date}に初めて観測 — {org} の最古級の登録です。",
 };

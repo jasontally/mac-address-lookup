@@ -159,5 +159,15 @@ export const mr = {
   "detail.addressesInBlock": "ब्लॉकमधील पत्ते",
   "detail.country": "देश",
   "detail.orgAddress": "संस्थेचा पत्ता",
-  "detail.firstRegistered": "पहिली नोंदणी"
+  "detail.firstRegistered": "पहिली नोंदणी",
+  "related.sameOrg": "याचे इतर ब्लॉक्स:",
+  "related.adjacent": "जवळचे प्रीफिक्स",
+  "related.cohort": "याच वर्षी नोंदणी",
+  "partial.showMore": "अधिक दाखवा",
+  "table.addresses": "पत्ते",
+  "table.blocks": "ब्लॉक्स",
+  "enrich.portfolio": "{org} नोंदवलेल्या {count} ब्लॉक्सपैकी एक; एकत्रित {addresses} क्षेत्र.",
+  "enrich.blockSize": "क्लासिक २४-बिट OUI विपरीत, {type} नोंदणी {addresses} पत्ते व्यापते.",
+  "enrich.cid": "CID नोंदण्या कंपनी ओळख आहेत; नेटवर्क हार्डवेअरवर न वापरता.",
+  "enrich.oldest": "सर्वप्रथम निरीक्षित {date} — {org} च्या सर्वात जुन्या नोंदणींत आहे.",
 };

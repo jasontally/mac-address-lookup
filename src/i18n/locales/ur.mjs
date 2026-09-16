@@ -159,5 +159,15 @@ export const ur = {
   "detail.addressesInBlock": "بلاک میں پتے",
   "detail.country": "ملک",
   "detail.orgAddress": "تنظیم کا پتہ",
-  "detail.firstRegistered": "پہلی رجسٹریشن"
+  "detail.firstRegistered": "پہلی رجسٹریشن",
+  "related.sameOrg": "اسی کے مزید بلاکس:",
+  "related.adjacent": "ملحقہ پریفکس",
+  "related.cohort": "اسی سال رجسٹرڈ",
+  "partial.showMore": "مزید دکھائیں",
+  "table.addresses": "ایڈریس",
+  "table.blocks": "بلاکس",
+  "enrich.portfolio": "{org} کے رجسٹرڈ {count} بلاکس میں سے ایک؛ مل کر {addresses}۔",
+  "enrich.blockSize": "کلاسک 24-بٹ OUI کے برعکس، {type} تفویض {addresses} پتے کا احاطہ کرتا ہے۔",
+  "enrich.cid": "CID تفویضات کمپنی شناخت کار ہیں؛ نیٹ ورک ہارڈ ویئر پر استعمال نہیں ہوتے۔",
+  "enrich.oldest": "پہلی بار {date} کو دیکھا گیا — {org} کی پرانی رجسٹریشنوں میں۔",
 };

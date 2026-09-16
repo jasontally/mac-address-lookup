@@ -159,5 +159,15 @@ export const tr = {
   "detail.addressesInBlock": "Bloktaki adresler",
   "detail.country": "Ülke",
   "detail.orgAddress": "Kuruluş adresi",
-  "detail.firstRegistered": "İlk kayıt"
+  "detail.firstRegistered": "İlk kayıt",
+  "related.sameOrg": "Aynı kuruluşun diğer blokları:",
+  "related.adjacent": "Komşu önekler",
+  "related.cohort": "Aynı yıl kayıtlı",
+  "partial.showMore": "Daha fazla göster",
+  "table.addresses": "Adresler",
+  "table.blocks": "Bloklar",
+  "enrich.portfolio": "{org} kayıtlı {count} bloktan biri; birlikte {addresses} kapsar.",
+  "enrich.blockSize": "Klasik 24 bit OUI'den farklı olarak, {type} tahsisi {addresses} adresi kapsar.",
+  "enrich.cid": "CID tahsisleri şirket kimlikleridir; ağ donanımında kullanılmazlar.",
+  "enrich.oldest": "İlk kez {date} gözlemlendi — {org}'ün en eski kayıtlarından biri.",
 };

@@ -159,5 +159,15 @@ export const de = {
   "detail.addressesInBlock": "Adressen im Block",
   "detail.country": "Land",
   "detail.orgAddress": "Organisationsadresse",
-  "detail.firstRegistered": "Erstmals registriert"
+  "detail.firstRegistered": "Erstmals registriert",
+  "related.sameOrg": "Weitere Blöcke von",
+  "related.adjacent": "Benachbarte Präfixe",
+  "related.cohort": "Im selben Jahr registriert",
+  "partial.showMore": "Mehr anzeigen",
+  "table.addresses": "Adressen",
+  "table.blocks": "Blöcke",
+  "enrich.portfolio": "Einer von {count} registrierten Blöcken von {org}; zusammen umfassen sie {addresses}.",
+  "enrich.blockSize": "Anders als der klassische 24-Bit-OUI umfasst eine {type}-Zuteilung {addresses} Adressen.",
+  "enrich.cid": "CID-Zuteilungen sind Unternehmenskennungen; sie werden für Netzwerk-Hardware nicht verwendet.",
+  "enrich.oldest": "Erste Beobachtung am {date} — zählt zu {org}s ältesten Zuteilungen.",
 };

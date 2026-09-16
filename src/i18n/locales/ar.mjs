@@ -159,5 +159,15 @@ export const ar = {
   "detail.addressesInBlock": "العناوين في الكتلة",
   "detail.country": "البلد",
   "detail.orgAddress": "عنوان المؤسسة",
-  "detail.firstRegistered": "أول تسجيل"
+  "detail.firstRegistered": "أول تسجيل",
+  "related.sameOrg": "مجموعات أخرى من نفس المالك:",
+  "related.adjacent": "البادئات المتجاورة",
+  "related.cohort": "مسجل في نفس السنة",
+  "partial.showMore": "عرض المزيد",
+  "table.addresses": "العناوين",
+  "table.blocks": "البلوكات",
+  "enrich.portfolio": "أحد {count} مجموعات مسجلة باسم {org}؛ تغطي معًا {addresses}.",
+  "enrich.blockSize": "على عكس OUI الكلاسيكي بطول 24 بت، يغطي التخصيص {type} {addresses} عنوانًا.",
+  "enrich.cid": "تخصيصات CID هي معرّفات شركات؛ لا تُستخدم في عتاد الشبكات.",
+  "enrich.oldest": "لوحظ لأول مرة في {date} — من بين أقدم تسجيلات {org}.",
 };

@@ -159,5 +159,15 @@ export const ko = {
   "detail.addressesInBlock": "블록 내 주소 수",
   "detail.country": "국가",
   "detail.orgAddress": "조직 주소",
-  "detail.firstRegistered": "최초 등록"
+  "detail.firstRegistered": "최초 등록",
+  "related.sameOrg": "같은 조직의 다른 블록:",
+  "related.adjacent": "인접 접두어",
+  "related.cohort": "같은 해에 등록됨",
+  "partial.showMore": "더 보기",
+  "table.addresses": "주소",
+  "table.blocks": "블록",
+  "enrich.portfolio": "{org}이(가) 등록한 {count}개 블록 중 하나; 합계 {addresses}입니다.",
+  "enrich.blockSize": "기존 24비트 OUI와 달리 {type} 할당은 {addresses}개 주소를 포괄합니다.",
+  "enrich.cid": "CID 할당은 회사 식별자이며 네트워크 하드웨어에는 사용되지 않습니다.",
+  "enrich.oldest": "{date}에 처음 관측 — {org}의 가장 오래된 등록 중 하나입니다.",
 };

@@ -159,5 +159,15 @@ export const pt = {
   "detail.addressesInBlock": "Endereços no bloco",
   "detail.country": "País",
   "detail.orgAddress": "Endereço da organização",
-  "detail.firstRegistered": "Primeiro registro"
+  "detail.firstRegistered": "Primeiro registro",
+  "related.sameOrg": "Mais blocos de",
+  "related.adjacent": "Prefixos adjacentes",
+  "related.cohort": "Registrado no mesmo ano",
+  "partial.showMore": "Mostrar mais",
+  "table.addresses": "Endereços",
+  "table.blocks": "Blocos",
+  "enrich.portfolio": "Um dos {count} blocos registrados de {org}; juntos cobrem {addresses}.",
+  "enrich.blockSize": "Diferente do OUI clássico de 24 bits, uma atribuição {type} cobre {addresses} endereços.",
+  "enrich.cid": "Atribuições CID são identificadores de empresa; não são usados em hardware de rede.",
+  "enrich.oldest": "Observado pela primeira vez em {date} — entre os registros mais antigos de {org}.",
 };

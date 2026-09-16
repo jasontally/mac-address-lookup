@@ -159,5 +159,15 @@ export const bn = {
   "detail.addressesInBlock": "ব্লকে ঠিকানা",
   "detail.country": "দেশ",
   "detail.orgAddress": "সংস্থার ঠিকানা",
-  "detail.firstRegistered": "প্রথম নিবন্ধন"
+  "detail.firstRegistered": "প্রথম নিবন্ধন",
+  "related.sameOrg": "একই প্রতিষ্ঠানের অন্য ব্লক:",
+  "related.adjacent": "সন্নিহিত প্রিফিক্স",
+  "related.cohort": "একই বছরে নিবন্ধিত",
+  "partial.showMore": "আরও দেখুন",
+  "table.addresses": "ঠিকানা",
+  "table.blocks": "ব্লক",
+  "enrich.portfolio": "{org}-এর নিবন্ধিত {count}টি ব্লকের মধ্যে একটি; সব মিলিয়ে {addresses}।",
+  "enrich.blockSize": "ক্লাসিক 24-বিট OUI-এর বিপরীতে, একটি {type} অ্যাসাইনমেন্ট {addresses} ঠিকানা কভার করে।",
+  "enrich.cid": "CID অ্যাসাইনমেন্ট সংস্থার শনাক্তকারী; নেটওয়ার্ক হার্ডওয়্যারে ব্যবহৃত হয় না।",
+  "enrich.oldest": "প্রথম {date} লক্ষ করা হয় — {org}-এর পুরোনো নিবন্ধনের অন্যতম।",
 };

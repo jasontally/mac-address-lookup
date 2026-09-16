@@ -51,7 +51,7 @@
       // translated labels after boot. Provide the decode worker URL early.
       window.__malWorker = '{{WORKER_JS}}';
     </script>
-    <script type="module" src="{{APP_JS}}"></script>
+    <script type="module" src="{{STATIC_JS}}"></script>
   </head>
   <body data-static-page="true">
     <a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>
@@ -134,6 +134,17 @@
             <li><strong>macOS:</strong> open System Settings → Network → Details, or run <code>ifconfig en0 | grep ether</code>.</li>
             <li><strong>Linux:</strong> run <code>ip link</code> and read the <code>link/ether</code> value.</li>
             <li><strong>iPhone / Android:</strong> open the Wi-Fi network details. The "private Wi-Fi address" shown there is randomized and will not resolve to a vendor.</li>
+          </ul>
+
+          <h2>Vendors, countries, and former owners</h2>
+          <p>
+            Besides prefix pages, the site pre-renders reference pages organized by the
+            registration itself, each with its complete table:
+          </p>
+          <ul>
+            <li><a href="/vendor/apple-inc">Vendor pages</a> — <code>/vendor/&lt;name&gt;</code>: every MAC block registered to one organization, with block types, address space, countries, and registration dates.</li>
+            <li><a href="/country/us">Country pages</a> — <code>/country/&lt;code&gt;</code>: every organization with blocks registered in that country, sorted by address space.</li>
+            <li>Former-owner pages — <code>/former/&lt;name&gt;</code>: organizations that no longer hold any of the prefixes once registered to them, showing what happened to each block — including acquisitions where a single new owner took over all of them (for example <a href="/former/apple-computer">Apple Computer</a>, whose blocks are now registered to Apple, Inc.).</li>
           </ul>
 
           <h2 data-i18n="help.faq">Frequently asked questions</h2>

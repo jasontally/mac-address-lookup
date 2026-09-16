@@ -159,5 +159,15 @@ export const id = {
   "detail.addressesInBlock": "Alamat dalam blok",
   "detail.country": "Negara",
   "detail.orgAddress": "Alamat organisasi",
-  "detail.firstRegistered": "Pendaftaran pertama"
+  "detail.firstRegistered": "Pendaftaran pertama",
+  "related.sameOrg": "Blok lain dari pemilik yang sama:",
+  "related.adjacent": "Prefiks yang berdekatan",
+  "related.cohort": "Terdaftar pada tahun yang sama",
+  "partial.showMore": "Tampilkan lebih banyak",
+  "table.addresses": "Alamat",
+  "table.blocks": "Blok",
+  "enrich.portfolio": "Satu dari {count} blok terdaftar milik {org}; bersama mencakup {addresses}.",
+  "enrich.blockSize": "Berbeda dari OUI klasik 24-bit, penugasan {type} mencakup {addresses} alamat.",
+  "enrich.cid": "Penugasan CID adalah pengenal perusahaan; tidak digunakan pada perangkat jaringan.",
+  "enrich.oldest": "Pertama kali teramati {date} — di antara registrasi terlama milik {org}.",
 };

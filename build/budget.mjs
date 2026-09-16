@@ -35,16 +35,20 @@ export async function walkDir(dir, base = dir, files = []) {
  * pages against the page budget, not the non-page allowance.
  */
 export function countPages(files) {
-  const counts = { prefixes: 0, vendor: 0, country: 0 };
+  const counts = { prefixes: 0, vendor: 0, country: 0, former: 0 };
   for (const { path } of files) {
     if (!path.endsWith('.html')) continue;
     if (path.startsWith('vendor/')) counts.vendor += 1;
     else if (path.startsWith('country/')) counts.country += 1;
+    else if (path.startsWith('former/')) counts.former += 1;
     else if (!path.includes('/') && path !== 'index.html' && path !== '404.html') {
       counts.prefixes += 1;
     }
   }
-  return { ...counts, total: counts.prefixes + counts.vendor + counts.country };
+  return {
+    ...counts,
+    total: counts.prefixes + counts.vendor + counts.country + counts.former,
+  };
 }
 
 /** Assert the build output fits the Workers Static Assets limits. */
@@ -84,7 +88,12 @@ export function checkBudget({ files, limits = {} }) {
     stats: {
       files: files.length,
       pages: pageCounts.total,
-      pagesByType: { prefixes: pageCounts.prefixes, vendor: pageCounts.vendor, country: pageCounts.country },
+      pagesByType: {
+        prefixes: pageCounts.prefixes,
+        vendor: pageCounts.vendor,
+        country: pageCounts.country,
+        former: pageCounts.former,
+      },
       nonPage,
       totalBytes,
     },

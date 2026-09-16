@@ -159,5 +159,15 @@ export const zhHant = {
   "detail.addressesInBlock": "區塊內位址數",
   "detail.country": "國家/地區",
   "detail.orgAddress": "組織地址",
-  "detail.firstRegistered": "首次註冊"
+  "detail.firstRegistered": "首次註冊",
+  "related.sameOrg": "同公司其他區塊：",
+  "related.adjacent": "相鄰前綴",
+  "related.cohort": "同年註冊",
+  "partial.showMore": "顯示更多",
+  "table.addresses": "地址",
+  "table.blocks": "區塊",
+  "enrich.portfolio": "{org}註冊的{count}個區塊之一；合計涵蓋{addresses}地址。",
+  "enrich.blockSize": "不同於傳統 24 位元 OUI，{type} 分配涵蓋{addresses}地址。",
+  "enrich.cid": "CID 分配是公司識別碼；網路硬體並不使用它們。",
+  "enrich.oldest": "首次所見於{date}——屬{org}最老的註冊記錄之一。",
 };

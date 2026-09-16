@@ -159,5 +159,15 @@ export const ml = {
   "detail.addressesInBlock": "ബ്ലോക്കിലെ വിലാസങ്ങൾ",
   "detail.country": "രാജ്യം",
   "detail.orgAddress": "സ്ഥാപനത്തിന്റെ വിലാസം",
-  "detail.firstRegistered": "ആദ്യ രജിസ്ട്രേഷൻ"
+  "detail.firstRegistered": "ആദ്യ രജിസ്ട്രേഷൻ",
+  "related.sameOrg": "ഇതേ സ്ഥാപനത്തിന്റെ മറ്റ് ബ്ലോക്കുകൾ:",
+  "related.adjacent": "അടുത്തുള്ള പ്രീഫിക്സുകൾ",
+  "related.cohort": "അതേ വർഷം രജിസ്റ്റർ ചെയ്തത്",
+  "partial.showMore": "കൂടുതൽ കാണിക്കുക",
+  "table.addresses": "വിലാസങ്ങൾ",
+  "table.blocks": "ബ്ലോക്കുകൾ",
+  "enrich.portfolio": "{org}-ന്റെ {count} രജിസ്റ്റർ ചെയ്ത ബ്ലോക്കുകളിൽ ഒന്ന്; ആകെ {addresses} കവരുന്നു.",
+  "enrich.blockSize": "ക്ലാസിക് 24-ബിറ്റ് OUI-യിൽ നിന്ന് വ്യത്യസ്തമായി, {type} അസൈൻമെന്റിന് {addresses} വിലാസങ്ങൾ ഉണ്ട്.",
+  "enrich.cid": "CID അസൈൻമെന്റുകൾ കമ്പനി ഐഡന്റിഫയറുകളാണ്; നെറ്റ്‌വർക്ക് ഹാർഡ്‌വെയറിൽ ഉപയോഗിക്കാറില്ല.",
+  "enrich.oldest": "{date} ലു ആദ്യമായി കാണപ്പെട്ടു — {org}-ന്റെ പഴയ രജിസ്റ്റർ ചെയ്തികളിൽ ഒന്ന്.",
 };

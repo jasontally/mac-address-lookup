@@ -159,5 +159,15 @@ export const gu = {
   "detail.addressesInBlock": "બ્લોકમાં સરનામાં",
   "detail.country": "દેશ",
   "detail.orgAddress": "સંસ્થાનું સરનામું",
-  "detail.firstRegistered": "પ્રથમ નોંધણી"
+  "detail.firstRegistered": "પ્રથમ નોંધણી",
+  "related.sameOrg": "આ જ ની અન્ય બ્લોક:",
+  "related.adjacent": "નજીકના પ્રીફિક્સ",
+  "related.cohort": "આ જ વર્ષે નોંધાયેલ",
+  "partial.showMore": "વધુ બતાવો",
+  "table.addresses": "સરનામાં",
+  "table.blocks": "બ્લોક",
+  "enrich.portfolio": "{org} ની નોંધાયેલ {count} બ્લોક માંના એક; સાથે {addresses} આવરી લે છે.",
+  "enrich.blockSize": "ક્લાસિક 24-બિટ OUI ના વિપરીત, {type} ફાળવણી {addresses} સરનામાં આવરી લે છે.",
+  "enrich.cid": "CID ફાળવણી કંપની ઓળખ છે; નેટવર્ક હાર્ડવેર પર વપરાય નહીં.",
+  "enrich.oldest": "પ્રથમ {date} ના જોયું — {org} ની જૂના નોંધણીઓમાંની.",
 };

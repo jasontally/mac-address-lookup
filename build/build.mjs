@@ -11,7 +11,7 @@ import { DEFAULT_SITE } from './source-files.mjs';
 import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { generatePages } from './generate-pages.mjs';
-import { computeHubs, writeHubPages } from './hubs.mjs';
+import { computeHubs, computeFormerHubs, writeHubPages } from './hubs.mjs';
 import { writeAgentFiles } from './agent-files.mjs';
 import { writeRecentPage } from './recent.mjs';
 import { REGISTRIES } from './registries.mjs';
@@ -129,6 +129,10 @@ for (const record of records) {
     ? null
     : (hubSlugByKey.get(normalizeOrgName(record.orgName)) ?? null);
 }
+// Former-owner hubs: every organization that no longer holds a prefix it was
+// once registered to (docs/thin-content-mitigation.md; requests 2026-09-16).
+const formerHubData = computeFormerHubs(lineageEntries, { vendors: hubByKey });
+const recordsByPrefix = new Map(records.map((record) => [record.prefix, record]));
 
 const hubIndex = {
   vendorHub: (record) => {
@@ -136,6 +140,10 @@ const hubIndex = {
     return hub
       ? { url: hub.url, blocks: hub.blocks, firstSeen: hub.firstSeen }
       : null;
+  },
+  formerHub: (orgName) => {
+    const hub = (formerHubData?.byKey ?? new Map()).get(normalizeOrgName(orgName));
+    return hub ? hub.url : null;
   },
 };
 
@@ -203,11 +211,18 @@ console.log(
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
 if (!flags.has('--no-pages')) {
   console.log(
-    `Generating ${hubData.orgs.length.toLocaleString('en-US')} vendor and ` +
-      `${hubData.countries.length.toLocaleString('en-US')} country hub pages...`,
+    `Generating ${hubData.orgs.length.toLocaleString('en-US')} vendor, ` +
+      `${hubData.countries.length.toLocaleString('en-US')} country, and ` +
+      `${formerHubData.formers.length.toLocaleString('en-US')} former-owner hub pages...`,
   );
   const hubWriteStartedAt = Date.now();
-  const hubFiles = await writeHubPages({ hubData, outDir: distDir, assets: staticAssets });
+  const hubFiles = await writeHubPages({
+    hubData,
+    outDir: distDir,
+    assets: staticAssets,
+    formerData: formerHubData,
+    recordsByPrefix,
+  });
   console.log(
     `  hubs in ${((Date.now() - hubWriteStartedAt) / 1000).toFixed(1)}s ` +
       `(${hubFiles.vendorUrls.length} vendor, ${hubFiles.countryUrls.length} country)`,
@@ -231,6 +246,7 @@ if (!flags.has('--no-pages')) {
       '/recent',
       ...hubFiles.vendorUrls,
       ...hubFiles.countryUrls,
+      ...hubFiles.formerUrls,
     ],
     assets: staticAssets,
     hubIndex,
@@ -276,7 +292,7 @@ if (budget.errors.length > 0) {
   console.log(
     `Budget OK: ${budget.stats.files} files, ${budget.stats.pages} pages ` +
       `(prefixes ${budget.stats.pagesByType.prefixes} · vendor ${budget.stats.pagesByType.vendor} · ` +
-      `country ${budget.stats.pagesByType.country}), ` +
+      `country ${budget.stats.pagesByType.country} · former ${budget.stats.pagesByType.former}), ` +
       `${formatBytes(budget.stats.totalBytes)} total`,
   );
 }

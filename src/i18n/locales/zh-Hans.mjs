@@ -159,5 +159,15 @@ export const zhHans = {
   "detail.addressesInBlock": "块内地址数",
   "detail.country": "国家/地区",
   "detail.orgAddress": "组织地址",
-  "detail.firstRegistered": "首次注册"
+  "detail.firstRegistered": "首次注册",
+  "related.sameOrg": "更多同公司区块：",
+  "related.adjacent": "相邻前缀",
+  "related.cohort": "同年注册",
+  "partial.showMore": "显示更多",
+  "table.addresses": "地址",
+  "table.blocks": "区块",
+  "enrich.portfolio": "{org}注册的{count}个区块之一；合计涵盖{addresses}地址。",
+  "enrich.blockSize": "与经典 24 位 OUI 不同，{type} 分配涵盖{addresses}个地址。",
+  "enrich.cid": "CID 分配是公司标识符；网络硬件并不使用它们。",
+  "enrich.oldest": "首次见于{date}——属{org}最老的注册记录之一。",
 };

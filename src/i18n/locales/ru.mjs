@@ -159,5 +159,15 @@ export const ru = {
   "detail.addressesInBlock": "Адресов в блоке",
   "detail.country": "Страна",
   "detail.orgAddress": "Адрес организации",
-  "detail.firstRegistered": "Впервые зарегистрирован"
+  "detail.firstRegistered": "Впервые зарегистрирован",
+  "related.sameOrg": "Другие блоки этого владельца:",
+  "related.adjacent": "Соседние префиксы",
+  "related.cohort": "Зарегистрирован в том же году",
+  "partial.showMore": "Показать ещё",
+  "table.addresses": "Адреса",
+  "table.blocks": "Блоки",
+  "enrich.portfolio": "Один из {count} зарегистрированных блоков {org}; вместе они охватывают {addresses}.",
+  "enrich.blockSize": "В отличие от классического 24-битного OUI, назначение {type} охватывает {addresses} адресов.",
+  "enrich.cid": "Назначения CID — это идентификаторы компаний; они не используются в сетевом оборудовании.",
+  "enrich.oldest": "Впервые замечен {date} — среди старейших регистраций {org}.",
 };

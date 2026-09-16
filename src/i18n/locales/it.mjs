@@ -159,5 +159,15 @@ export const it = {
   "detail.addressesInBlock": "Indirizzi nel blocco",
   "detail.country": "Paese",
   "detail.orgAddress": "Indirizzo dell'organizzazione",
-  "detail.firstRegistered": "Prima registrazione"
+  "detail.firstRegistered": "Prima registrazione",
+  "related.sameOrg": "Altri blocchi dello stesso proprietario:",
+  "related.adjacent": "Prefissi adiacenti",
+  "related.cohort": "Registrato nello stesso anno",
+  "partial.showMore": "Mostra altro",
+  "table.addresses": "Indirizzi",
+  "table.blocks": "Blocchi",
+  "enrich.portfolio": "Uno dei {count} blocchi registrati da {org}; insieme coprono {addresses}.",
+  "enrich.blockSize": "A differenza del classico OUI a 24 bit, un'assegnazione {type} copre {addresses} indirizzi.",
+  "enrich.cid": "Le assegnazioni CID sono identificatori aziendali; non vengono usati su hardware di rete.",
+  "enrich.oldest": "Osservato per la prima volta il {date} — tra le registrazioni più antiche di {org}.",
 };

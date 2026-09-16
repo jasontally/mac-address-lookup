@@ -11,19 +11,23 @@ test('countPages counts prefix and hub pages by class, excluding shells', () => 
     file('404.html'),
     file('vendor/apple-inc.html'),
     file('country/us.html'),
+    file('former/tekelec.html'),
     file('nested/000001.html'),
     file('data/manifest.json'),
   ]);
-  assert.deepEqual(
-    counts,
-    { prefixes: 1, vendor: 1, country: 1, total: 3 },
-  );
+  assert.deepEqual(counts, {
+    prefixes: 1,
+    vendor: 1,
+    country: 1,
+    former: 1,
+    total: 4,
+  });
 });
 
 test('checkBudget passes small outputs', () => {
   const result = checkBudget({ files: [file('index.html'), file('vendor/apple-inc.html'), file('001A2B.html'), file('data/registry.parquet')] });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.stats.pagesByType, { prefixes: 1, vendor: 1, country: 0 });
+  assert.deepEqual(result.stats.pagesByType, { prefixes: 1, vendor: 1, country: 0, former: 0 });
   assert.equal(result.stats.pages, 2);
   assert.equal(result.stats.files, 4);
 });

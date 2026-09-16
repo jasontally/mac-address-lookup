@@ -159,5 +159,15 @@ export const ha = {
   "detail.addressesInBlock": "Adireshuna a cikin toshe",
   "detail.country": "Ƙasa",
   "detail.orgAddress": "Adireshin kungiya",
-  "detail.firstRegistered": "Rajista ta farko"
+  "detail.firstRegistered": "Rajista ta farko",
+  "related.sameOrg": "Rukunoni sauran daga irin wannan mai lasisi:",
+  "related.adjacent": "Kiririyori na kusa",
+  "related.cohort": "An yi rajista a wannan shekarar",
+  "partial.showMore": "Nuna ƙari",
+  "table.addresses": "Adireshi",
+  "table.blocks": "Rukunoni",
+  "enrich.portfolio": "Ɗaya daga cikin rajistojin {org} na {count} rukunoni; tare na rufe {addresses}.",
+  "enrich.blockSize": "Bamai 24-bit OUI na asali, {type} tana rufe {addresses} lambobi.",
+  "enrich.cid": "Rukunan CID su ne masu ganewa ga kamfanoni; ba' a sa da su a na'urorin sadarwa ba.",
+  "enrich.oldest": "An lura da shi da farko a {date} — cikin gadojin rajistoci na {org} masu tsufuwa.",
 };

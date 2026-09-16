@@ -159,5 +159,15 @@ export const nl = {
   "detail.addressesInBlock": "Adressen in het blok",
   "detail.country": "Land",
   "detail.orgAddress": "Organisatieadres",
-  "detail.firstRegistered": "Eerst geregistreerd"
+  "detail.firstRegistered": "Eerst geregistreerd",
+  "related.sameOrg": "Andere blokken van dezelfde eigenaar:",
+  "related.adjacent": "Aangrenzende prefixen",
+  "related.cohort": "In hetzelfde jaar geregistreerd",
+  "partial.showMore": "Meer weergeven",
+  "table.addresses": "Adressen",
+  "table.blocks": "Blokken",
+  "enrich.portfolio": "Eén van {org}'s {count} geregistreerde blokken; samen beslaan ze {addresses}.",
+  "enrich.blockSize": "In tegenstelling tot de klassieke 24-bit OUI beslaat een {type} toewijzing {addresses} adressen.",
+  "enrich.cid": "CID-toewijzingen zijn bedrijfsidentificatoren; ze worden niet gebruikt op netwerkhardware.",
+  "enrich.oldest": "Voor het eerst waargenomen op {date} — een van {org}'s oudste registraties.",
 };

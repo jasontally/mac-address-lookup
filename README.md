@@ -38,6 +38,7 @@ Navigate directly to a result — no form submission needed. Everything after `/
 | `https://mac.jasontally.com/tekelec` | Former-owner search |
 | `https://mac.jasontally.com/vendor/apple-inc` | Vendor page: every block registered to one organization |
 | `https://mac.jasontally.com/country/us` | Country page: every organization with registered blocks |
+| `https://mac.jasontally.com/former/apple-computer` | Former-owner page: what happened to each renamed/reassigned block |
 | `https://mac.jasontally.com/?q=001A2B` | Legacy form (canonicalizes to `/001A2B`) |
 
 The page consumes the value from the URL path and displays the result without any manual input.

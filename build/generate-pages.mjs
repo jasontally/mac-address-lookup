@@ -59,6 +59,7 @@ export async function generatePages({
       vendorHub,
       countryHub: !record.isPrivate && record.country ? `/country/${record.country.toLowerCase()}` : null,
       enrich: buildEnrichment(record, { orgFirstSeen: vendorHub?.firstSeen ?? null }),
+      formerHub: hubIndex?.formerHub ? hubIndex.formerHub(record.orgName) : null,
     });
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });

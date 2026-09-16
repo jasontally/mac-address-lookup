@@ -11,6 +11,18 @@ test.describe('Vendor and country hub pages', () => {
     await expect(page.locator('#lookup-form')).toHaveCount(1);
   });
 
+  test('very large tables hide rows past the initial batch and reveal on click', async ({ page }) => {
+    await page.goto('/country/us');
+    await page.getByRole('button', { name: 'Show more' }).waitFor({ timeout: 10_000 });
+    const visible = await page.locator('.data-table tbody tr:not([hidden])').count();
+    expect(visible).toBe(500);
+    const note = await page.locator('#hub-rows-note').textContent();
+    expect(note).toContain('Showing the first 500 of 8879');
+    await page.getByRole('button', { name: 'Show more' }).click();
+    await expect(page.locator('.data-table tbody tr:not([hidden])')).toHaveCount(1500, { timeout: 10_000 });
+    await expect(page.locator('#hub-rows-note')).toContainText('Showing the first 1500 of 8879');
+  });
+
   test('/vendor/qualcomm-inc renders a mid-size hub with static chrome', async ({ page }) => {
     await page.goto('/vendor/qualcomm-inc');
     await expect(page.locator('h1')).toContainText('MAC address blocks');
@@ -21,7 +33,7 @@ test.describe('Vendor and country hub pages', () => {
   test('/country/us renders every org, sorted by address space', async ({ page }) => {
     await page.goto('/country/us');
     await expect(page.locator('h1')).toContainText('United States MAC address blocks');
-    await expect(page.locator('.data-table tbody tr')).toHaveCount(8881, { timeout: 20_000 });
+    await expect(page.locator('.data-table tbody tr')).toHaveCount(8879, { timeout: 20_000 });
     // Hub-linked orgs appear in the table (biggest portfolios first).
     await expect(
       page.locator('.data-table tbody tr').first().locator('a[href^="/vendor/"]'),
@@ -32,6 +44,16 @@ test.describe('Vendor and country hub pages', () => {
     await page.goto('/vendor/acme');
     await page.waitForLoadState('networkidle');
     expect(await page.locator('meta[name="robots"][content*="noindex"]').count()).toBeGreaterThan(0);
+  });
+
+  test('/former/apple-computer explains the full takeover', async ({ page }) => {
+    await page.goto('/former/apple-computer');
+    await expect(page.locator('h1')).toContainText('Apple Computer — former MAC address blocks');
+    await expect(page.locator('.lede')).toContainText('took over all of them');
+    const ownerLinks = page.locator('.data-table tbody tr:not([hidden]) a[href="/vendor/apple-inc"]');
+    await expect(ownerLinks.first()).toHaveText('Apple, Inc.');
+    // The domestic search path stays intact.
+    await expect(page.locator('a[href^="/form"]')).toHaveCount(0);
   });
 });
 
