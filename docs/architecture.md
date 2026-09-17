@@ -314,6 +314,42 @@ also emits the same registry rows as plain-text trie shards:
   checks (row count, first row); Gemini cannot follow arbitrary raw-file
   links.
 
+## Sitemap indexing plan (phased, 2026-09-17)
+
+**Observed** (Search Console, 2026-09-17): Google indexed only a subset of the
+58,696 prefix pages and **none** of the home page or the 4,063 hub pages;
+impressions and clicks come exclusively from prefix pages. This matches the
+new-low-authority-domain failure mode: a 62,760-URL sitemap dominated by one
+homogeneous template steers crawl prioritization toward the prefix-page flood,
+starving the pages we most want indexed (home, help, hubs).
+
+**Principle:** the sitemap is a discovery hint, not a directive. Pages stay
+live and internally linked in every phase, so trimming rows cannot deindex
+anything already indexed, and prefix pages Google already knows about are
+unaffected. What actually drives hub discovery without the sitemap is internal
+linking — every prefix page links its vendor/country/former hubs and related
+prefixes, so the indexed subset keeps the rest of the graph reachable.
+
+| Phase | `SITEMAP_SCOPE` | Sitemap URLs | Flip when (Search Console gate, user-side) |
+| --- | --- | --- | --- |
+| 1 (now) | `core` (default) | 3: `/`, `/help`, `/recent` | Home (`site:` query) + `/help` indexed — typically 1–4 weeks |
+| 2 | `hubs` | 4,066: the 3 core + 3,469 vendor + 249 country + 345 former hubs | Hub pages indexing healthily (e.g. ≥ half showing coverage after a few weeks) |
+| 3 | `all` (previous behavior) | ~62,760: everything | Always the end state; prefix pages are the proven traffic source |
+
+Expand by editing the `?? 'core'` default in `build/build.mjs` (Workers Builds
+runs plain `npm run build`, so the constant is the only carrier) or by setting
+`SITEMAP_SCOPE` in the build environment. `sitemapUrlSelection`
+(`build/generate-pages.mjs`, unit-tested in `test/sitemap-scope.test.mjs`)
+implements the scope; unknown values fail the build instead of shipping an
+empty sitemap.
+
+**What to monitor in Search Console each phase:** Pages-report coverage for
+the newly added URL set, home-page query appearances, and the prefix-page
+report continuing unchanged (impressions/clicks should not regress — dropping
+sitemap rows does not remove discovered pages). If phase 2 stalls, hold phase 3
+and strengthen internal links (e.g. a home-page module linking top vendor
+hubs, `/recent` rows linking hubs) before retrying expansion.
+
 ## Build & deployment
 
 - **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.

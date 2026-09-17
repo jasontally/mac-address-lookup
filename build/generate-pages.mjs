@@ -21,6 +21,20 @@ async function mapConcurrent(items, limit, fn) {
 }
 
 /**
+ * Sitemap scoping for the phased index plan (docs/architecture.md →
+ * "Sitemap indexing plan"). `all` keeps the current behavior; `hubs` drops
+ * the 58,694 prefix pages; `core` keeps only the homepage, /help, and /recent.
+ * Pages remain live and internally linked in every scope — the sitemap is a
+ * discovery hint and dropping rows cannot deindex anything.
+ */
+export function sitemapUrlSelection({ scope = 'all', coreUrls = [], hubUrls = [], prefixUrls = [] } = {}) {
+  if (scope === 'core') return [...coreUrls];
+  if (scope === 'hubs') return [...coreUrls, ...hubUrls];
+  if (scope === 'all') return [...coreUrls, ...hubUrls, ...prefixUrls];
+  throw new Error(`Unknown sitemap scope: ${scope}`);
+}
+
+/**
  * Select pages within the budget, render them as flat `<PREFIX>.html` files,
  * and write sitemap.xml (+ chunks) covering the home page and every page.
  */
@@ -33,6 +47,8 @@ export async function generatePages({
   vendorPriority = {},
   lastmod,
   extraUrls = [],
+  hubUrls = [],
+  sitemapScope = 'all',
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
   hubIndex = null,
   shardKeyByPrefix = new Map(),
@@ -68,11 +84,12 @@ export async function generatePages({
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });
 
-  const urls = [
-    `${site}/`,
-    ...extraUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
-    ...selected.map((record) => `${site}/${record.prefix}`),
-  ];
+  const urls = sitemapUrlSelection({
+    scope: sitemapScope,
+    coreUrls: [`${site}/`, ...extraUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`)],
+    hubUrls: hubUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
+    prefixUrls: selected.map((record) => `${site}/${record.prefix}`),
+  });
   const sitemap = await writeSitemaps({ urls, site, outDir, lastmod });
 
   return {

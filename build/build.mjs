@@ -236,6 +236,12 @@ if (!flags.has('--no-pages')) {
   // writer, so every pre-rendered page links a file that exists.
   const shardKeyByPrefix = shardKeyForRecords(records);
   const pagesStartedAt = Date.now();
+  // Phased sitemap (docs/architecture.md → "Sitemap indexing plan"): the
+  // 62,760-URL index diluted discovery against the 4,063 pages we most want
+  // indexed (home, help, hubs). Phase 1 = core; expand with SITEMAP_SCOPE
+  // (hubs → all) once Search Console shows the previous phase indexed.
+  const sitemapScope = process.env.SITEMAP_SCOPE ?? 'core';
+  console.log(`Sitemap scope: ${sitemapScope}`);
   const pages = await generatePages({
     records,
     lineageEntries,
@@ -244,13 +250,13 @@ if (!flags.has('--no-pages')) {
     pageBudget,
     vendorPriority,
     lastmod: refreshDate,
-    extraUrls: [
-      '/help',
-      '/recent',
+    extraUrls: ['/help', '/recent'],
+    hubUrls: [
       ...hubFiles.vendorUrls,
       ...hubFiles.countryUrls,
       ...hubFiles.formerUrls,
     ],
+    sitemapScope,
     assets: staticAssets,
     hubIndex,
     shardKeyByPrefix,
