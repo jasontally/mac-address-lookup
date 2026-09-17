@@ -339,7 +339,19 @@ there and is preserved in the git history of that file).
   privacy stance.
 - **MCP server** — a separate artifact, not a website feature; the engine is
   plain ES modules so a thin wrapper over the Parquet loader is plausible,
-  but any agent that can `curl` already has full access via `llms.txt`.
+  but any agent that can `curl` already has full access via `llms.txt`
+  and, since 2026-09-17, the text lookup shards: the registry ships as
+  ~2,800 small `text/plain` trie files under `/data/registry/{key}.txt`
+  (one JSON object per line, same variable-key partitioning as the browser
+  Parquet shards, ≤ 120 rows each) plus `index.txt` listing every key and
+  row count. Built for agent web tools — ChatGPT's reader rejected the
+  13.58 MB `registry.ndjson` on its content-size limit; a shard is 1–30 KB,
+  and `help.txt`/`help.md` + `llms.txt` document the recipe (fetch index,
+  pick the longest key that is a prefix of the MAC, fetch that shard,
+  longest-prefix row). Optionally the same file set could serve a future
+  `/data/lookup/{prefix}.txt` convenience alias — note the OpenAI web tool
+  opens URLs only from search results or the user's message, so agents must
+  paste the URL.
 
 **Closed with evidence:**
 

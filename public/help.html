@@ -165,6 +165,11 @@
             Both datasets are downloadable as machine-readable files — one JSON object per line, no keys:
             <a href="/data/registry.ndjson">registry.ndjson</a> for every assignment and
             <a href="/data/lineage.ndjson">lineage.ndjson</a> for every ownership change.
+            The full registry download is large (~14 MB), so there is also a sharded plain-text
+            version for one-off lookups: fetch <a href="/data/registry/index.txt">/data/registry/index.txt</a>,
+            pick the longest key that is a prefix of your MAC's hex, then fetch that shard
+            (for example <a href="/data/registry/8c1f64af.txt">/data/registry/8c1f64af.txt</a>) and pick the
+            longest-prefix row — each shard is <code>text/plain</code> JSON-lines of a few kilobytes.
             The most recent registrations are listed on the <a href="/recent">Latest OUIs</a> page,
             refreshed on every deploy.
           </p>
