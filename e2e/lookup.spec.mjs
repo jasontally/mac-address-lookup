@@ -44,6 +44,15 @@ test.describe('Static pre-rendered pages', () => {
     expect(txt.headers()['content-type']).toContain('text/plain');
     expect((await txt.text())).toContain('## Vendors, countries, and former owners');
 
+    // Agent lookup shards: small text/plain files, one JSON per line.
+    const shard = await request.get('/data/registry/8c1f64af.txt');
+    expect(shard.status()).toBe(200);
+    expect(shard.headers()['content-type']).toContain('text/plain');
+    expect((await shard.text())).toContain('DATA ELECTRONIC DEVICES, INC');
+    const shardIndex = await request.get('/data/registry/index.txt');
+    expect(shardIndex.status()).toBe(200);
+    expect((await shardIndex.text())).toContain('8c1f64af');
+
     const registry = await request.get('/data/registry.ndjson');
     expect(registry.status()).toBe(200);
     const firstLine = (await registry.text()).split('\n')[0];

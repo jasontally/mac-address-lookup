@@ -5,9 +5,10 @@
  * the agent-access research notes, now folded into docs/architecture.md.
  */
 
-import { writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { FAQ } from './faq.mjs';
+import { buildShardGroups } from './write-parquet.mjs';
 
 const SITE = 'https://mac.jasontally.com';
 
@@ -64,6 +65,11 @@ fully server-rendered for registered prefixes.
 
 - ${SITE}/data/manifest.json — index of the current data files (Parquet + NDJSON)
 ${dataLines.join('\n')}
+- ${SITE}/data/registry/index.txt — a machine-readable index of the per-prefix lookup shards below
+- \`${SITE}/data/registry/{key}.txt\` — one JSON object per line, grouped by trie key; keys are variable
+  length (2–9 hex), lowercase. To look up a MAC: pick the longest key in \`index.txt\` that is a prefix
+  of your MAC's hex (e.g. \`8C:1F:64:AF:A4:B2\` → \`/data/registry/8c1f64af.txt\`), fetch it, and pick
+  the longest-prefix row. Files are \`text/plain\`, 1–30 KB each.
 - ${SITE}/data/sources-index.json — raw IEEE source files archived per deploy
 
 The registry data is derived from the public IEEE Registration Authority
@@ -163,6 +169,7 @@ ownership-change event. The most recent registrations are listed on the
  */
 export async function writeAgentFiles({ distDir, records, lineageEvents = [] } = {}) {
   await mkdir(path.join(distDir, 'data'), { recursive: true });
+  await mkdir(path.join(distDir, 'data', 'registry'), { recursive: true });
 
   const registryNdjson = ndjson(
     records.map((record) => ({
@@ -178,6 +185,35 @@ export async function writeAgentFiles({ distDir, records, lineageEvents = [] } =
     })),
   );
   await writeFile(path.join(distDir, 'data', 'registry.ndjson'), registryNdjson);
+
+  const rowsByPrefix = new Map();
+  for (const line of registryNdjson.trimEnd().split('\n')) {
+    const key = JSON.parse(line).prefix;
+    if (!rowsByPrefix.has(key)) rowsByPrefix.set(key, line);
+  }
+  // Agent lookup shards: the same trie partition the browser engine uses
+  // (SHARD_TEXT_ROWS per file), but text/plain so web tools can ingest them.
+  // The full registry.ndjson is 13+ MB — over some tools' content-size
+  // limits; a single shard is a few KB to ~30 KB, one JSON object per line.
+  const SHARD_TEXT_ROWS = 120;
+  const shardKeyToCount = new Map();
+  for (const [key, group] of buildShardGroups(records, SHARD_TEXT_ROWS)) {
+    if (key === '') continue;
+    const text = group.map((record) => rowsByPrefix.get(record.prefix)).join('\n') + '\n';
+    const name = `${key.toLowerCase()}.txt`;
+    await writeFile(path.join(distDir, 'data', 'registry', name), text);
+    shardKeyToCount.set(key, group.length);
+  }
+  const registryIndex = `# Machine-readable lookup shards: one JSON object per line, grouped by
+# trie key. For the address 8C:1F:64:AF:A4:B2 the keys are the 8C1F64AFA prefix
+# (the occupying block) and its 8C1F64 parent; pick the longest key that is a
+# prefix of the MAC's hex.
+key\trows
+${[...shardKeyToCount.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .map(([key, count]) => `${key.toLowerCase()}\t${count}`)
+    .join('\n')}\n`;
+  await writeFile(path.join(distDir, 'data', 'registry', 'index.txt'), registryIndex);
 
   const lineageNdjson = ndjson(
     lineageEvents.map((event) => ({

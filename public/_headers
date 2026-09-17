@@ -47,6 +47,9 @@
 /data/lineage.ndjson
   Cache-Control: public, max-age=86400
 
+/data/registry/*
+  Cache-Control: public, max-age=86400
+
 # Security headers (catch-all last so specific cache rules apply first).
 /*
   X-Content-Type-Options: nosniff

@@ -18,6 +18,7 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.xml': 'application/xml',
   '.txt': 'text/plain; charset=utf-8',
+  '.md': 'text/plain; charset=utf-8', // mirrors the _headers override on production
   '.ico': 'image/x-icon',
 };
 
