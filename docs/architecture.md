@@ -304,9 +304,15 @@ also emits the same registry rows as plain-text trie shards:
 - Documented in `llms.txt`, `help.md`/`help.txt` (section *Using the data
   programmatically*), and the README. The worked example is
   `8C:1F:64:AF:A4:B2` → `/data/registry/8c1f64af.txt` → row `8C1F64AFA`.
-- Verified live 2026-09-16: Claude ingests a shard and completes
-  longest-prefix lookup; ChatGPT's web tool only opens URLs that appear in the
-  user's own message, so the URL itself must be provided to it.
+- **Every pre-rendered prefix page** displays its own shard link under
+  `Agents: fetch this URL` (`data-agent-shard` note inside `#result`), built
+  from the same `shardKeyForRecords` partition as the shard writer, so page
+  links and shipped files always agree within a deploy.
+- Verified live 2026-09-17 with the visible-link trial on `/8C1F64AFA`:
+  ChatGPT's cached-page web tool and Claude both followed the page link,
+  fetched the shard, and completed longest-prefix lookup with proof-of-read
+  checks (row count, first row); Gemini cannot follow arbitrary raw-file
+  links.
 
 ## Build & deployment
 

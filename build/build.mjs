@@ -12,7 +12,7 @@ import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { generatePages } from './generate-pages.mjs';
 import { computeHubs, computeFormerHubs, writeHubPages } from './hubs.mjs';
-import { writeAgentFiles } from './agent-files.mjs';
+import { writeAgentFiles, shardKeyForRecords } from './agent-files.mjs';
 import { writeRecentPage } from './recent.mjs';
 import { REGISTRIES } from './registries.mjs';
 
@@ -232,6 +232,9 @@ if (!flags.has('--no-pages')) {
   const vendorPriority = JSON.parse(
     await readFile(path.join(root, 'build', 'vendor-priority.json'), 'utf8'),
   );
+  // Map prefix → agent text shard key with the SAME partition as the shard
+  // writer, so every pre-rendered page links a file that exists.
+  const shardKeyByPrefix = shardKeyForRecords(records);
   const pagesStartedAt = Date.now();
   const pages = await generatePages({
     records,
@@ -250,6 +253,7 @@ if (!flags.has('--no-pages')) {
     ],
     assets: staticAssets,
     hubIndex,
+    shardKeyByPrefix,
   });
   console.log(
     `  ${pages.selected.toLocaleString('en-US')} pages in ` +

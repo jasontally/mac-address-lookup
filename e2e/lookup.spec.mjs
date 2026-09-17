@@ -10,23 +10,26 @@ test.describe('Static pre-rendered pages', () => {
     expect(parquetFetched).toBe(false);
   });
 
-  test('pilot page exposes its text shard without JavaScript', async ({ browser, request, baseURL }) => {
-    const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
-    try {
-      const page = await context.newPage();
-      await page.goto('/8C1F64AFA');
-      const link = page.locator('[data-agent-shard] a');
-      await expect(link).toBeVisible();
-      await expect(link).toHaveAttribute('href', 'https://mac.jasontally.com/data/registry/8c1f64af.txt');
-      await expect(link).toHaveText('https://mac.jasontally.com/data/registry/8c1f64af.txt');
-      // Fetch the discovered path against this test's baseURL, including locally.
-      const shard = await request.get(new URL(await link.getAttribute('href')).pathname);
-      expect(shard.status()).toBe(200);
-      expect(shard.headers()['content-type']).toContain('text/plain');
-      const rows = (await shard.text()).trim().split('\n').map(JSON.parse);
-      expect(rows.some((row) => row.prefix === '8C1F64AFA')).toBe(true);
-    } finally {
-      await context.close();
+  test('prefix pages expose their text shard without JavaScript', async ({ browser, request, baseURL }) => {
+    for (const path of ['8C1F64AFA', '001A2B']) {
+      const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
+      try {
+        const page = await context.newPage();
+        await page.goto(`/${path}`);
+        const link = page.locator('[data-agent-shard] a');
+        await expect(link).toBeVisible();
+        const href = await link.getAttribute('href');
+        expect(href).toMatch(new RegExp(`^\\S+/data/registry/[0-9a-f]+\\.txt$`));
+        await expect(link).toHaveText(href);
+        // Fetch the discovered path against this test's baseURL, including locally.
+        const shard = await request.get(new URL(href).pathname);
+        expect(shard.status()).toBe(200);
+        expect(shard.headers()['content-type']).toContain('text/plain');
+        const rows = (await shard.text()).trim().split('\n').map(JSON.parse);
+        expect(rows.some((row) => row.prefix === path)).toBe(true);
+      } finally {
+        await context.close();
+      }
     }
   });
 
