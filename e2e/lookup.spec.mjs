@@ -10,6 +10,26 @@ test.describe('Static pre-rendered pages', () => {
     expect(parquetFetched).toBe(false);
   });
 
+  test('pilot page exposes its text shard without JavaScript', async ({ browser, request, baseURL }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
+    try {
+      const page = await context.newPage();
+      await page.goto('/8C1F64AFA');
+      const link = page.locator('[data-agent-shard] a');
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute('href', 'https://mac.jasontally.com/data/registry/8c1f64af.txt');
+      await expect(link).toHaveText('https://mac.jasontally.com/data/registry/8c1f64af.txt');
+      // Fetch the discovered path against this test's baseURL, including locally.
+      const shard = await request.get(new URL(await link.getAttribute('href')).pathname);
+      expect(shard.status()).toBe(200);
+      expect(shard.headers()['content-type']).toContain('text/plain');
+      const rows = (await shard.text()).trim().split('\n').map(JSON.parse);
+      expect(rows.some((row) => row.prefix === '8C1F64AFA')).toBe(true);
+    } finally {
+      await context.close();
+    }
+  });
+
   test('/000017 renders lineage timeline', async ({ page }) => {
     await page.goto('/000017');
     await expect(page.locator('.timeline li')).toHaveCount(2);

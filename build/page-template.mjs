@@ -349,6 +349,14 @@ export function renderPrefixPage({
 }) {
   const colon = colonize(record.prefix);
   const canonical = `${site}/${record.prefix}`;
+  // One-page discovery trial; #result is cleared on subsequent client lookups.
+  const agentNote = record.prefix === '8C1F64AFA'
+    ? `      <p class="section-note" data-agent-shard>
+        <span data-i18n="agent.fetch">${escapeHtml(label('agent.fetch'))}</span>
+        <a href="${escapeHtml(site)}/data/registry/8c1f64af.txt">${escapeHtml(site)}/data/registry/8c1f64af.txt</a>.
+        <span data-i18n="agent.format">${escapeHtml(label('agent.format'))}</span>
+      </p>\n`
+    : '';
   const orgName = record.orgName || 'Unknown organization';
   const title = `${colon} — ${orgName} | MAC Address Lookup`;
   const description = truncate(
@@ -483,7 +491,7 @@ export function renderPrefixPage({
           data-blocktype="${escapeHtml(record.blockType)}"
         >
 ${renderResult(record, lineage, { vendorHub, countryHub, formerHub })}
-${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
+${agentNote}${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
         </section>
       </div>
     </main>

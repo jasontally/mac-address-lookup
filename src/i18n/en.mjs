@@ -35,6 +35,9 @@ export const en = {
   'history.noVendor': 'No registered vendor',
 
   // Result
+  'agent.fetch': 'Agents: fetch this URL',
+  'agent.format': 'Plain text, one JSON object per line. Match the longest registry prefix to your MAC address. firstSeen is an observation date, not a legal registration date.',
+
   'result.eyebrow': 'Vendor',
   'result.loading': 'Loading vendor data…',
   'result.unknownOrg': 'Unknown organization',
