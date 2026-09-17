@@ -45,25 +45,6 @@ test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JS
   assert.equal(jsonLd.about.name, 'Intel Corporate');
 });
 
-test('every prefix page exposes a visible per-page shard link', () => {
-  const html = renderPrefixPage({
-    record,
-    site: 'https://example.test',
-    agentShardUrl: 'https://example.test/data/registry/001a2b.txt',
-  });
-  const note = html.match(/<p class="section-note" data-agent-shard>([\s\S]*?)<\/p>/)?.[1];
-  assert.ok(note, 'agent note is present in static HTML');
-  assert.match(note, /Agents: fetch this URL/);
-  assert.match(
-    note,
-    /href="https:\/\/example\.test\/data\/registry\/001a2b\.txt">https:\/\/example\.test\/data\/registry\/001a2b\.txt<\/a>/,
-  );
-  assert.match(note, /one JSON object per line/);
-  assert.ok(html.indexOf('data-agent-shard') > html.indexOf('id="result"'));
-  assert.ok(html.indexOf('data-agent-shard') < html.indexOf('<footer'));
-  assert.doesNotMatch(renderPrefixPage({ record, site: 'https://example.test' }), /data-agent-shard/);
-});
-
 test('renderPrefixPage adds breadcrumb JSON-LD', () => {
   const masRecord = { ...record, prefix: '001A2B0C1', prefixLen: 36, blockType: 'MA-S' };
   const html = renderPrefixPage({ record: masRecord, site: 'https://example.test' });

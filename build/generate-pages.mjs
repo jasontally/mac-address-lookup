@@ -51,7 +51,6 @@ export async function generatePages({
   sitemapScope = 'all',
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
   hubIndex = null,
-  shardKeyByPrefix = new Map(),
 }) {
   const { selected, dropped, selectedByType, droppedByType } = selectPages(records, {
     pageBudget,
@@ -77,9 +76,6 @@ export async function generatePages({
       countryHub: !record.isPrivate && record.country ? `/country/${record.country.toLowerCase()}` : null,
       enrich: buildEnrichment(record, { orgFirstSeen: vendorHub?.firstSeen ?? null }),
       formerHub: hubIndex?.formerHub ? hubIndex.formerHub(record.orgName) : null,
-      agentShardUrl: shardKeyByPrefix.has(record.prefix)
-        ? `${site}/data/registry/${shardKeyByPrefix.get(record.prefix)}.txt`
-        : null,
     });
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });

@@ -15,20 +15,6 @@ const SITE = 'https://mac.jasontally.com';
 /** Max rows per agent-facing text shard (~1–30 KB per file). */
 export const SHARD_TEXT_ROWS = 120;
 
-/**
- * Map each record's prefix to the lowercase trie key of the agent-facing
- * text shard that contains it. The shard writer must use the same records
- * and SHARD_TEXT_ROWS so per-page links and shipped files agree.
- */
-export function shardKeyForRecords(records) {
-  const byPrefix = new Map();
-  for (const [key, group] of buildShardGroups(records, SHARD_TEXT_ROWS)) {
-    if (key === '') continue;
-    for (const record of group) byPrefix.set(record.prefix, key.toLowerCase());
-  }
-  return byPrefix;
-}
-
 /** One JSON object per line, no trailing newline ambiguity. */
 function ndjson(rows) {
   return rows.map((row) => JSON.stringify(row)).join('\n') + '\n';
@@ -62,12 +48,7 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 
 - \`/{hex}\` — lookup a MAC address or prefix. 6+ hex characters resolve via
   longest-prefix match across MA-L, MA-M, MA-S, IAB, and CID; a full 12-hex
-  address resolves to its vendor. Pages are pre-rendered HTML. Each prefix
-  page also displays its machine-readable data link: \`Agents: fetch this URL\`
-  followed by the \`https://mac.jasontally.com/data/registry/{key}.txt\` shard
-  that contains that page's record (~1–30 KB, \`text/plain\`, one JSON object
-  per line) — fetch it and apply longest-prefix matching for a verified,
-  machine-readable answer.
+  address resolves to its vendor. Pages are pre-rendered HTML.
 - \`/vendor/{slug}\` — pre-rendered provider page: every MAC block registered
   to one organization (vendors with two or more blocks), as a complete table.
 - \`/country/{code}\` — pre-rendered country page: every organization with
@@ -198,9 +179,7 @@ To resolve a MAC address or prefix:
 1. Take the address's hex without separators, e.g. \`8C1F64AFA4B2\`.
 2. Find the longest shard key in \`index.txt\` that is a prefix of that hex —
    here \`8c1f64af\` — and fetch \`${site}/data/registry/8c1f64af.txt\`
-   (a couple of KB). Shortcut: every pre-rendered prefix page (such as
-   [/${site}/8C1F64AFA](${site}/8C1F64AFA)) displays its own shard link under
-   the heading \`Agents: fetch this URL\`, so no index round-trip is needed.
+   (a couple of KB).
 3. Within the shard, apply longest-prefix matching: the row whose \`prefix\`
    is the longest prefix of the address wins. For \`8C:1F:64:AF:A4:B2\` that
    is \`8C1F64AFA\` — an MA-S block of 4,096 addresses registered to

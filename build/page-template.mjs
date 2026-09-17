@@ -346,20 +346,8 @@ export function renderPrefixPage({
   countryHub = null,
   enrich = null,
   formerHub = null,
-  agentShardUrl = null,
 }) {
   const canonical = `${site}/${record.prefix}`;
-  // Machine-readable companion for AI agents reading the static page: the
-  // text shard that contains this page's record (build-time trie keys, so the
-  // link ships in the same deploy as the file it names). Inside #result so a
-  // subsequent client-side lookup removes the stale link.
-  const agentNote = agentShardUrl
-    ? `      <p class="section-note" data-agent-shard>
-        <span data-i18n="agent.fetch">${escapeHtml(label('agent.fetch'))}</span>
-        <a href="${escapeHtml(agentShardUrl)}">${escapeHtml(agentShardUrl)}</a>.
-        <span data-i18n="agent.format">${escapeHtml(label('agent.format'))}</span>
-      </p>\n`
-    : '';
   const colon = colonize(record.prefix);
   const orgName = record.orgName || 'Unknown organization';
   const title = `${colon} — ${orgName} | MAC Address Lookup`;
@@ -495,7 +483,7 @@ export function renderPrefixPage({
           data-blocktype="${escapeHtml(record.blockType)}"
         >
 ${renderResult(record, lineage, { vendorHub, countryHub, formerHub })}
-${agentNote}${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
+${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
         </section>
       </div>
     </main>

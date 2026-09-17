@@ -304,10 +304,13 @@ also emits the same registry rows as plain-text trie shards:
 - Documented in `llms.txt`, `help.md`/`help.txt` (section *Using the data
   programmatically*), and the README. The worked example is
   `8C:1F:64:AF:A4:B2` → `/data/registry/8c1f64af.txt` → row `8C1F64AFA`.
-- **Every pre-rendered prefix page** displays its own shard link under
-  `Agents: fetch this URL` (`data-agent-shard` note inside `#result`), built
-  from the same `shardKeyForRecords` partition as the shard writer, so page
-  links and shipped files always agree within a deploy.
+- **Data links are documented, not displayed:** per-page "fetch this URL"
+  notes were tried live (2026-09-17, validated with ChatGPT and Claude) and
+  then removed at the owner's request — the visible note cluttered every
+  page. Agent access to the shards runs entirely through `llms.txt` and the
+  documentation above; the shard URL pattern is in `llms.txt`, so an agent
+  reading that file can reconstruct any MAC's shard without fetching the
+  index first.
 - Verified live 2026-09-17 with the visible-link trial on `/8C1F64AFA`:
   ChatGPT's cached-page web tool and Claude both followed the page link,
   fetched the shard, and completed longest-prefix lookup with proof-of-read
