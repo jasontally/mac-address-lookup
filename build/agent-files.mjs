@@ -63,24 +63,13 @@ fully server-rendered for registered prefixes.
 
 ## Data files
 
-Agent lookup recipe (recommended for tools that read one URL at a time):
-
-1. Fetch ${SITE}/data/registry/index.txt — a small \`text/plain\` index listing every
-   shard key with its row count.
-2. Pick the longest key in the index that is a prefix of your MAC's hex
-   (lowercase, no separators). For example, for \`8C:1F:64:AF:A4:B2\` pick \`8c1f64af\`.
-3. Fetch \`${SITE}/data/registry/{key}.txt\` — one JSON object per line, 1–30 KB each.
-   Inside the shard, the answer is the row with the longest prefix matching the MAC
-   (\`8c1f64af\` resolves to \`8C:1F:64:AF:A4:B2\` → DATA ELECTRONIC DEVICES, INC, US,
-   36-bit MA-S block, first observed 2023-07-18; the 24-bit \`8C1F64\` row in the
-   same file's lineage context is the IEEE parent, not the answer).
-
-Note for the OpenAI ChatGPT web tool: its browser opens URLs only when they appear
-in search results or are pasted exactly in the user's message — paste the full shard
-URL above.
-
 - ${SITE}/data/manifest.json — index of the current data files (Parquet + NDJSON)
 ${dataLines.join('\n')}
+- ${SITE}/data/registry/index.txt — a machine-readable index of the per-prefix lookup shards below
+- \`${SITE}/data/registry/{key}.txt\` — one JSON object per line, grouped by trie key; keys are variable
+  length (2–9 hex), lowercase. To look up a MAC: pick the longest key in \`index.txt\` that is a prefix
+  of your MAC's hex (e.g. \`8C:1F:64:AF:A4:B2\` → \`/data/registry/8c1f64af.txt\`), fetch it, and pick
+  the longest-prefix row. Files are \`text/plain\`, 1–30 KB each.
 - ${SITE}/data/sources-index.json — raw IEEE source files archived per deploy
 
 The registry data is derived from the public IEEE Registration Authority
@@ -165,16 +154,37 @@ are observation dates, not legal transfer dates, and the registries do not
 reassign most prefixes — an acquisition usually leaves the old vendor name on
 existing hardware forever.
 
-Both datasets are downloadable as machine-readable files — one JSON object per
-line, no keys required: [registry.ndjson](${site}/data/registry.ndjson) for
-every assignment and [lineage.ndjson](${site}/data/lineage.ndjson) for every
-ownership-change event. The full registry download is large (~14 MB), so there
-is also a sharded plain-text version for one-off lookups: fetch
-[index.txt](${site}/data/registry/index.txt), pick the longest key that is a
-prefix of your MAC's hex, then fetch that shard (for example
-[/data/registry/8c1f64af.txt](${site}/data/registry/8c1f64af.txt)) and pick the
-longest-prefix row — each shard is \`text/plain\` JSON-lines of a few kilobytes.
-The most recent registrations are listed on the
+## Using the data programmatically
+
+Two datasets are downloadable as machine-readable files — one JSON object per
+line, no keys or auth required:
+
+- [registry.ndjson](${site}/data/registry.ndjson) — every IEEE assignment
+  (prefix, block type, organization, address, country, first-observed date).
+  ~13.5 MB.
+- [lineage.ndjson](${site}/data/lineage.ndjson) — every ownership-change event
+  with its first-observed date.
+
+For a single lookup you do not need the full registry. The registry is also
+split into small \`text/plain\` shards at
+\`${site}/data/registry/{key}.txt\`, one JSON object per line, grouped by a
+hex trie key (2–9 lowercase hex characters). An index of every shard and its
+row count is at [data/registry/index.txt](${site}/data/registry/index.txt).
+
+To resolve a MAC address or prefix:
+
+1. Take the address's hex without separators, e.g. \`8C1F64AFA4B2\`.
+2. Find the longest shard key in \`index.txt\` that is a prefix of that hex —
+   here \`8c1f64af\` — and fetch \`${site}/data/registry/8c1f64af.txt\`
+   (a couple of KB).
+3. Within the shard, apply longest-prefix matching: the row whose \`prefix\`
+   is the longest prefix of the address wins. For \`8C:1F:64:AF:A4:B2\` that
+   is \`8C1F64AFA\` — an MA-S block of 4,096 addresses registered to
+   DATA ELECTRONIC DEVICES, INC — not its parent MA-L \`8C1F64\`.
+
+Shards are small (roughly 1–30 KB), stable in URL for a given key, and served
+as \`text/plain\`, so they can be fetched and read by tools that cannot ingest
+the 13.5 MB full registry. The most recent registrations are listed on the
 [Latest OUIs](${site}/recent) page, refreshed on every deploy.
 `;
 }

@@ -283,6 +283,31 @@ production edge.
 | Shard crossover | 24 parallel shards: fetch 169 ms + decode 63 ms ≈ 130 ms best vs full registry 267 ms; on slow networks the gap widens (336 KB vs 3 MB) | `MAX_SHARDS = 24` confirmed |
 | Result cap visibility | totals always shown with a "showing the first N" note | caps stay transparent |
 
+### Agent-facing text shards
+
+For AI agents and scripts that cannot reasonably ingest the 13.5 MB
+`registry.ndjson` (verified live: a ChatGPT web tool refuses it at its content-size
+limit, and binary Parquet is refused as `application/octet-stream`), the build
+also emits the same registry rows as plain-text trie shards:
+
+- `dist/data/registry/{key}.txt` — one JSON object per line (same schema as
+  `registry.ndjson`), grouped by the same trie partition as the browser Parquet
+  shards but capped at 120 rows per file via `build/write-parquet.mjs`'s
+  `buildShardGroups`, so files stay 1–30 KB and stable-name (no content hash,
+  unlike the Parquet shards).
+- `dist/data/registry/index.txt` — `key<TAB>rows` for every shard, so a tool
+  can pick the longest key that is a prefix of its MAC's hex in two small
+  fetches (index, then shard).
+- Served as `text/plain` (`.txt` extension is enough on Workers assets);
+  `public/_headers` adds the 1-day cache rule. +2,864 files against the
+  100,000-file Worker limit.
+- Documented in `llms.txt`, `help.md`/`help.txt` (section *Using the data
+  programmatically*), and the README. The worked example is
+  `8C:1F:64:AF:A4:B2` → `/data/registry/8c1f64af.txt` → row `8C1F64AFA`.
+- Verified live 2026-09-16: Claude ingests a shard and completes
+  longest-prefix lookup; ChatGPT's web tool only opens URLs that appear in the
+  user's own message, so the URL itself must be provided to it.
+
 ## Build & deployment
 
 - **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
@@ -339,19 +364,7 @@ there and is preserved in the git history of that file).
   privacy stance.
 - **MCP server** — a separate artifact, not a website feature; the engine is
   plain ES modules so a thin wrapper over the Parquet loader is plausible,
-  but any agent that can `curl` already has full access via `llms.txt`
-  and, since 2026-09-17, the text lookup shards: the registry ships as
-  ~2,800 small `text/plain` trie files under `/data/registry/{key}.txt`
-  (one JSON object per line, same variable-key partitioning as the browser
-  Parquet shards, ≤ 120 rows each) plus `index.txt` listing every key and
-  row count. Built for agent web tools — ChatGPT's reader rejected the
-  13.58 MB `registry.ndjson` on its content-size limit; a shard is 1–30 KB,
-  and `help.txt`/`help.md` + `llms.txt` document the recipe (fetch index,
-  pick the longest key that is a prefix of the MAC, fetch that shard,
-  longest-prefix row). Optionally the same file set could serve a future
-  `/data/lookup/{prefix}.txt` convenience alias — note the OpenAI web tool
-  opens URLs only from search results or the user's message, so agents must
-  paste the URL.
+  but any agent that can `curl` already has full access via `llms.txt`.
 
 **Closed with evidence:**
 
