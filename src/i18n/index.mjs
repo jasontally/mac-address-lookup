@@ -46,7 +46,10 @@ export async function initI18n() {
     // storage unavailable
   }
   // Pre-rendered /lang/{locale}/ pages declare their locale via
-  // window.__malLocale; a stored manual choice still outranks it.
+  // window.__malLocale (applied over the browser's language). A stored
+  // manual choice still outranks the page URL — verified in
+  // e2e: a returning visitor who picked a language sees their pick on
+  // every /lang/ page, including pages in other languages.
   const forced = typeof window !== 'undefined' ? window.__malLocale : null;
   const pick = resolveLocale(navigator.language) ?? 'en';
   active =

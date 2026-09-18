@@ -32,6 +32,29 @@ test.describe('Localized home pages (/lang/{locale}/)', () => {
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   });
 
+  test('resolved locale: page default beats browser language, stored choice wins', async ({ browser, baseURL }) => {
+    // Fresh visitor with an English browser: the page's declared locale applies.
+    const fresh = await browser.newContext({ locale: 'en-US', baseURL });
+    try {
+      const page = await fresh.newPage();
+      await page.goto('/lang/es/');
+      await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+      await expect(page.locator('#lookup-form button[type=submit]')).toHaveText(/Buscar|Consultar/);
+    } finally {
+      await fresh.close();
+    }
+    // A returning visitor's stored manual choice outranks the page URL.
+    const returning = await browser.newContext({ locale: 'en-US', baseURL });
+    try {
+      const page = await returning.newPage();
+      await page.addInitScript(() => localStorage.setItem('mal.locale', 'en'));
+      await page.goto('/lang/es/');
+      await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    } finally {
+      await returning.close();
+    }
+  });
+
   test('canonical English home declares the same cluster', async ({ page }) => {
     await page.goto('/');
     expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe(
