@@ -34,7 +34,7 @@ test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JS
   assert.match(html, /00:1A:2B:00:00:00 – 00:1A:2B:FF:FF:FF/);
   assert.match(html, /16,777,216/);
   assert.match(html, /First registered/);
-  assert.match(html, /Sep 8, 2003/);
+  assert.match(html, /8 Sep 2003/);
   assert.match(html, /data-copy="00:1A:2B"/);
 
   const jsonMatch = /<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/.exec(html);
@@ -92,7 +92,7 @@ test('renderPrefixPage includes lineage only for changed prefixes', () => {
   const tekelec = changed.indexOf('TEKELEC');
   const oracle = changed.indexOf('Oracle');
   assert.ok(tekelec !== -1 && oracle !== -1 && tekelec < oracle);
-  assert.match(changed, /Sep 8, 2000/);
+  assert.match(changed, /8 Sep 2000/);
 });
 
 test('sitemap renderers escape URLs and chunk at the limit', () => {

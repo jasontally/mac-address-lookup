@@ -116,6 +116,7 @@ test('renderOrgHubPage renders the complete table without caps', () => {
   assert.match(html, /00001199/, 'late rows carry real prefixes');
   assert.match(html, /1200 blocks registered to/, 'lede states the full total');
   assert.match(html, /Showing the first 500 of 1200/, 'display-cap note states the total');
+  assert.match(html, /data-i18n="hub.rowsCount" data-i18n-params='\{"shown":500,"total":1200\}'/, 'the count note is a translated span');
   // Complete data is still in the source: the last row exists.
   assert.match(html, /<a href="\/00001199">/);
 });
@@ -123,7 +124,7 @@ test('renderOrgHubPage renders the complete table without caps', () => {
 test('renderOrgHubPage links country hubs and the free-text search', () => {
   const html = renderOrgHubPage({ hub: orgHub, assets: ASSETS, site: 'https://example.test' });
   assert.match(html, /href="\/country\/us"/);
-  assert.match(html, /href="\/Apple%20Inc\.">Free-text search<\/a>/);
+  assert.match(html, /href="\/Apple%20Inc\."[^>]*>Free-text search<\/a>/);
 });
 
 test('renderCountryHubPage lists orgs sorted by address space, linking hubs', () => {

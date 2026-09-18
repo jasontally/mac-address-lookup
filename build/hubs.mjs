@@ -38,6 +38,19 @@ const BOOT = `(function () {
 const HUB_ROWS_SHOWN = 500;
 const HUB_ROWS_STEP = 1000;
 
+/**
+ * data-i18n-params attribute: client `applyDom` re-interpolates through
+ * the active locale table. Values are engine-derived (counts, org names),
+ * so JSON needs only entity escaping for the attribute literally.
+ */
+function paramsAttr(params) {
+  const json = JSON.stringify(params)
+    .replace(/&/g, '&amp;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;');
+  return `data-i18n-params='${json}'`;
+}
+
 /** Rows beyond the initial batch get `hidden`; caller tracks no state. */
 export function hubRowHidden(index) {
   return index >= HUB_ROWS_SHOWN;
@@ -61,17 +74,14 @@ const HUB_ROW_VIRTUALIZER = `<script>
           var until = Math.min(total, SHOW + STEP);
           for (var i = 0; i < until; i++) rows[i].removeAttribute('hidden');
           SHOW = until;
-          var note = host.querySelector('.hub-rows-count');
-          if (note) {
-            note.textContent = SHOW >= total
-              ? 'Showing all ' + total
-              : 'Showing the first ' + SHOW + ' of ' + total;
-          }
+          // The static bundle (data-i18n-params aware) formats the count via
+          // the active locale; the inline script only reports the state.
+          host.dispatchEvent(new CustomEvent('hub-rows', { detail: { shown: SHOW, total: total } }));
           if (SHOW >= total) button.remove();
         });
         host.append(' ', button);
       })();
-    </script>`;;
+      </script>`;;
 
 const LOOKUP_FORM = `          <form class="lookup-form" id="lookup-form" novalidate>            <label class="visually-hidden" for="lookup-input" data-i18n="lookup.label">MAC address or OUI prefix</label>
             <input
@@ -385,8 +395,12 @@ ${LOOKUP_FORM}
         <article class="hub">
 ${body}
         </article>
-        <p class="section-note" id="hub-rows-note">${totalRows > HUB_ROWS_SHOWN ? `<span class="hub-rows-count">Showing the first ${HUB_ROWS_SHOWN} of ${totalRows}</span> — the rest is in this page's source HTML.` : ''}</p>
-        <p class="section-note">Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.</p>
+        <p class="section-note" id="hub-rows-note">${
+          totalRows > HUB_ROWS_SHOWN
+            ? `<span class="hub-rows-count" data-i18n="hub.rowsCount" ${paramsAttr({ shown: HUB_ROWS_SHOWN, total: totalRows })}>Showing the first ${HUB_ROWS_SHOWN} of ${totalRows}</span> — <span data-i18n="hub.rowsTail">the rest is in this page's source HTML.</span>`
+            : ''
+        }</p>
+        <p class="section-note" data-i18n="hub.completeNote">Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.</p>
 ${HUB_ROW_VIRTUALIZER}
       </div>
     </main>
@@ -433,21 +447,21 @@ export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, 
   let takeoverHtml;
   if (sole) {
     takeoverHtml =
-      `All ${hub.blocks} blocks are now registered to ${escapeHtml(soleDisplay)}. ` +
+      `<span data-i18n="hub.former.ownedAll" ${paramsAttr({ blocks: hub.blocks, owner: soleDisplay })}>All ${hub.blocks} blocks are now registered to ${escapeHtml(soleDisplay)}.</span> ` +
       (sole[1].slug
-        ? `<a href="/vendor/${escapeHtml(sole[1].slug)}">${escapeHtml(soleDisplay)}</a> took over all of them.`
+        ? `<a href="/vendor/${escapeHtml(sole[1].slug)}">${escapeHtml(soleDisplay)}</a> <span data-i18n="hub.former.tookAll">took over all of them.</span>`
         : '');
   } else {
     takeoverHtml =
-      `They are now registered across ${owners.length} organizations: ` +
+      `<span data-i18n="hub.former.mixedCount" ${paramsAttr({ count: owners.length })}>They are now registered across ${owners.length} organizations: </span>` +
       owners
         .map(([key, owner]) => escapeHtml(displayNameOf(owner.nameCounts)) + ' × ' + ownerWeight(owner))
         .join(', ') +
       '.';
   }
   const ledeHtml =
-    `          <p class="lede">The IEEE registry once carried ${hub.blocks} blocks registered to ` +
-    `${escapeHtml(hub.displayName)}. ${takeoverHtml}</p>`;
+    `          <p class="lede"><span data-i18n="hub.former.lede" ${paramsAttr({ blocks: hub.blocks, org: hub.displayName })}>The IEEE registry once carried ${hub.blocks} blocks registered to ` +
+    `${escapeHtml(hub.displayName)}.</span> ${takeoverHtml}</p>`;
 
   const rows = [...hub.prefixes.values()]
     .sort((a, b) => (a.prefix < b.prefix ? -1 : a.prefix > b.prefix ? 1 : 0))
@@ -524,15 +538,19 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [] }) {
     `${hub.blocks} MAC address blocks registered to ${hub.displayName}, covering ` +
     `${formatAddresses(hub.addresses, 'en')} addresses. Complete block list with countries and registration dates.`;
   const heading = `${escapeHtml(hub.displayName)} MAC address blocks`;
+  const firstParam = formatDate(hub.firstSeen, 'en') || 'before tracked records';
+  const ledeKey = hub.lastSeen && hub.lastSeen !== hub.firstSeen ? 'hub.vendor.ledeLatest' : 'hub.vendor.lede';
+  const ledeParams = { blocks: hub.blocks, org: hub.displayName, addresses: formatAddresses(hub.addresses, 'en'), first: firstParam };
+  if (ledeKey === 'hub.vendor.ledeLatest') ledeParams.date = formatDate(hub.lastSeen, 'en');
   const ledeHtml =
-    `          <p class="lede">The IEEE registry carries ${hub.blocks} blocks registered to ` +
+    `          <p class="lede" data-i18n="${ledeKey}" ${paramsAttr(ledeParams)}>The IEEE registry carries ${hub.blocks} blocks registered to ` +
     `${escapeHtml(hub.displayName)} — together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} addresses, ` +
-    `first observed ${escapeHtml(formatDate(hub.firstSeen, 'en') || 'before tracked records')}${escapeHtml(suffix)}.</p>` +
+    `first observed ${escapeHtml(firstParam)}${escapeHtml(suffix)}.</p>` +
     (hub.countryCodes.length > 0
-      ? `\n          <p class="hub-countries">Registered in ${countryLinks(hub.countryCodes)}.</p>`
+      ? `\n          <p class="hub-countries"><span data-i18n="hub.startedIn">Registered in</span> ${countryLinks(hub.countryCodes)}.</p>`
       : '') +
     (absorbed.length > 0
-      ? `\n          <p class="hub-countries">Its portfolio also includes blocks acquired from ${absorbedListLink(absorbed)}.</p>`
+      ? `\n          <p class="hub-countries"><span data-i18n="hub.absorbedFrom">Its portfolio also includes blocks acquired from</span> ${absorbedListLink(absorbed)}.</p>`
       : '');
 
   const rows = hub.records
@@ -565,7 +583,7 @@ ${rows}
             </tbody>
           </table>
         </div>
-      <p class="section-note">Every block registered to ${escapeHtml(hub.displayName)} in the IEEE registries, complete. <a href="${escapeHtml(searchHref)}">Free-text search</a> also matches former owners.</p>`;
+      <p class="section-note"><span data-i18n="hub.vendor.caption" ${paramsAttr({ org: hub.displayName })}>Every block registered to ${escapeHtml(hub.displayName)} in the IEEE registries, complete.</span> <a href="${escapeHtml(searchHref)}" data-i18n="hub.search.link">Free-text search</a> <span data-i18n="hub.search.tail">also matches former owners.</span></p>`;
 
   const collectionLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -599,7 +617,7 @@ export function renderCountryHubPage({ hub, assets, site = SITE }) {
     `${formatAddresses(hub.addresses, 'en')} addresses.`;
   const heading = `${escapeHtml(name)} MAC address blocks`;
   const ledeHtml =
-    `          <p class="lede">The IEEE registry carries ${hub.blocks} blocks with registration ` +
+    `          <p class="lede" data-i18n="hub.country.lede" ${paramsAttr({ blocks: hub.blocks, country: name, addresses: formatAddresses(hub.addresses, 'en'), count: hub.orgs.size })}>The IEEE registry carries ${hub.blocks} blocks with registration ` +
     `addresses in ${escapeHtml(name)} — together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} ` +
     `addresses across ${hub.orgs.size} organizations.</p>`;
 
@@ -634,7 +652,7 @@ ${rows}
             </tbody>
           </table>
         </div>
-      <p class="section-note">Every organization with blocks registered in ${escapeHtml(name)}, sorted by total address space.</p>`;
+      <p class="section-note"><span data-i18n="hub.country.caption" ${paramsAttr({ country: name })}>Every organization with blocks registered in ${escapeHtml(name)}, sorted by total address space.</span></p>`;
 
   const collectionLd = JSON.stringify({
     '@context': 'https://schema.org',

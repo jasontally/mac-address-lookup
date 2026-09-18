@@ -234,6 +234,34 @@ export const en = {
     '{prefix} is a {bits}-bit {blockType} MAC address block registered to {org}.',
   'prerender.ledeCountry':
     '{prefix} is a {bits}-bit {blockType} MAC address block registered to {org} in {country}.',
+
+  // Pre-rendered hub pages (client-side swap; HTML stays English for crawlers).
+  // All {param} placeholders interpolate at build time; 'first' falls back to
+  // the hub.beforeTracked phrase, which stays English inside non-English
+  // sentences for the rare no-date case.
+  'hub.vendor.lede':
+    'The IEEE registry carries {blocks} blocks registered to {org} — together {addresses} addresses, first observed {first}.',
+  'hub.vendor.ledeLatest':
+    'The IEEE registry carries {blocks} blocks registered to {org} — together {addresses} addresses, first observed {first}, most recently {date}.',
+  'hub.beforeTracked': 'before tracked records',
+  'hub.startedIn': 'Registered in',
+  'hub.absorbedFrom': 'Its portfolio also includes blocks acquired from',
+  'hub.vendor.caption': 'Every block registered to {org} in the IEEE registries, complete.',
+  'hub.search.link': 'Free-text search',
+  'hub.search.tail': 'also matches former owners.',
+  'hub.former.lede': 'The IEEE registry once carried {blocks} blocks registered to {org}.',
+  'hub.former.ownedAll': 'All {blocks} blocks are now registered to {owner}.',
+  'hub.former.tookAll': 'took over all of them.',
+  'hub.former.mixedCount': 'They are now registered across {count} organizations: ',
+  'hub.country.lede':
+    'The IEEE registry carries {blocks} blocks with registration addresses in {country} — together {addresses} addresses across {count} organizations.',
+  'hub.country.caption': 'Every organization with blocks registered in {country}, sorted by total address space.',
+  'hub.rowsCount': 'Showing the first {shown} of {total}',
+  'hub.rowsAll': 'Showing all {total}',
+  'hub.rowsTail': 'the rest is in this page’s source HTML.',
+  'hub.completeNote':
+    'Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.',
+
   'footer.dataSources': 'Data: IEEE Registration Authority registries; historical changes from',
   'footer.license': '(MIT).',
   'footer.bundled': 'Bundled software:',

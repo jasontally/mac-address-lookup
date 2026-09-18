@@ -5,21 +5,23 @@
  * rendering and tests stay in English; runtime callers pass `getLocale()`.
  */
 
-/** Format an ISO `YYYY-MM-DD` observation date for display. */
-export function formatDate(iso, locale = 'en') {
+/**
+ * English month abbreviations: the observation site is language-neutral
+ * data, and a fixed 3-letter Latin month table renders identically in
+ * every locale ("21 Feb 2016") — ICU short-month names vary by locale
+ * ("sept.", "9月") and en-US reorders to "MMM D, YYYY".
+ */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Format an ISO `YYYY-MM-DD` observation date for display: `DD MMM YYYY`. */
+export function formatDate(iso, _locale = 'en') {
   if (!iso) return '';
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!match) return iso;
-  try {
-    return new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(`${iso}T00:00:00Z`));
-  } catch {
-    return iso;
-  }
+  const [, year, month, day] = match;
+  const monthName = MONTHS[Number(month) - 1];
+  if (!monthName) return iso;
+  return `${Number(day)} ${monthName} ${year}`;
 }
 
 /** Compact relative time for history entries. */
@@ -32,11 +34,8 @@ export function formatRelativeTime(timestamp, now = Date.now(), locale = 'en') {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 30) return `${days}d ago`;
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const date = new Date(timestamp);
+    return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
   }
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
   const deltaMinutes = Math.round((timestamp - now) / 60_000);
@@ -45,12 +44,8 @@ export function formatRelativeTime(timestamp, now = Date.now(), locale = 'en') {
   if (Math.abs(deltaHours) < 24) return rtf.format(deltaHours, 'hour');
   const deltaDays = Math.round(deltaHours / 24);
   if (Math.abs(deltaDays) < 30) return rtf.format(deltaDays, 'day');
-  return new Intl.DateTimeFormat(locale, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(timestamp));
+  const date = new Date(timestamp);
+  return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
 }
 
 export function formatCount(value, locale = 'en') {

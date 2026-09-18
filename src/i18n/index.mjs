@@ -103,6 +103,15 @@ export function tCount(key, count, params = {}) {
 export function applyDom(root = document) {
   for (const element of root.querySelectorAll?.('[data-i18n]') ?? []) {
     const key = element.getAttribute('data-i18n');
+    const params = element.getAttribute('data-i18n-params');
+    if (params) {
+      try {
+        element.textContent = t(key, JSON.parse(params));
+        continue;
+      } catch {
+        // fall through to the plain translation
+      }
+    }
     const text = table[key] ?? en[key];
     if (text !== undefined) element.textContent = text;
   }

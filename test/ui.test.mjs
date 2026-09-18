@@ -35,9 +35,12 @@ test('parseLookup accepts any single path segment and legacy ?q=', () => {
   assert.equal(parseLookup({ pathname: '/', search: '?q=' }), null);
 });
 
-test('formatDate renders ISO dates and passes through unknown formats', () => {
-  assert.equal(formatDate('2014-01-17'), 'Jan 17, 2014');
-  assert.equal(formatDate('2000-09-08'), 'Sep 8, 2000');
+test('formatDate renders the universal DD MMM YYYY form in every locale', () => {
+  assert.equal(formatDate('2014-01-17'), '17 Jan 2014');
+  assert.equal(formatDate('2000-09-08'), '8 Sep 2000');
+  assert.equal(formatDate('2000-09-08', 'es'), '8 Sep 2000');
+  assert.equal(formatDate('2016-02-21', 'ja'), '21 Feb 2016');
+  assert.equal(formatDate('2026-12-31'), '31 Dec 2026');
   assert.equal(formatDate(''), '');
   assert.equal(formatDate('sometime'), 'sometime');
 });
@@ -48,6 +51,7 @@ test('formatRelativeTime formats recent timestamps', () => {
   assert.equal(formatRelativeTime(now - 5 * 60_000, now), '5m ago');
   assert.equal(formatRelativeTime(now - 3 * 3_600_000, now), '3h ago');
   assert.equal(formatRelativeTime(now - 2 * 86_400_000, now), '2d ago');
+  assert.equal(formatRelativeTime(Date.parse('2026-07-01T12:00:00Z'), now), '1 Jul 2026');
 });
 
 test('formatCount adds thousands separators', () => {
