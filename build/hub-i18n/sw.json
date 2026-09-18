@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "Rejista ya IEEE ina vitalu {blocks} vilivyosajiliwa kwa {org} — jumla ya anwani {addresses}, zilizoonwa kwa mara ya kwanza {first}.",
+  "hub.vendor.ledeLatest": "Rejista ya IEEE ina vitalu {blocks} vilivyosajiliwa kwa {org} — jumla ya anwani {addresses}, zilizoonwa kwa mara ya kwanza {first}, na hivi karibuni {date}.",
+  "hub.beforeTracked": "kabla ya rekodi kufuatiliwa",
+  "hub.startedIn": "Imesajiliwa katika",
+  "hub.absorbedFrom": "Kwingineko yake pia inajumuisha vitalu vilivyopatikana kutoka kwa",
+  "hub.vendor.caption": "Kila kitalu kilichosajiliwa kwa {org} katika rejista za IEEE, kamili.",
+  "hub.search.link": "Utafutaji wa maandishi huria",
+  "hub.search.tail": "pia unalingana na wamiliki wa zamani.",
+  "hub.former.lede": "Rejista ya IEEE hapo awali ilikuwa na vitalu {blocks} vilivyosajiliwa kwa {org}.",
+  "hub.former.ownedAll": "Vitalu vyote {blocks} sasa vimesajiliwa kwa {owner}.",
+  "hub.former.tookAll": "ilichukua vyote.",
+  "hub.former.mixedCount": "Sasa vimesajiliwa katika mashirika {count}: ",
+  "hub.country.lede": "Rejista ya IEEE ina vitalu {blocks} vilivyo na anwani za usajili katika {country} — jumla ya anwani {addresses} katika mashirika {count}.",
+  "hub.country.caption": "Kila shirika lenye vitalu vilivyosajiliwa katika {country}, lililopangwa kwa jumla ya nafasi ya anwani.",
+  "hub.rowsCount": "Inaonyesha {shown} za kwanza kati ya {total}",
+  "hub.rowsAll": "Inaonyesha zote {total}",
+  "hub.rowsTail": "zilizosalia zimo kwenye HTML chanzo cha ukurasa huu.",
+  "hub.completeNote": "Kamilifu kulingana na usambazaji wa sasa wa rejista ya IEEE. Tarehe ni wakati kila usajili ulipoonwa kwa mara ya kwanza kwenye data ya umma, si tarehe za kisheria za ugawaji."
+}

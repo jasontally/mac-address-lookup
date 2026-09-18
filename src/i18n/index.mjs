@@ -11,6 +11,30 @@
 
 import { en } from './en.mjs';
 import { localeNames, RTL_LOCALES, SUPPORTED, loadLocale } from './locales.mjs';
+import { formatDate, formatAddresses, formatCount } from '../ui/format.mjs';
+
+/** Locale-aware values for pre-rendered interpolation params. */
+function displayedParams(params, locale) {
+  const formats = {
+    blocks: (value) => formatCount(value, locale),
+    count: (value) => formatCount(value, locale),
+    orgs: (value) => formatCount(value, locale),
+    shown: (value) => formatCount(value, locale),
+    total: (value) => formatCount(value, locale),
+    addresses: (value) => formatAddresses(value, locale),
+    first: (value) => formatDate(value, locale),
+    date: (value) => formatDate(value, locale),
+  };
+  return Object.fromEntries(
+    Object.entries(params).map(([name, value]) => {
+      const format = formats[name];
+      if (!format) return [name, value];
+      if (typeof value === 'number') return [name, format(value)];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return [name, format(value)];
+      return [name, value];
+    }),
+  );
+}
 
 export const SUPPORTED_LOCALES = ['en', ...SUPPORTED];
 export const LOCALE_NAMES = { en: 'English', ...localeNames };
@@ -106,7 +130,7 @@ export function applyDom(root = document) {
     const params = element.getAttribute('data-i18n-params');
     if (params) {
       try {
-        element.textContent = t(key, JSON.parse(params));
+        element.textContent = t(key, displayedParams(JSON.parse(params), active));
         continue;
       } catch {
         // fall through to the plain translation

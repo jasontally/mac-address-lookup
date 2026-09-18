@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "IEEE kayıt defterinde {org} adına kayıtlı {blocks} blok bulunmaktadır — toplamda {addresses} adres, ilk olarak {first} tarihinde gözlemlendi.",
+  "hub.vendor.ledeLatest": "IEEE kayıt defterinde {org} adına kayıtlı {blocks} blok bulunmaktadır — toplamda {addresses} adres, ilk olarak {first} tarihinde ve en son {date} tarihinde gözlemlendi.",
+  "hub.beforeTracked": "kayıtların izlenmeye başlanmasından önce",
+  "hub.startedIn": "Kayıtlı olduğu yer: ",
+  "hub.absorbedFrom": "Portföyü ayrıca şuradan devralınan blokları da içerir: ",
+  "hub.vendor.caption": "IEEE kayıt defterlerinde {org} adına kayıtlı her blok, tam liste.",
+  "hub.search.link": "Serbest metin araması",
+  "hub.search.tail": "aynı zamanda eski sahiplerle de eşleşir.",
+  "hub.former.lede": "IEEE kayıt defteri, bir zamanlar {org} adına kayıtlı {blocks} blok içeriyordu.",
+  "hub.former.ownedAll": "{blocks} bloğun tamamı artık {owner} adına kayıtlıdır.",
+  "hub.former.tookAll": "tümünü devraldı.",
+  "hub.former.mixedCount": "Bu bloklar şu anda {count} kuruluş genelinde kayıtlıdır: ",
+  "hub.country.lede": "IEEE kayıt defterinde kayıt adresi {country} olan {blocks} blok bulunmaktadır — {count} kuruluşta toplam {addresses} adres.",
+  "hub.country.caption": "{country} içinde kayıtlı blokları bulunan tüm kuruluşlar, toplam adres alanına göre sıralanmıştır.",
+  "hub.rowsCount": "{total} kayıttan ilk {shown} tanesi gösteriliyor",
+  "hub.rowsAll": "{total} kaydın tümü gösteriliyor",
+  "hub.rowsTail": "geri kalanı bu sayfanın kaynak HTML kodundadır.",
+  "hub.completeNote": "Mevcut IEEE kayıt defteri dağıtımı itibarıyla eksiksizdir. Tarihler, yasal atama tarihleri değil, her bir kaydın açık verilerde ilk gözlemlendiği zamanı belirtir."
+}

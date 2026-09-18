@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "Rajistar IEEE tana ɗauke da bululluka {blocks} waɗanda aka yiwa rajista a ƙarƙashin {org} — jimillar adireshi {addresses}, waɗanda aka fara gani a {first}.",
+  "hub.vendor.ledeLatest": "Rajistar IEEE tana ɗauke da bululluka {blocks} waɗanda aka yiwa rajista a ƙarƙashin {org} — jimillar adireshi {addresses}, waɗanda aka fara gani a {first}, a baya-bayan nan a {date}.",
+  "hub.beforeTracked": "kafin a fara bin diddigin bayanai",
+  "hub.startedIn": "An yi rajista a",
+  "hub.absorbedFrom": "Fayil dinta kuma ya haɗa da bululluka da aka samu daga",
+  "hub.vendor.caption": "Kowane bulo da aka yiwa rajista ga {org} a cikin rajistar IEEE, cikakke.",
+  "hub.search.link": "Binciken rubutu kyauta",
+  "hub.search.tail": "yana nuna tsofaffin masu mallaka.",
+  "hub.former.lede": "Rajistar IEEE a da ta ɗauki bululluka {blocks} waɗanda aka yiwa rajista ga {org}.",
+  "hub.former.ownedAll": "Dukkan bululluka {blocks} yanzu an yi musu rajista a ƙarƙashin {owner}.",
+  "hub.former.tookAll": "ya karbe dukkan su.",
+  "hub.former.mixedCount": "Yanzu an yi musu rajista a ƙungiyoyi {count}: ",
+  "hub.country.lede": "Rajistar IEEE tana ɗauke da bululluka {blocks} tare da adiresoshin rajista a {country} — jimillar adireshi {addresses} a cikin ƙungiyoyi {count}.",
+  "hub.country.caption": "Kowane ƙungiya da ke da bululluka da aka yiwa rajista a {country}, an jera su ta jimillar sararin adireshi.",
+  "hub.rowsCount": "Ana nuna {shown} na farko daga cikin {total}",
+  "hub.rowsAll": "Ana nuna dukkan {total}",
+  "hub.rowsTail": "sauran suna cikin asalin HTML na wannan shafi.",
+  "hub.completeNote": "Cikakke kamar yadda ake amfani da rajistar IEEE a yanzu. Kwanakin su ne lokacin da aka fara ganin kowane rajista a cikin bayanan jama'a, ba kwanakin rarrabawa na doka ba."
+}

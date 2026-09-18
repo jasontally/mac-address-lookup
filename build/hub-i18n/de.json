@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "Das IEEE-Register führt {blocks} auf {org} registrierte Blöcke — insgesamt {addresses} Adressen, erstmals beobachtet {first}.",
+  "hub.vendor.ledeLatest": "Das IEEE-Register führt {blocks} auf {org} registrierte Blöcke — insgesamt {addresses} Adressen, erstmals beobachtet {first}, zuletzt {date}.",
+  "hub.beforeTracked": "vor Beginn der Aufzeichnungen",
+  "hub.startedIn": "Registriert in",
+  "hub.absorbedFrom": "Das Portfolio umfasst auch Blöcke, die erworben wurden von",
+  "hub.vendor.caption": "Alle auf {org} registrierten Blöcke in den IEEE-Registern, vollständig.",
+  "hub.search.link": "Die Freitextsuche",
+  "hub.search.tail": "findet auch ehemalige Inhaber.",
+  "hub.former.lede": "Das IEEE-Register führte ehemals {blocks} auf {org} registrierte Blöcke.",
+  "hub.former.ownedAll": "Alle {blocks} Blöcke sind jetzt auf {owner} registriert.",
+  "hub.former.tookAll": "hat alle davon übernommen.",
+  "hub.former.mixedCount": "Sie sind jetzt auf {count} Organisationen verteilt registriert: ",
+  "hub.country.lede": "Das IEEE-Register führt {blocks} Blöcke mit Registrierungsadressen in {country} — insgesamt {addresses} Adressen verteilt auf {count} Organisationen.",
+  "hub.country.caption": "Jede Organisation mit in {country} registrierten Blöcken, sortiert nach gesamtem Adressraum.",
+  "hub.rowsCount": "Zeige die ersten {shown} von {total}",
+  "hub.rowsAll": "Zeige alle {total}",
+  "hub.rowsTail": "der Rest befindet sich im Quell-HTML dieser Seite.",
+  "hub.completeNote": "Vollständig mit Stand des aktuellen IEEE-Register-Deployments. Die Daten beziehen sich darauf, wann jede Registrierung erstmals in öffentlichen Daten beobachtet wurde, nicht auf rechtliche Zuteilungsdaten."
+}

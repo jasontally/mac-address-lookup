@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "IEEE रजिस्ट्री में {org} के नाम पर {blocks} ब्लॉक दर्ज हैं — कुल मिलाकर {addresses} पते, पहली बार {first} को देखे गए।",
+  "hub.vendor.ledeLatest": "IEEE रजिस्ट्री में {org} के नाम पर {blocks} ब्लॉक दर्ज हैं — कुल मिलाकर {addresses} पते, पहली बार {first} को देखे गए, सबसे हाल ही में {date} को।",
+  "hub.beforeTracked": "रिकॉर्ड ट्रैक किए जाने से पहले",
+  "hub.startedIn": "में पंजीकृत",
+  "hub.absorbedFrom": "इसके पोर्टफोलियो में इनसे अधिग्रहित ब्लॉक भी शामिल हैं:",
+  "hub.vendor.caption": "IEEE रजिस्ट्रियों में {org} के नाम पर दर्ज हर ब्लॉक, संपूर्ण।",
+  "hub.search.link": "फ्री-टेक्स्ट खोज",
+  "hub.search.tail": "पिछले स्वामियों से भी मेल खाती है।",
+  "hub.former.lede": "IEEE रजिस्ट्री में कभी {org} के नाम पर {blocks} ब्लॉक दर्ज थे।",
+  "hub.former.ownedAll": "सभी {blocks} ब्लॉक अब {owner} के नाम पर दर्ज हैं।",
+  "hub.former.tookAll": "ने उन सभी का अधिग्रहण कर लिया है।",
+  "hub.former.mixedCount": "वे अब {count} संगठनों में पंजीकृत हैं: ",
+  "hub.country.lede": "IEEE रजिस्ट्री में {country} में पंजीकरण पते वाले {blocks} ब्लॉक दर्ज हैं — {count} संगठनों में कुल {addresses} पते।",
+  "hub.country.caption": "{country} में पंजीकृत ब्लॉक वाले प्रत्येक संगठन, कुल पता स्थान के अनुसार क्रमबद्ध।",
+  "hub.rowsCount": "{total} में से पहले {shown} दिखाए जा रहे हैं",
+  "hub.rowsAll": "सभी {total} दिखाए जा रहे हैं",
+  "hub.rowsTail": "बाकी इस पृष्ठ के स्रोत HTML में है।",
+  "hub.completeNote": "वर्तमान IEEE रजिस्ट्री परिनियोजन के अनुसार संपूर्ण। तिथियाँ वह हैं जब प्रत्येक पंजीकरण को पहली बार सार्वजनिक डेटा में देखा गया था, कानूनी असाइनमेंट की तिथियाँ नहीं।"
+}

@@ -3,7 +3,7 @@
  * src/i18n/locales/<locale>.mjs (the translation subagent only touches
  * the JSON; this script owns the module edits):
  *   1. Validates every locale file: exact en key set, per-key placeholder
- *     multiset identical to English, no suspicious raw markup.
+ *      multiset identical to English, no suspicious raw markup.
  *   2. Appends missing keys to the locale table (before the closing brace);
  *      keys already present are skipped.
  *   3. node --check each touched module, restoring the original on failure.
@@ -37,6 +37,8 @@ const dir = path.join(root, 'build/hub-i18n');
 const files = (await readdir(dir)).filter((f) => f.endsWith('.json'));
 const localeCodes = files.map((f) => path.basename(f, '.json'));
 
+const FRAGMENT_KEYS = new Set(['hub.startedIn', 'hub.absorbedFrom', 'hub.former.mixedCount']);
+
 let failures = 0;
 for (const locale of localeCodes) {
   const values = JSON.parse(await readFile(path.join(dir, `${locale}.json`), 'utf8'));
@@ -53,8 +55,13 @@ for (const locale of localeCodes) {
         `${key} placeholders ${placeholders(values[key]) || '(none)'} != en ${enPlaceholders.get(key)}`,
       );
     }
-    if (values[key] !== values[key].trim()) problems.push(`${key} leading/trailing whitespace`);
     if (/[<>]|https?:/.test(values[key])) problems.push(`${key} suspicious raw markup`);
+    const source = en[key];
+    const trailingAllowed = FRAGMENT_KEYS.has(key) || (source[source.length - 1] ?? '') === ' ';
+    const trimmed = values[key].trim();
+    if (values[key].startsWith(' ') || (trailingAllowed ? false : values[key] !== trimmed)) {
+      problems.push(`${key} leading/trailing whitespace`);
+    }
   }
   for (const key of Object.keys(values)) {
     if (!hubKeySet.has(key)) problems.push(`unexpected key ${key}`);

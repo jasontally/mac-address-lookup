@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "Sổ đăng ký IEEE chứa {blocks} khối được đăng ký cho {org} — tổng cộng {addresses} địa chỉ, được quan sát lần đầu vào {first}.",
+  "hub.vendor.ledeLatest": "Sổ đăng ký IEEE chứa {blocks} khối được đăng ký cho {org} — tổng cộng {addresses} địa chỉ, được quan sát lần đầu vào {first}, gần đây nhất là vào {date}.",
+  "hub.beforeTracked": "trước khi có hồ sơ theo dõi",
+  "hub.startedIn": "Được đăng ký tại",
+  "hub.absorbedFrom": "Danh mục của nó cũng bao gồm các khối mua lại từ",
+  "hub.vendor.caption": "Mọi khối được đăng ký cho {org} trong sổ đăng ký IEEE, hoàn chỉnh.",
+  "hub.search.link": "Tìm kiếm văn bản tự do",
+  "hub.search.tail": "cũng khớp với các chủ sở hữu trước đây.",
+  "hub.former.lede": "Sổ đăng ký IEEE từng chứa {blocks} khối được đăng ký cho {org}.",
+  "hub.former.ownedAll": "Tất cả {blocks} khối hiện được đăng ký cho {owner}.",
+  "hub.former.tookAll": "đã tiếp quản toàn bộ số đó.",
+  "hub.former.mixedCount": "Hiện tại chúng được đăng ký cho {count} tổ chức: ",
+  "hub.country.lede": "Sổ đăng ký IEEE chứa {blocks} khối có địa chỉ đăng ký tại {country} — tổng cộng {addresses} địa chỉ trên {count} tổ chức.",
+  "hub.country.caption": "Mọi tổ chức có khối được đăng ký tại {country}, được sắp xếp theo tổng không gian địa chỉ.",
+  "hub.rowsCount": "Đang hiển thị {shown} trên tổng số {total}",
+  "hub.rowsAll": "Đang hiển thị tất cả {total}",
+  "hub.rowsTail": "phần còn lại nằm trong HTML nguồn của trang này.",
+  "hub.completeNote": "Hoàn chỉnh tính đến đợt triển khai sổ đăng ký IEEE hiện tại. Các ngày là thời điểm mỗi đăng ký được quan sát lần đầu trong dữ liệu công khai, không phải ngày cấp phép pháp lý."
+}

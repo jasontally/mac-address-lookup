@@ -538,14 +538,14 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [] }) {
     `${hub.blocks} MAC address blocks registered to ${hub.displayName}, covering ` +
     `${formatAddresses(hub.addresses, 'en')} addresses. Complete block list with countries and registration dates.`;
   const heading = `${escapeHtml(hub.displayName)} MAC address blocks`;
-  const firstParam = formatDate(hub.firstSeen, 'en') || 'before tracked records';
+  const firstParam = hub.firstSeen ?? 'before tracked records';
   const ledeKey = hub.lastSeen && hub.lastSeen !== hub.firstSeen ? 'hub.vendor.ledeLatest' : 'hub.vendor.lede';
-  const ledeParams = { blocks: hub.blocks, org: hub.displayName, addresses: formatAddresses(hub.addresses, 'en'), first: firstParam };
-  if (ledeKey === 'hub.vendor.ledeLatest') ledeParams.date = formatDate(hub.lastSeen, 'en');
+  const ledeParams = { blocks: hub.blocks, org: hub.displayName, addresses: hub.addresses, first: firstParam };
+  if (ledeKey === 'hub.vendor.ledeLatest') ledeParams.date = hub.lastSeen;
   const ledeHtml =
     `          <p class="lede" data-i18n="${ledeKey}" ${paramsAttr(ledeParams)}>The IEEE registry carries ${hub.blocks} blocks registered to ` +
     `${escapeHtml(hub.displayName)} — together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} addresses, ` +
-    `first observed ${escapeHtml(firstParam)}${escapeHtml(suffix)}.</p>` +
+    `first observed ${escapeHtml(formatDate(hub.firstSeen, 'en') || 'before tracked records')}${escapeHtml(suffix)}.</p>` +
     (hub.countryCodes.length > 0
       ? `\n          <p class="hub-countries"><span data-i18n="hub.startedIn">Registered in</span> ${countryLinks(hub.countryCodes)}.</p>`
       : '') +
@@ -617,7 +617,7 @@ export function renderCountryHubPage({ hub, assets, site = SITE }) {
     `${formatAddresses(hub.addresses, 'en')} addresses.`;
   const heading = `${escapeHtml(name)} MAC address blocks`;
   const ledeHtml =
-    `          <p class="lede" data-i18n="hub.country.lede" ${paramsAttr({ blocks: hub.blocks, country: name, addresses: formatAddresses(hub.addresses, 'en'), count: hub.orgs.size })}>The IEEE registry carries ${hub.blocks} blocks with registration ` +
+    `          <p class="lede" data-i18n="hub.country.lede" ${paramsAttr({ blocks: hub.blocks, country: name, addresses: hub.addresses, count: hub.orgs.size })}>The IEEE registry carries ${hub.blocks} blocks with registration ` +
     `addresses in ${escapeHtml(name)} — together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} ` +
     `addresses across ${hub.orgs.size} organizations.</p>`;
 

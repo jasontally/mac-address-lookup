@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "رجیستری IEEE شامل {blocks} بلاک ثبت‌شده به نام {org} است — در مجموع {addresses} آدرس، که برای اولین بار در {first} مشاهده شده‌اند.",
+  "hub.vendor.ledeLatest": "رجیستری IEEE شامل {blocks} بلاک ثبت‌شده به نام {org} است — در مجموع {addresses} آدرس، که اولین بار در {first} و اخیراً در {date} مشاهده شده‌اند.",
+  "hub.beforeTracked": "قبل از ردیابی سوابق",
+  "hub.startedIn": "ثبت‌شده در",
+  "hub.absorbedFrom": "پورتفولیوی آن همچنین شامل بلاک‌های به‌دست‌آمده از این موارد است:",
+  "hub.vendor.caption": "تمامی بلاک‌های ثبت‌شده به نام {org} در رجیستری‌های IEEE، به صورت کامل.",
+  "hub.search.link": "جستجوی متن آزاد",
+  "hub.search.tail": "همچنین مالکان قبلی را تطبیق می‌دهد.",
+  "hub.former.lede": "رجیستری IEEE پیش از این شامل {blocks} بلاک ثبت‌شده به نام {org} بود.",
+  "hub.former.ownedAll": "اکنون تمامی {blocks} بلاک به نام {owner} ثبت شده‌اند.",
+  "hub.former.tookAll": "همه آنها را تصاحب کرده است.",
+  "hub.former.mixedCount": "آن‌ها اکنون در {count} سازمان ثبت شده‌اند: ",
+  "hub.country.lede": "رجیستری IEEE شامل {blocks} بلاک با آدرس‌های ثبت در {country} است — در مجموع {addresses} آدرس در {count} سازمان.",
+  "hub.country.caption": "هر سازمان دارای بلاک‌های ثبت‌شده در {country}، مرتب‌شده بر اساس کل فضای آدرس.",
+  "hub.rowsCount": "نمایش {shown} مورد اول از {total}",
+  "hub.rowsAll": "نمایش تمام {total} مورد",
+  "hub.rowsTail": "بقیه در سورس HTML این صفحه قرار دارد.",
+  "hub.completeNote": "کامل بر اساس استقرار فعلی رجیستری IEEE. تاریخ‌ها نشان‌دهنده زمان اولین مشاهده هر ثبت در داده‌های عمومی است و تاریخ‌های تخصیص قانونی نیستند."
+}

@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "IEEE ਰਜਿਸਟਰੀ ਵਿੱਚ {org} ਦੇ ਨਾਮ 'ਤੇ {blocks} ਬਲਾਕ ਰਜਿਸਟਰਡ ਹਨ — ਕੁੱਲ ਮਿਲਾ ਕੇ {addresses} ਪਤੇ, ਪਹਿਲੀ ਵਾਰ {first} ਨੂੰ ਦੇਖੇ ਗਏ।",
+  "hub.vendor.ledeLatest": "IEEE ਰਜਿਸਟਰੀ ਵਿੱਚ {org} ਦੇ ਨਾਮ 'ਤੇ {blocks} ਬਲਾਕ ਰਜਿਸਟਰਡ ਹਨ — ਕੁੱਲ ਮਿਲਾ ਕੇ {addresses} ਪਤੇ, ਪਹਿਲੀ ਵਾਰ {first} ਨੂੰ ਦੇਖੇ ਗਏ, ਸਭ ਤੋਂ ਤਾਜ਼ਾ {date} ਨੂੰ।",
+  "hub.beforeTracked": "ਰਿਕਾਰਡ ਟਰੈਕ ਕੀਤੇ ਜਾਣ ਤੋਂ ਪਹਿਲਾਂ",
+  "hub.startedIn": "ਵਿੱਚ ਰਜਿਸਟਰਡ",
+  "hub.absorbedFrom": "ਇਸਦੇ ਪੋਰਟਫੋਲੀਓ ਵਿੱਚ ਇਹਨਾਂ ਤੋਂ ਪ੍ਰਾਪਤ ਕੀਤੇ ਗਏ ਬਲਾਕ ਵੀ ਸ਼ਾਮਲ ਹਨ:",
+  "hub.vendor.caption": "IEEE ਰਜਿਸਟਰੀਆਂ ਵਿੱਚ {org} ਦੇ ਨਾਮ 'ਤੇ ਰਜਿਸਟਰਡ ਹਰੇਕ ਬਲਾਕ, ਸੰਪੂਰਨ।",
+  "hub.search.link": "ਫ੍ਰੀ-ਟੈਕਸਟ ਖੋਜ",
+  "hub.search.tail": "ਪਿਛਲੇ ਮਾਲਕਾਂ ਨਾਲ ਵੀ ਮੇਲ ਖਾਂਦੀ ਹੈ।",
+  "hub.former.lede": "IEEE ਰਜਿਸਟਰੀ ਵਿੱਚ ਕਦੇ {org} ਦੇ ਨਾਮ 'ਤੇ {blocks} ਬਲਾਕ ਰਜਿਸਟਰਡ ਸਨ।",
+  "hub.former.ownedAll": "ਸਾਰੇ {blocks} ਬਲਾਕ ਹੁਣ {owner} ਦੇ ਨਾਮ 'ਤੇ ਰਜਿਸਟਰਡ ਹਨ।",
+  "hub.former.tookAll": "ਨੇ ਉਹਨਾਂ ਸਾਰਿਆਂ ਦਾ ਕਬਜ਼ਾ ਲੈ ਲਿਆ ਹੈ।",
+  "hub.former.mixedCount": "ਉਹ ਹੁਣ {count} ਸੰਸਥਾਵਾਂ ਵਿੱਚ ਰਜਿਸਟਰਡ ਹਨ: ",
+  "hub.country.lede": "IEEE ਰਜਿਸਟਰੀ ਵਿੱਚ {country} ਵਿੱਚ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਪਤਿਆਂ ਵਾਲੇ {blocks} ਬਲਾਕ ਸ਼ਾਮਲ ਹਨ — {count} ਸੰਸਥਾਵਾਂ ਵਿੱਚ ਕੁੱਲ {addresses} ਪਤੇ।",
+  "hub.country.caption": "{country} ਵਿੱਚ ਰਜਿਸਟਰਡ ਬਲਾਕਾਂ ਵਾਲੀ ਹਰੇਕ ਸੰਸਥਾ, ਕੁੱਲ ਐਡਰੈੱਸ ਸਪੇਸ ਦੁਆਰਾ ਕ੍ਰਮਬੱਧ।",
+  "hub.rowsCount": "{total} ਵਿੱਚੋਂ ਪਹਿਲੇ {shown} ਦਿਖਾ ਰਿਹਾ ਹੈ",
+  "hub.rowsAll": "ਸਾਰੇ {total} ਦਿਖਾ ਰਿਹਾ ਹੈ",
+  "hub.rowsTail": "ਬਾਕੀ ਇਸ ਪੰਨੇ ਦੇ ਸਰੋਤ HTML ਵਿੱਚ ਹੈ।",
+  "hub.completeNote": "ਮੌਜੂਦਾ IEEE ਰਜਿਸਟਰੀ ਡਿਪਲਾਇਮੈਂਟ ਦੇ ਅਨੁਸਾਰ ਸੰਪੂਰਨ। ਤਾਰੀਖਾਂ ਉਹ ਹਨ ਜਦੋਂ ਹਰੇਕ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਪਹਿਲੀ ਵਾਰ ਜਨਤਕ ਡੇਟਾ ਵਿੱਚ ਦੇਖੀ ਗਈ ਸੀ, ਕਾਨੂੰਨੀ ਅਸਾਈਨਮੈਂਟ ਤਾਰੀਖਾਂ ਨਹੀਂ।"
+}

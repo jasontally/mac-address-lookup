@@ -1,0 +1,20 @@
+{
+  "hub.vendor.lede": "IEEE注册表包含注册给{org}的{blocks}个块 — 共计{addresses}个地址，首次发现于{first}。",
+  "hub.vendor.ledeLatest": "IEEE注册表包含注册给{org}的{blocks}个块 — 共计{addresses}个地址，首次发现于{first}，最近发现于{date}。",
+  "hub.beforeTracked": "在有追踪记录之前",
+  "hub.startedIn": "注册在",
+  "hub.absorbedFrom": "其组合还包括收购自以下机构的块：",
+  "hub.vendor.caption": "IEEE注册表中注册给{org}的所有块（完整列表）。",
+  "hub.search.link": "自由文本搜索",
+  "hub.search.tail": "也会匹配前所有者。",
+  "hub.former.lede": "IEEE注册表曾包含注册给{org}的{blocks}个块。",
+  "hub.former.ownedAll": "所有{blocks}个块现在均注册给{owner}。",
+  "hub.former.tookAll": "接管了所有这些块。",
+  "hub.former.mixedCount": "它们现在注册在{count}个组织中：",
+  "hub.country.lede": "IEEE注册表包含在{country}具有注册地址的{blocks}个块 — 这些块属于{count}个组织，共计{addresses}个地址。",
+  "hub.country.caption": "拥有在{country}注册的块的所有组织，按总地址空间排序。",
+  "hub.rowsCount": "显示{total}个中的前{shown}个",
+  "hub.rowsAll": "显示所有{total}个",
+  "hub.rowsTail": "其余内容位于此页面的源HTML中。",
+  "hub.completeNote": "基于当前IEEE注册表的部署，数据完整。日期是每次注册在公开数据中首次被发现的时间，而非合法分配的日期。"
+}
