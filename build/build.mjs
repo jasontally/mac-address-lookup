@@ -13,6 +13,7 @@ import { buildStatic } from './copy-static.mjs';
 import { generatePages } from './generate-pages.mjs';
 import { computeHubs, computeFormerHubs, writeHubPages } from './hubs.mjs';
 import { writeAgentFiles } from './agent-files.mjs';
+import { writeLangPages } from './lang-pages.mjs';
 import { writeRecentPage } from './recent.mjs';
 import { REGISTRIES } from './registries.mjs';
 
@@ -208,6 +209,12 @@ console.log(
     `${staticAssets.cssFile} ${formatBytes(staticAssets.cssBytes)}`,
 );
 
+// Localized home variants + hreflang clusters (Multilingual SEO plan).
+const langPages = await writeLangPages({ distDir, site: 'https://mac.jasontally.com' });
+console.log(
+  `  lang pages: /lang/{locale}/ in ${langPages.written} locales`,
+);
+
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
 if (!flags.has('--no-pages')) {
   console.log(
@@ -254,6 +261,8 @@ if (!flags.has('--no-pages')) {
       ...hubFiles.formerUrls,
     ],
     sitemapScope,
+    homeUrl: langPages.sitemapEntry,
+    langUrls: langPages.urls,
     assets: staticAssets,
     hubIndex,
   });

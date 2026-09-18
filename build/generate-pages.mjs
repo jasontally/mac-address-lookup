@@ -27,10 +27,16 @@ async function mapConcurrent(items, limit, fn) {
  * Pages remain live and internally linked in every scope — the sitemap is a
  * discovery hint and dropping rows cannot deindex anything.
  */
-export function sitemapUrlSelection({ scope = 'all', coreUrls = [], hubUrls = [], prefixUrls = [] } = {}) {
-  if (scope === 'core') return [...coreUrls];
-  if (scope === 'hubs') return [...coreUrls, ...hubUrls];
-  if (scope === 'all') return [...coreUrls, ...hubUrls, ...prefixUrls];
+export function sitemapUrlSelection({
+  scope = 'all',
+  coreUrls = [],
+  langUrls = [],
+  hubUrls = [],
+  prefixUrls = [],
+} = {}) {
+  if (scope === 'core') return [...coreUrls, ...langUrls];
+  if (scope === 'hubs') return [...coreUrls, ...langUrls, ...hubUrls];
+  if (scope === 'all') return [...coreUrls, ...langUrls, ...hubUrls, ...prefixUrls];
   throw new Error(`Unknown sitemap scope: ${scope}`);
 }
 
@@ -48,7 +54,9 @@ export async function generatePages({
   lastmod,
   extraUrls = [],
   hubUrls = [],
+  langUrls = [],
   sitemapScope = 'all',
+  homeUrl = null,
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
   hubIndex = null,
 }) {
@@ -82,7 +90,11 @@ export async function generatePages({
 
   const urls = sitemapUrlSelection({
     scope: sitemapScope,
-    coreUrls: [`${site}/`, ...extraUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`)],
+    coreUrls: [
+      homeUrl ?? `${site}/`,
+      ...extraUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
+    ],
+    langUrls,
     hubUrls: hubUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     prefixUrls: selected.map((record) => `${site}/${record.prefix}`),
   });

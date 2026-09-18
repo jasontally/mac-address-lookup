@@ -45,8 +45,16 @@ export async function initI18n() {
   } catch {
     // storage unavailable
   }
+  // Pre-rendered /lang/{locale}/ pages declare their locale via
+  // window.__malLocale; a stored manual choice still outranks it.
+  const forced = typeof window !== 'undefined' ? window.__malLocale : null;
   const pick = resolveLocale(navigator.language) ?? 'en';
-  active = stored && SUPPORTED_LOCALES.includes(stored) ? stored : pick;
+  active =
+    stored && SUPPORTED_LOCALES.includes(stored)
+      ? stored
+      : forced && SUPPORTED_LOCALES.includes(forced)
+        ? forced
+        : pick;
   for (const candidate of navigator.languages ?? []) {
     if (stored || active !== 'en') break;
     const resolved = resolveLocale(candidate);

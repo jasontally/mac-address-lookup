@@ -21,12 +21,19 @@ export function chunkUrls(urls, limit = SITEMAP_URL_LIMIT) {
 
 export function renderUrlSet(urls, { lastmod } = {}) {
   const entries = urls
-    .map((url) => {
+    .map((entry) => {
+      const item = typeof entry === 'string' ? { loc: entry } : entry;
       const mod = lastmod ? `\n    <lastmod>${escapeXml(lastmod)}</lastmod>` : '';
-      return `  <url>\n    <loc>${escapeXml(url)}</loc>${mod}\n  </url>`;
+      const alternates = (item.alternates ?? [])
+        .map(
+          ([lang, href]) =>
+            `\n    <xhtml:link rel="alternate" hreflang="${lang}" href="${escapeXml(href)}" />`,
+        )
+        .join('');
+      return `  <url>\n    <loc>${escapeXml(item.loc)}</loc>${mod}${alternates}\n  </url>`;
     })
     .join('\n');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries}\n</urlset>\n`;
 }
 
 export function renderSitemapIndex(entries, { lastmod } = {}) {

@@ -60,7 +60,15 @@ const prerendered = document.getElementById('result');
 // pieces once the locale table is ready.
 if (prerendered?.dataset.prerendered) applyPrerenderedI18n();
 
-// Populate the language picker (English included via SUPPORTED_LOCALES)
+// Populate the language picker (English included via SUPPORTED_LOCALES).
+// Pages with pre-rendered language variants navigate to their sibling URL
+// instead of swapping in place, so the served HTML matches the choice
+// (hreflang sets must keep one language per URL).
+const pickLocalizedUrl = (pathname, locale) => {
+  if (/^\/lang\/[^/]+/.test(pathname)) return `/lang/${locale}/`;
+  if (pathname === '/' || pathname === '') return `/lang/${locale}/`;
+  return null;
+};
 const localePicker = document.getElementById('locale-picker');
 if (localePicker) {
   for (const locale of SUPPORTED_LOCALES) {
@@ -69,7 +77,9 @@ if (localePicker) {
   localePicker.value = getLocale();
   localePicker.addEventListener('change', () => {
     setLocale(localePicker.value);
-    location.reload();
+    const target = pickLocalizedUrl(location.pathname, localePicker.value);
+    if (target) location.assign(target);
+    else location.reload();
   });
 }
 
@@ -396,6 +406,11 @@ function renderHistory() {
 
 const staticPage = document.body.dataset.staticPage === 'true';
 
+/** Real home pages: the English shell and the /lang/{locale}/ variants. */
+function isLangHome(pathname) {
+  return pathname === '/' || pathname === '' || /^\/lang\/[A-Za-z-]+\/?$/.test(pathname);
+}
+
 if (!staticPage) {
   ui.form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -439,8 +454,9 @@ if (!staticPage) {
     const route = parseLookup(location);
     if (route) {
       runRoute(route);
-    } else if (location.pathname !== '/' || location.search !== '') {
-      // Unknown path or non-lookup query: this is a soft 404 served by the SPA shell.
+    } else if (location.search !== '' || !isLangHome(location.pathname)) {
+      // Unknown path or non-lookup query: this is a soft 404 served by the SPA
+      // shell — but never for `/lang/{locale}/`, which is a real page.
       setRobotsMeta(true);
       setCanonical(`${location.origin}/`);
     }

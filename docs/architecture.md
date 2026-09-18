@@ -353,6 +353,41 @@ sitemap rows does not remove discovered pages). If phase 2 stalls, hold phase 3
 and strengthen internal links (e.g. a home-page module linking top vendor
 hubs, `/recent` rows linking hubs) before retrying expansion.
 
+**Note (2026-09-18):** "core" now also includes the 30 localized home pages
+(`/lang/{locale}/`; see the multilingual plan below), so phase 1 ships
+~33 sitemap URLs and the counts change by +30 in every scope.
+
+## Multilingual SEO plan (Tier 1 + Tier 2, 2026-09-18)
+
+The interface translates client-side on shared URLs, which search engines
+cannot see. The agreed plan: Tier 3 (localized hub pages) is parked; help-doc
+localization waits for prose translations (its body is English-only in the
+repo — a mostly-English page under an hreflang cluster invites doorway
+treatment).
+
+- **Tier 1 (documentation-level):** `llms.txt` and `help.md`/`help.txt`
+  state the 31-language interface and the `/lang/{locale}/` scheme.
+- **Tier 2 (shipped scope — the home page only):** every supported locale
+  gets a pre-rendered home at `/lang/{locale}/` (`build/lang-pages.mjs`:
+  a server-side `i18nSwap` over the built shell's `data-i18n` leaf texts,
+  mirroring the client's `applyDom`, plus *authored* per-locale
+  title/description in `src/i18n/seo.mjs` — no machine translation). RTL
+  locales get `<html dir="rtl">`; each variant sets `window.__malLocale`
+  as the boot-time default (src/i18n/index.mjs), below the visitor's stored
+  manual choice in resolution order.
+- **hreflang:** every variant (English + 30 locales + `x-default` →
+  English) carries the full 32-link alternate cluster in `<head>`
+  (`homeAlternates`/`hreflangLinks`), and the sitemap home entry carries
+  the same alternates as `xhtml:link` (`renderUrlSet` accepts
+  `{ loc, alternates }` entries). Head and sitemap agree.
+- **Locale picker:** on `/` and `/lang/*` it navigates between locale twins
+  (one language per URL) instead of swapping in place
+  (`pickLocalizedUrl` in `src/ui/app.mjs`).
+- **Deliberately excluded from hreflang:** `/help` and `/recent` (English
+  prose) and all `/{hex}`/hub pages (org names are language-neutral).
+  The `/lang/` prefix also avoids colliding with free-text search routes
+  (`/es` alone stays a search query).
+
 ## Build & deployment
 
 - **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
