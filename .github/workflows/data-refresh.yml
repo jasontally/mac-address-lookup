@@ -1,14 +1,16 @@
 name: Data refresh
 
-# Checks upstream data sources weekly and commits a refresh date bump only when
-# something changed (or once a month, to keep indexed pages current). The commit
-# triggers a Cloudflare Workers Build. Pushes made with GITHUB_TOKEN do not start
-# other Actions workflows, but they do reach GitHub Apps such as Cloudflare's.
+# Runs daily: hashes the upstream sources, and commits a refresh-date bump only
+# when something changed upstream (or once a month, to keep indexed pages
+# current). No-op days cost ~30s of workflow time and zero build minutes because
+# no commit is made. The commit triggers a Cloudflare Workers Build. Pushes made
+# with GITHUB_TOKEN do not start other Actions workflows, but they do reach
+# GitHub Apps such as Cloudflare's.
 
 on:
   schedule:
-    # Mondays at 06:17 UTC
-    - cron: '17 6 * * 1'
+    # Daily at 06:23 UTC
+    - cron: '23 6 * * *'
   workflow_dispatch:
     inputs:
       force:

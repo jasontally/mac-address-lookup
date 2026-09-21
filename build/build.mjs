@@ -15,6 +15,7 @@ import { computeHubs, computeFormerHubs, writeHubPages } from './hubs.mjs';
 import { writeAgentFiles } from './agent-files.mjs';
 import { writeLangPages } from './lang-pages.mjs';
 import { writeRecentPage } from './recent.mjs';
+import { createPageTracker, finalizePageHashes, loadPreviousPageHashes, recordDistFile, urlToDistPath } from './page-hashes.mjs';
 import { REGISTRIES } from './registries.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -28,6 +29,10 @@ const skipLineage = flags.has('--no-lineage');
 const fallbackBaseUrl = flags.has('--no-fallback') ? undefined : DEFAULT_SITE;
 
 const startedAt = Date.now();
+// refresh.txt bumps whenever the data-refresh action detects an upstream
+// change (or monthly). Every timestamp that used to be "build now" reads
+// this instead so identical inputs yield byte-identical outputs.
+const refreshDate = (await readFile(path.join(root, 'data', 'refresh.txt'), 'utf8')).trim();
 
 // Rebuild from a clean output so removed pages never linger in the deploy.
 await rm(distDir, { recursive: true, force: true });
@@ -103,7 +108,7 @@ if (!skipLineage) {
         url: LINEAGE_SOURCE.url,
         homepage: LINEAGE_SOURCE.homepage,
         license: LINEAGE_SOURCE.license,
-        retrievedAt: new Date().toISOString(),
+        retrievedAt: refreshDate,
       },
     };
   } catch (error) {
@@ -155,7 +160,7 @@ const sourceCache = await writeSourceCache(
     ...sources.map((source) => ({ file: source.cacheFile, text: source.text })),
     ...(lineageText ? [{ file: 'macs.json', text: lineageText }] : []),
   ],
-  { outDir: dataDir },
+  { outDir: dataDir, generatedAt: refreshDate },
 );
 console.log(
   `  source cache: ${sourceCache.files.length} files (${formatBytes(sourceCache.bytes)}), ` +
@@ -172,10 +177,9 @@ console.log(`  shards: ${shards.count} files (${formatBytes(shards.bytes)} total
 const search = await writeSearchParquet(records, { outDir: dataDir });
 console.log(`  ${search.filename} (${formatBytes(search.bytes)})`);
 
-const refreshDate = (await readFile(path.join(root, 'data', 'refresh.txt'), 'utf8')).trim();
 const manifest = {
   schemaVersion: 1,
-  generatedAt: new Date().toISOString(),
+  generatedAt: refreshDate,
   refreshDate,
   data: {
     file: `data/${parquet.filename}`,
@@ -210,10 +214,30 @@ console.log(
 );
 
 // Localized home variants + hreflang clusters (Multilingual SEO plan).
-const langPages = await writeLangPages({ distDir, site: 'https://mac.jasontally.com' });
+const SITE = 'https://mac.jasontally.com';
+const langPages = await writeLangPages({ distDir, site: SITE });
 console.log(
   `  lang pages: /lang/{locale}/ in ${langPages.written} locales`,
 );
+
+// Per-URL lastmod bookkeeping (docs/architecture.md → "Punctuation policy"
+// notes the byte-stable pages contract): hash every rendered page up front,
+// compare against the deployed manifest from production, and let the
+// sitemap carry each URL's true last-change date.
+const { previous: previousPageHashes, warning: pageHashWarning } = await loadPreviousPageHashes({
+  site: process.env.PAGE_HASHES_SITE_URL ?? SITE,
+});
+if (pageHashWarning) console.log(`  page-hashes: ${pageHashWarning}`);
+const pageTracker = createPageTracker({ previous: previousPageHashes, refreshDate });
+await recordDistFile(pageTracker, { distDir, distRelativePath: 'index.html', site: SITE });
+for (const url of langPages.urls) {
+  await recordDistFile(pageTracker, {
+    distDir,
+    distRelativePath: urlToDistPath(new URL(url).pathname) ?? '',
+    site: SITE,
+  });
+}
+await recordDistFile(pageTracker, { distDir, distRelativePath: 'help.html', site: SITE });
 
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
 if (!flags.has('--no-pages')) {
@@ -230,6 +254,22 @@ if (!flags.has('--no-pages')) {
     formerData: formerHubData,
     recordsByPrefix,
   });
+  for (const url of [...hubFiles.vendorUrls, ...hubFiles.countryUrls, ...hubFiles.formerUrls]) {
+    await recordDistFile(pageTracker, {
+      distDir,
+      distRelativePath: urlToDistPath(`${url}`) ?? '',
+      site: SITE,
+    });
+  }
+
+  // /recent before the sitemap: it reports its own lastmod inside
+  // generatePages' per-URL map.
+  const recent = await writeRecentPage({ distDir, records, assets: staticAssets });
+  console.log(
+    `  /recent: ${recent.length} newest blocks, first ${recent[0]?.prefix ?? 'n/a'} (${recent[0]?.firstSeen ?? ''})`,
+  );
+  await recordDistFile(pageTracker, { distDir, distRelativePath: 'recent.html', site: SITE });
+
   console.log(
     `  hubs in ${((Date.now() - hubWriteStartedAt) / 1000).toFixed(1)}s ` +
       `(${hubFiles.vendorUrls.length} vendor, ${hubFiles.countryUrls.length} country)`,
@@ -265,6 +305,7 @@ if (!flags.has('--no-pages')) {
     langUrls: langPages.urls,
     assets: staticAssets,
     hubIndex,
+    pageTracker,
   });
   console.log(
     `  ${pages.selected.toLocaleString('en-US')} pages in ` +
@@ -294,8 +335,13 @@ console.log(
     `lineage.ndjson (${formatBytes(agentFiles.lineageBytes)})`,
 );
 
-const recent = await writeRecentPage({ distDir, records, assets: staticAssets });
-console.log(`  /recent: ${recent.length} newest blocks, first ${recent[0]?.prefix ?? 'n/a'} (${recent[0]?.firstSeen ?? ''})`);
+const pageHashes = await finalizePageHashes({
+  tracker: pageTracker,
+  previous: previousPageHashes,
+  refreshDate,
+  outDir: distDir,
+});
+console.log(`  page hashes: ${pageHashes.urls} URLs (${formatBytes(pageHashes.bytes)})`);
 
 const files = await walkDir(distDir);
 const budget = checkBudget({ files });

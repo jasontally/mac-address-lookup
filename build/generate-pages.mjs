@@ -59,6 +59,7 @@ export async function generatePages({
   homeUrl = null,
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
   hubIndex = null,
+  pageTracker = null,
 }) {
   const { selected, dropped, selectedByType, droppedByType } = selectPages(records, {
     pageBudget,
@@ -85,6 +86,7 @@ export async function generatePages({
       enrich: buildEnrichment(record, { orgFirstSeen: vendorHub?.firstSeen ?? null }),
       formerHub: hubIndex?.formerHub ? hubIndex.formerHub(record.orgName) : null,
     });
+    pageTracker?.record(`${site.replace(/\/$/, '')}/${record.prefix}`, html);
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });
 
@@ -98,7 +100,7 @@ export async function generatePages({
     hubUrls: hubUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     prefixUrls: selected.map((record) => `${site}/${record.prefix}`),
   });
-  const sitemap = await writeSitemaps({ urls, site, outDir, lastmod });
+  const sitemap = await writeSitemaps({ urls, site, outDir, lastmod, lastmodFor: pageTracker?.lastmodFor ?? null });
 
   return {
     selected: selected.length,

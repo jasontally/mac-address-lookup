@@ -46,7 +46,7 @@ export function shouldRefresh({ changed, refreshDate, now = new Date() }) {
  * deployed copy is both an emergency cache for builds and the baseline for the
  * weekly change-detection workflow.
  */
-export async function writeSourceCache(entries, { outDir }) {
+export async function writeSourceCache(entries, { outDir, generatedAt = null }) {
   const dir = path.join(outDir, 'sources');
   await mkdir(dir, { recursive: true });
 
@@ -69,7 +69,7 @@ export async function writeSourceCache(entries, { outDir }) {
   }
 
   const manifest = {
-    generatedAt: new Date().toISOString(),
+    generatedAt: generatedAt ?? `undated-${sourceHashOf(files).slice(0, 12)}`,
     sourceHash: sourceHashOf(files),
     files,
   };
