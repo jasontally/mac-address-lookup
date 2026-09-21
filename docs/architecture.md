@@ -387,6 +387,28 @@ treatment).
   prose) and all `/{hex}`/hub pages (org names are language-neutral).
   The `/lang/` prefix also avoids colliding with free-text search routes
   (`/es` alone stays a search query).
+- **Note (2026-09-18):** hub and `/recent` pages swap their `<title>` and
+  `<h1>` client-side after boot (`title.vendorHub`/`title.formerHub`/
+  `title.countryHub`/`title.recent` + `hub.h1.*` keys; static HTML stays
+  English for crawlers, same contract as all `data-i18n` content). Dates
+  render with the active locale's short months via `Intl.DateTimeFormat`
+  for non-`en` (`src/ui/format.mjs`); English keeps the fixed
+  `DD MMM YYYY` table that build-time rendering depends on. Country names
+  remain English (language-neutral data).
+- **Note (2026-09-21):** the brand localizes — `nav.brand` (header
+  wordmark + breadcrumb home link) and every `title.*` suffix use each
+  locale's own site name (e.g. German "MAC-Adressen-Suche"), matching the
+  head phrase of the authored SEO titles in `src/i18n/seo.mjs`. The
+  English "MAC Address Lookup" remains the canonical name in crawlable
+  HTML, JSON-LD, `og:site_name`, and the fallback `en` table.
+- **Punctuation policy (2026-09-21):** no em dashes. Titles separate the
+  page part from the brand with `|`; the identifier inside a title is
+  parenthesized (`00:1A:2B (Intel Corporate)`); peer items inside one
+  string separate with ` · `; spec/definition clauses use `:`; appositive
+  clauses use `,`; two independent clauses use `, and` or a sentence
+  split; empty-value table cells render `-`. Exception: the IEEE registry
+  data (org names/addresses) keeps its em dashes verbatim, as do
+  Slavic-language copula dashes in ru/uk translations.
 
 ## Build & deployment
 

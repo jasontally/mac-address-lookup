@@ -29,7 +29,7 @@ export function llmsTxt({ dataFiles = {} } = {}) {
   }
   if (dataFiles.lineage) {
     dataLines.push(
-      `- [Lineage download (NDJSON)](${SITE}/${dataFiles.lineage}): ownership-change events with first-observed dates — the only public dataset of its kind`,
+      `- [Lineage download (NDJSON)](${SITE}/${dataFiles.lineage}): ownership-change events with first-observed dates, the only public dataset of its kind`,
     );
   }
   return `# MAC Address Lookup
@@ -40,7 +40,7 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 
 - [Help & documentation](${SITE}/help): how lookup works, block types, finding your own MAC, FAQ
 - [Help (Plain text)](${SITE}/help.txt): the same documentation as plain text, for tools that
-  refuse the markdown media type — it is valid Markdown either way
+  refuse the markdown media type, it is valid Markdown either way
 - [Help (Markdown)](${SITE}/help.md): the same documentation as Markdown
 - [Latest OUIs](${SITE}/recent): the most recently registered blocks, refreshed every deploy
 - Interface available in 31 languages (switcher on every page; each language
@@ -49,34 +49,34 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 
 ## URL scheme
 
-- \`/{hex}\` — lookup a MAC address or prefix. 6+ hex characters resolve via
+- \`/{hex}\` - lookup a MAC address or prefix. 6+ hex characters resolve via
   longest-prefix match across MA-L, MA-M, MA-S, IAB, and CID; a full 12-hex
   address resolves to its vendor. Pages are pre-rendered HTML.
-- \`/vendor/{slug}\` — pre-rendered provider page: every MAC block registered
+- \`/vendor/{slug}\` - pre-rendered provider page: every MAC block registered
   to one organization (vendors with two or more blocks), as a complete table.
-- \`/country/{code}\` — pre-rendered country page: every organization with
+- \`/country/{code}\` - pre-rendered country page: every organization with
   blocks registered in that country, with block counts and address space.
-- \`/former/{name}\` — pre-rendered former-owner page: organizations that no
+- \`/former/{name}\` - pre-rendered former-owner page: organizations that no
   longer hold any of their once-registered prefixes, with what happened to
   each block (transfers, renames, full acquisitions).
-- \`/{vendor-name}\` — free-text search over vendors, former owners, countries,
+- \`/{vendor-name}\` - free-text search over vendors, former owners, countries,
   block types, prefixes, and registration years. Results are an HTML table.
-- \`/{a},{b}\` — batch lookup of comma-separated addresses (up to 250).
-- \`/?q={text}\` — legacy query form; redirects to the path scheme.
+- \`/{a},{b}\` - batch lookup of comma-separated addresses (up to 250).
+- \`/?q={text}\` - legacy query form; redirects to the path scheme.
 
 No JavaScript is required to read any page; results pages for lookups are
 fully server-rendered for registered prefixes.
 
 ## Data files
 
-- ${SITE}/data/manifest.json — index of the current data files (Parquet + NDJSON)
+- ${SITE}/data/manifest.json - index of the current data files (Parquet + NDJSON)
 ${dataLines.join('\n')}
-- ${SITE}/data/registry/index.txt — a machine-readable index of the per-prefix lookup shards below
-- \`${SITE}/data/registry/{key}.txt\` — one JSON object per line, grouped by trie key; keys are variable
+- ${SITE}/data/registry/index.txt - a machine-readable index of the per-prefix lookup shards below
+- \`${SITE}/data/registry/{key}.txt\` - one JSON object per line, grouped by trie key; keys are variable
   length (2–9 hex), lowercase. To look up a MAC: pick the longest key in \`index.txt\` that is a prefix
   of your MAC's hex (e.g. \`8C:1F:64:AF:A4:B2\` → \`/data/registry/8c1f64af.txt\`), fetch it, and pick
   the longest-prefix row. Files are \`text/plain\`, 1–30 KB each.
-- ${SITE}/data/sources-index.json — raw IEEE source files archived per deploy
+- ${SITE}/data/sources-index.json - raw IEEE source files archived per deploy
 
 The registry data is derived from the public IEEE Registration Authority
 registries (no restrictions apply). Ownership-history events come from the
@@ -91,19 +91,19 @@ export function helpMarkdown({ site = SITE } = {}) {
   ).join('\n\n');
   return `# Help & documentation
 
-Every network interface has a MAC address, and its first three bytes — the
-Organizationally Unique Identifier (OUI) — are registered with the IEEE
+Every network interface has a MAC address, and its first three bytes (the
+Organizationally Unique Identifier, OUI) are registered with the IEEE
 Registration Authority. This lookup resolves that prefix against the complete
 IEEE registries using longest-prefix matching, so small blocks resolve to the
 correct organization rather than a generic parent block.
 
 - Vendor and registered organization, with block type and address range
-- Randomization detection — modern phones randomize Wi-Fi addresses, which have no vendor
+- Randomization detection: modern phones randomize Wi-Fi addresses, which have no vendor
 - Virtual-machine prefixes for VMware, VirtualBox, Hyper-V, Parallels, Xen, QEMU/KVM, and Docker
-- Prefix lineage — acquisitions and renames, with the dates each change was first observed
+- Prefix lineage: acquisitions and renames, with the dates each change was first observed
 - Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local
 
-The interface runs in 31 languages — switch it with the language picker, or
+The interface runs in 31 languages: switch it with the language picker, or
 open a pre-rendered localized home page at \`${site}/lang/{locale}/\` (for
 example [Spanish](${site}/lang/es/) or [Japanese](${site}/lang/ja/)); the
 lookup itself, results pages, and downloadable data are language-neutral.
@@ -128,7 +128,7 @@ and virtual machines.
 | MA-M | 28 bits (7 hex) | 1,048,576 | Mid-size allocations, common for newer vendors |
 | MA-S | 36 bits (9 hex) | 4,096 | Small allocations; IoT modules and niche hardware |
 | IAB | 36 bits (9 hex) | 4,096 | Legacy Individual Address Blocks from reserved ranges |
-| CID | 24 bits (6 hex) | — | Company identifiers, not assigned to network interfaces |
+| CID | 24 bits (6 hex) | - | Company identifiers, not assigned to network interfaces |
 
 ## How to find your own MAC address
 
@@ -142,13 +142,13 @@ and virtual machines.
 Besides prefix pages, the site pre-renders reference pages organized by the
 registration itself, each with its complete table:
 
-- **Vendor pages** — \`${site}/vendor/{slug}\`: every MAC block registered to one
+- **Vendor pages** (\`${site}/vendor/{slug}\`): every MAC block registered to one
   organization, with block types, address space, countries, and registration dates.
-- **Country pages** — \`${site}/country/{code}\`: every organization with blocks
+- **Country pages** (\`${site}/country/{code}\`): every organization with blocks
   registered in that country, sorted by address space.
-- **Former-owner pages** — \`${site}/former/{name}\`: organizations that no longer
+- **Former-owner pages** (\`${site}/former/{name}\`): organizations that no longer
   hold any of the prefixes once registered to them, showing what happened to each
-  block — including acquisitions where one new owner took over all of them
+  block, including acquisitions where one new owner took over all of them
   (for example [Apple Computer](${site}/former/apple-computer), whose blocks are
   now registered to Apple, Inc.).
 
@@ -163,18 +163,18 @@ MA-S, IAB, and CID registries, refreshed on every deploy. Historical changes
 come from [runZero mac-tracker](https://github.com/runZeroInc/mac-tracker) (MIT),
 which records when an organization name changed in the public data. Those dates
 are observation dates, not legal transfer dates, and the registries do not
-reassign most prefixes — an acquisition usually leaves the old vendor name on
+reassign most prefixes. An acquisition usually leaves the old vendor name on
 existing hardware forever.
 
 ## Using the data programmatically
 
-Two datasets are downloadable as machine-readable files — one JSON object per
+Two datasets are downloadable as machine-readable files: one JSON object per
 line, no keys or auth required:
 
-- [registry.ndjson](${site}/data/registry.ndjson) — every IEEE assignment
+- [registry.ndjson](${site}/data/registry.ndjson) - every IEEE assignment
   (prefix, block type, organization, address, country, first-observed date).
   ~13.5 MB.
-- [lineage.ndjson](${site}/data/lineage.ndjson) — every ownership-change event
+- [lineage.ndjson](${site}/data/lineage.ndjson) - every ownership-change event
   with its first-observed date.
 
 For a single lookup you do not need the full registry. The registry is also
@@ -186,13 +186,13 @@ row count is at [data/registry/index.txt](${site}/data/registry/index.txt).
 To resolve a MAC address or prefix:
 
 1. Take the address's hex without separators, e.g. \`8C1F64AFA4B2\`.
-2. Find the longest shard key in \`index.txt\` that is a prefix of that hex —
-   here \`8c1f64af\` — and fetch \`${site}/data/registry/8c1f64af.txt\`
+2. Find the longest shard key in \`index.txt\` that is a prefix of that hex
+   (here \`8c1f64af\`) and fetch \`${site}/data/registry/8c1f64af.txt\`
    (a couple of KB).
 3. Within the shard, apply longest-prefix matching: the row whose \`prefix\`
    is the longest prefix of the address wins. For \`8C:1F:64:AF:A4:B2\` that
-   is \`8C1F64AFA\` — an MA-S block of 4,096 addresses registered to
-   DATA ELECTRONIC DEVICES, INC — not its parent MA-L \`8C1F64\`.
+   is \`8C1F64AFA\`: an MA-S block of 4,096 addresses registered to
+   DATA ELECTRONIC DEVICES, INC, not its parent MA-L \`8C1F64\`.
 
 Shards are small (roughly 1–30 KB), stable in URL for a given key, and served
 as \`text/plain\`, so they can be fetched and read by tools that cannot ingest
@@ -232,7 +232,7 @@ export async function writeAgentFiles({ distDir, records, lineageEvents = [] } =
   }
   // Agent lookup shards: the same trie partition the browser engine uses
   // (SHARD_TEXT_ROWS per file), but text/plain so web tools can ingest them.
-  // The full registry.ndjson is 13+ MB — over some tools' content-size
+  // The full registry.ndjson is 13+ MB, over some tools' content-size
   // limits; a single shard is a few KB to ~30 KB, one JSON object per line.
   const shardKeyToCount = new Map();
   for (const [key, group] of buildShardGroups(records, SHARD_TEXT_ROWS)) {

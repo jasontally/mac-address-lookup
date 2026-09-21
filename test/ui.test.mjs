@@ -35,15 +35,24 @@ test('parseLookup accepts any single path segment and legacy ?q=', () => {
   assert.equal(parseLookup({ pathname: '/', search: '?q=' }), null);
 });
 
-test('formatDate renders the universal DD MMM YYYY form in every locale', () => {
+test('formatDate keeps the fixed DD MMM YYYY form for English and build-time rendering', () => {
   assert.equal(formatDate('2014-01-17'), '17 Jan 2014');
   assert.equal(formatDate('2000-09-08'), '8 Sep 2000');
-  assert.equal(formatDate('2000-09-08', 'es'), '8 Sep 2000');
-  assert.equal(formatDate('2016-02-21', 'ja'), '21 Feb 2016');
   assert.equal(formatDate('2026-12-31'), '31 Dec 2026');
   assert.equal(formatDate(''), '');
   assert.equal(formatDate('sometime'), 'sometime');
 });
+
+test('formatDate renders localized month names for non-English locales', () => {
+  // English keeps the fixed table (build-time rendering depends on it).
+  assert.equal(formatDate('2016-02-21', 'en'), '21 Feb 2016');
+  // Non-English locales use Intl short months: German renders "Dez",
+  // Japanese orders year-month-day with the native month glyph.
+  assert.match(formatDate('2026-12-31', 'de'), /Dez/);
+  assert.match(formatDate('2016-12-31', 'ja'), /2016年12月31日/);
+});
+
+
 
 test('formatRelativeTime formats recent timestamps', () => {
   const now = Date.parse('2026-09-12T12:00:00Z');
@@ -53,6 +62,15 @@ test('formatRelativeTime formats recent timestamps', () => {
   assert.equal(formatRelativeTime(now - 2 * 86_400_000, now), '2d ago');
   assert.equal(formatRelativeTime(Date.parse('2026-07-01T12:00:00Z'), now), '1 Jul 2026');
 });
+
+test('formatRelativeTime localizes both the relative ranges and the absolute fallback', () => {
+  const now = Date.parse('2026-09-12T12:00:00Z');
+  // Same-timestamp branches: German relative format (e.g. "vor 5 Minuten").
+  assert.match(formatRelativeTime(now - 5 * 60_000, now, 'de'), /vor|M/);
+  // Beyond 30 days: German absolute date uses a German month name.
+  assert.match(formatRelativeTime(Date.parse('2026-07-01T12:00:00Z'), now, 'de'), /Jul|Juli/);
+});
+
 
 test('formatCount adds thousands separators', () => {
   assert.equal(formatCount(16_777_216), '16,777,216');

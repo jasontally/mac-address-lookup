@@ -55,7 +55,7 @@ test('prefix template renders enrichment with static English and raw params', ()
   });
   assert.match(html, /One of Intel Corporate&#39;s 667 registered blocks/);
   assert.match(html, /span 11\.1 billion/);
-  assert.match(html, /First observed 8 Sep 2003 — among Intel Corporate&#39;s oldest registrations\./);
+  assert.match(html, /First observed 8 Sep 2003, among Intel Corporate&#39;s oldest registrations\./);
   assert.match(
     html,
     /data-enrich='\[{&quot;key&quot;:&quot;enrich\.portfolio&quot;/,

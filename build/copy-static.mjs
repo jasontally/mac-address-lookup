@@ -84,7 +84,7 @@ export async function buildStatic({ root, distDir }) {
   );
   await writeFile(
     path.join(assetsDir, 'THIRD-PARTY.txt'),
-    `hyparquet — MIT License\nhttps://github.com/hyparam/hyparquet\n\n${hyparquetLicense}\n`,
+    `hyparquet - MIT License\nhttps://github.com/hyparam/hyparquet\n\n${hyparquetLicense}\n`,
   );
 
   // Substitute asset tokens in every root-level HTML file.

@@ -1,7 +1,7 @@
 /**
  * Pre-rendered hub pages (step 2 of docs/thin-content-mitigation.md): one
  * page per multi-block organization (/vendor/<slug>) and one per country
- * (/country/<code>), both carrying the complete data as static tables —
+ * (/country/<code>), both carrying the complete data as static tables -
  * no row caps; the whole table ships (static HTML compresses ~10:1 at the
  * edge; sizing in the plan).
  *
@@ -29,7 +29,7 @@ const BOOT = `(function () {
 
 /**
  * Chunked rendering for very large hub tables (thin-content plan's fallback):
- * rows past the initial batch ship with `hidden` in the source HTML — the
+ * rows past the initial batch ship with `hidden` in the source HTML - the
  * complete data remains in the document for non-JS crawlers, but the browser
  * never lays out 8,881 rows at boot. A tiny inline script adds the "show
  * more" reveal; without JavaScript the note tells the reader, and the full
@@ -334,7 +334,7 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-function renderPage({ title, description, canonical, breadcrumbLabel, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0 }) {
+function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0 }) {
   const breadcrumb = breadcrumbLd([
     { name: 'MAC Address Lookup', url: `${SITE}/` },
     { name: breadcrumbLabel, url: canonical },
@@ -344,7 +344,7 @@ function renderPage({ title, description, canonical, breadcrumbLabel, heading, l
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(title)}</title>
+    ${titleTag ?? `<title>${escapeHtml(title)}</title>`}
     <meta name="description" content="${escapeHtml(description)}" />
     <link rel="canonical" href="${escapeHtml(canonical)}" />
     <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
@@ -368,7 +368,7 @@ ${jsonLdNodes.map(jsonLdScript).join('')}${jsonLdScript(breadcrumb)}    <script 
 
     <header class="site-header">
       <div class="container">
-        <a class="wordmark" href="/">MAC Address Lookup</a>
+        <a class="wordmark" href="/" data-i18n="nav.brand">MAC Address Lookup</a>
         <div class="header-actions">
           <a class="button button--ghost button--icon" href="/help" data-i18n-title="nav.help" aria-label="Help and documentation" title="Help and documentation">?</a>
           <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
@@ -385,7 +385,7 @@ ${jsonLdNodes.map(jsonLdScript).join('')}${jsonLdScript(breadcrumb)}    <script 
     <main id="main">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb" data-i18n-aria="a11y.breadcrumb">
-          <a href="/">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>${escapeHtml(breadcrumbLabel)}</span>
+          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>${escapeHtml(breadcrumbLabel)}</span>
         </nav>
         <section class="hero hero--compact">
           <h1>${heading}</h1>
@@ -397,7 +397,7 @@ ${body}
         </article>
         <p class="section-note" id="hub-rows-note">${
           totalRows > HUB_ROWS_SHOWN
-            ? `<span class="hub-rows-count" data-i18n="hub.rowsCount" ${paramsAttr({ shown: HUB_ROWS_SHOWN, total: totalRows })}>Showing the first ${HUB_ROWS_SHOWN} of ${totalRows}</span> — <span data-i18n="hub.rowsTail">the rest is in this page's source HTML.</span>`
+            ? `<span class="hub-rows-count" data-i18n="hub.rowsCount" ${paramsAttr({ shown: HUB_ROWS_SHOWN, total: totalRows })}>Showing the first ${HUB_ROWS_SHOWN} of ${totalRows}</span> · <span data-i18n="hub.rowsTail">the rest is in this page's source HTML.</span>`
             : ''
         }</p>
         <p class="section-note" data-i18n="hub.completeNote">Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.</p>
@@ -413,7 +413,7 @@ ${HUB_ROW_VIRTUALIZER}
           <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
         </p>
         <p>
-          <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
+          <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
           <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
@@ -427,7 +427,7 @@ ${HUB_ROW_VIRTUALIZER}
 /**
  * Former-owner hub: an organization that no longer holds any of the prefixes
  * it was once registered to. Every row states what happened to the block,
- * and the lede states the current owner(s) — including full acquisitions
+ * and the lede states the current owner(s) - including full acquisitions
  * ("X took over all of them"), the takeover case this page class exists for.
  */
 export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, site = SITE }) {
@@ -436,7 +436,11 @@ export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, 
   const description =
     `${hub.blocks} MAC address blocks were once registered to ${hub.displayName}; ` +
     `each has been renamed, reassigned, or absorbed. Complete table with what happened to every block.`;
-  const heading = `${escapeHtml(hub.displayName)} — former MAC address blocks`;
+  const heading =
+    `<span data-i18n="hub.h1.former" ${paramsAttr({ org: hub.displayName })}>` +
+    `Former ${escapeHtml(hub.displayName)} MAC address blocks</span>`;
+  const titleTag =
+    `<title data-i18n="title.formerHub" ${paramsAttr({ org: hub.displayName })}>${escapeHtml(title)}</title>`;
 
   const owners = [...hub.owners.entries()].sort(
     (a, b) => ownerWeight(b[1]) - ownerWeight(a[1]) || (a[0] < b[0] ? -1 : 1),
@@ -467,17 +471,17 @@ export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, 
     .sort((a, b) => (a.prefix < b.prefix ? -1 : a.prefix > b.prefix ? 1 : 0))
     .map((instance, index) => {
       const record = recordsByPrefix.get(instance.prefix);
-      const blockLabel = record ? record.blockType : '—';
-      const addresses = record ? formatAddresses(record.addressCount, 'en') : '—';
+      const blockLabel = record ? record.blockType : '-';
+      const addresses = record ? formatAddresses(record.addressCount, 'en') : '-';
       const ownerHtml = instance.currentSlug
         ? `<a href="/vendor/${escapeHtml(instance.currentSlug)}">${escapeHtml(instance.currentDisplay)}</a>`
-        : escapeHtml(instance.currentDisplay || '—');
+        : escapeHtml(instance.currentDisplay || '-');
       return (
         `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
         `<td class="mono"><a href="/${escapeHtml(instance.prefix)}">${escapeHtml(colonize(instance.prefix))}</a></td>` +
         `<td>${escapeHtml(blockLabel)}</td>` +
         `<td>${escapeHtml(addresses)}</td>` +
-        `<td>${escapeHtml(formatDate(instance.firstDate, 'en') || '—')}</td>` +
+        `<td>${escapeHtml(formatDate(instance.firstDate, 'en') || '-')}</td>` +
         `<td class="org">${ownerHtml}</td>` +
         `</tr>`
       );
@@ -512,6 +516,7 @@ ${rows}
 
   return renderPage({
     title,
+    titleTag,
     description,
     canonical,
     breadcrumbLabel: hub.displayName,
@@ -537,14 +542,18 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [] }) {
   const description =
     `${hub.blocks} MAC address blocks registered to ${hub.displayName}, covering ` +
     `${formatAddresses(hub.addresses, 'en')} addresses. Complete block list with countries and registration dates.`;
-  const heading = `${escapeHtml(hub.displayName)} MAC address blocks`;
+  const heading =
+    `<span data-i18n="hub.h1.vendor" ${paramsAttr({ org: hub.displayName })}>` +
+    `${escapeHtml(hub.displayName)} MAC address blocks</span>`;
+  const titleTag =
+    `<title data-i18n="title.vendorHub" ${paramsAttr({ org: hub.displayName })}>${escapeHtml(title)}</title>`;
   const firstParam = hub.firstSeen ?? 'before tracked records';
   const ledeKey = hub.lastSeen && hub.lastSeen !== hub.firstSeen ? 'hub.vendor.ledeLatest' : 'hub.vendor.lede';
   const ledeParams = { blocks: hub.blocks, org: hub.displayName, addresses: hub.addresses, first: firstParam };
   if (ledeKey === 'hub.vendor.ledeLatest') ledeParams.date = hub.lastSeen;
   const ledeHtml =
     `          <p class="lede" data-i18n="${ledeKey}" ${paramsAttr(ledeParams)}>The IEEE registry carries ${hub.blocks} blocks registered to ` +
-    `${escapeHtml(hub.displayName)} — together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} addresses, ` +
+    `${escapeHtml(hub.displayName)}, together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} addresses, ` +
     `first observed ${escapeHtml(formatDate(hub.firstSeen, 'en') || 'before tracked records')}${escapeHtml(suffix)}.</p>` +
     (hub.countryCodes.length > 0
       ? `\n          <p class="hub-countries"><span data-i18n="hub.startedIn">Registered in</span> ${countryLinks(hub.countryCodes)}.</p>`
@@ -560,8 +569,8 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [] }) {
         `<td class="mono"><a href="/${escapeHtml(record.prefix)}">${escapeHtml(colonize(record.prefix))}</a></td>` +
         `<td>${escapeHtml(record.blockType)}</td>` +
         `<td>${escapeHtml(formatAddresses(record.addressCount, 'en'))}</td>` +
-        `<td>${escapeHtml(record.country ?? '—')}</td>` +
-        `<td>${escapeHtml(formatDate(record.firstSeen, 'en') || '—')}</td>` +
+        `<td>${escapeHtml(record.country ?? '-')}</td>` +
+        `<td>${escapeHtml(formatDate(record.firstSeen, 'en') || '-')}</td>` +
         `</tr>`,
     )
     .join('\n');
@@ -596,6 +605,7 @@ ${rows}
 
   return renderPage({
     title,
+    titleTag,
     description,
     canonical,
     breadcrumbLabel: hub.displayName,
@@ -615,10 +625,14 @@ export function renderCountryHubPage({ hub, assets, site = SITE }) {
   const description =
     `${hub.blocks} MAC address blocks registered to organizations in ${name}, covering ` +
     `${formatAddresses(hub.addresses, 'en')} addresses.`;
-  const heading = `${escapeHtml(name)} MAC address blocks`;
+  const heading =
+    `<span data-i18n="hub.h1.country" ${paramsAttr({ country: name })}>` +
+    `${escapeHtml(name)} MAC address blocks</span>`;
+  const titleTag =
+    `<title data-i18n="title.countryHub" ${paramsAttr({ country: name })}>${escapeHtml(title)}</title>`;
   const ledeHtml =
     `          <p class="lede" data-i18n="hub.country.lede" ${paramsAttr({ blocks: hub.blocks, country: name, addresses: hub.addresses, count: hub.orgs.size })}>The IEEE registry carries ${hub.blocks} blocks with registration ` +
-    `addresses in ${escapeHtml(name)} — together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} ` +
+    `addresses in ${escapeHtml(name)}, together ${escapeHtml(formatAddresses(hub.addresses, 'en'))} ` +
     `addresses across ${hub.orgs.size} organizations.</p>`;
 
   const ranked = [...hub.orgs.values()].sort(
@@ -632,7 +646,7 @@ export function renderCountryHubPage({ hub, assets, site = SITE }) {
         `<td class="org">${orgAnchor(entry)}</td>` +
         `<td>${escapeHtml(formatCount(entry.blocks, 'en'))}</td>` +
         `<td>${escapeHtml(formatAddresses(entry.addresses, 'en'))}</td>` +
-        `<td>${escapeHtml(formatDate(entry.firstSeen, 'en') || '—')}</td>` +
+        `<td>${escapeHtml(formatDate(entry.firstSeen, 'en') || '-')}</td>` +
         `</tr>`,
     )
     .join('\n');
@@ -667,6 +681,7 @@ ${rows}
     description,
     canonical,
     breadcrumbLabel: name,
+    titleTag,
     heading,
     ledeHtml,
     body: `${body}\n`,

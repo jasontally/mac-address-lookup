@@ -1,4 +1,4 @@
-/** English UI strings — source of truth for all locales. */
+/** English UI strings - source of truth for all locales. */
 
 export const en = {
   // Navigation
@@ -22,7 +22,7 @@ export const en = {
   // Batch
   'batch.title': 'Batch lookup',
   'batch.description':
-    'Paste MAC addresses or CLI output — up to 250 addresses, commas, spaces, and new lines all work.',
+    'Paste MAC addresses or CLI output: up to 250 addresses, commas, spaces, and new lines all work.',
   'batch.label': 'MAC addresses',
   'batch.placeholder': '00:1B:21:3C:4D:5E\narp -a output\nFA:CA:DE:00:00:01',
   'batch.submit': 'Look up addresses',
@@ -82,7 +82,7 @@ export const en = {
   'badge.private': 'Private registration',
   'badge.vm': 'Virtual machine: {name}',
   'badge.randomized': 'Likely randomized',
-  'badge.subdivided': 'OUI subdivided — vendor lookup does not apply',
+  'badge.subdivided': 'OUI subdivided: vendor lookup does not apply',
 
   // Vendor portfolio
   'portfolio.label': 'Vendor portfolio: {blocks} · {addresses}',
@@ -92,7 +92,7 @@ export const en = {
   'enrich.portfolio': "One of {org}'s {count} registered blocks; together they span {addresses}.",
   'enrich.blockSize': 'Unlike the classic 24-bit OUI, a {type} assignment covers {addresses} addresses.',
   'enrich.cid': 'CID assignments are company identifiers; they are not used on network hardware.',
-  'enrich.oldest': "First observed {date} — among {org}'s oldest registrations.",
+  'enrich.oldest': "First observed {date}, among {org}'s oldest registrations.",
 
   // Related prefixes (pre-rendered pages)
   'related.sameOrg': 'More blocks from',
@@ -108,7 +108,7 @@ export const en = {
   'none.eyebrow': 'No vendor match',
   'none.title': 'Unregistered prefix',
   'none.description':
-    'No IEEE registration matches this prefix. That usually means the address is locally administered — randomized for privacy, assigned by a virtual machine, or set manually.',
+    'No IEEE registration matches this prefix. That usually means the address is locally administered: randomized for privacy, assigned by a virtual machine, or set manually.',
 
   // Formats
   'format.plain': 'Plain hex',
@@ -216,13 +216,30 @@ export const en = {
 
   // Footer
   'footer.dataNote':
-    'All lookups run in your browser — the addresses you look up are never sent to a server.',
+    'All lookups run in your browser, and the addresses you look up are never sent to a server.',
   'footer.help': 'Help & documentation',
   'footer.source': 'Source on GitHub',
   'footer.recent': 'Latest OUIs',
 
   // Recent page
   'recent.title': 'Latest OUIs',
+
+  // Page titles (client swap on already-translating page types; the brand
+  // suffix is localized per locale - the brand is the localized site name,
+  // not "MAC Address Lookup")
+  'title.batch': '{count} MAC lookups | MAC Address Lookup',
+  'title.match': '{org} ({colon}) | MAC Address Lookup',
+  'title.none': '{colon} | MAC Address Lookup',
+  'title.search': '{query} | MAC Address Lookup',
+  'title.vendorHub': '{org} MAC address blocks | MAC Address Lookup',
+  'title.formerHub': 'Former {org} MAC address blocks | MAC Address Lookup',
+  'title.countryHub': '{country} MAC address blocks | MAC Address Lookup',
+  'title.recent': 'Latest OUIs | MAC Address Lookup',
+
+  // Hub headings (visible h1s; org and country names stay language-neutral)
+  'hub.h1.vendor': '{org} MAC address blocks',
+  'hub.h1.former': 'Former {org} MAC address blocks',
+  'hub.h1.country': '{country} MAC address blocks',
 
   // Skip link
   'a11y.skip': 'Skip to content',
@@ -240,9 +257,9 @@ export const en = {
   // the hub.beforeTracked phrase, which stays English inside non-English
   // sentences for the rare no-date case.
   'hub.vendor.lede':
-    'The IEEE registry carries {blocks} blocks registered to {org} — together {addresses} addresses, first observed {first}.',
+    'The IEEE registry carries {blocks} blocks registered to {org}, together {addresses} addresses, first observed {first}.',
   'hub.vendor.ledeLatest':
-    'The IEEE registry carries {blocks} blocks registered to {org} — together {addresses} addresses, first observed {first}, most recently {date}.',
+    'The IEEE registry carries {blocks} blocks registered to {org}, together {addresses} addresses, first observed {first}, most recently {date}.',
   'hub.beforeTracked': 'before tracked records',
   'hub.startedIn': 'Registered in',
   'hub.absorbedFrom': 'Its portfolio also includes blocks acquired from',
@@ -254,7 +271,7 @@ export const en = {
   'hub.former.tookAll': 'took over all of them.',
   'hub.former.mixedCount': 'They are now registered across {count} organizations: ',
   'hub.country.lede':
-    'The IEEE registry carries {blocks} blocks with registration addresses in {country} — together {addresses} addresses across {count} organizations.',
+    'The IEEE registry carries {blocks} blocks with registration addresses in {country}, together {addresses} addresses across {count} organizations.',
   'hub.country.caption': 'Every organization with blocks registered in {country}, sorted by total address space.',
   'hub.rowsCount': 'Showing the first {shown} of {total}',
   'hub.rowsAll': 'Showing all {total}',

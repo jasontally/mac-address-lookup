@@ -46,13 +46,13 @@ export function renderRecentPage({ blocks, assets }) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Latest OUIs — MAC Address Lookup</title>
+    <title data-i18n="title.recent">Latest OUIs | MAC Address Lookup</title>
     <meta name="description" content="The most recently registered IEEE MAC address blocks, with first-observed dates. Refreshed on every data deploy." />
     <link rel="canonical" href="${SITE}/recent" />
     <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="Latest OUIs — MAC Address Lookup" />
+    <meta property="og:title" content="Latest OUIs | MAC Address Lookup" />
     <meta property="og:url" content="${SITE}/recent" />
     <link rel="alternate" type="text/markdown" href="/help.md" />
     <link rel="describedby" type="text/plain" href="/llms.txt" />
@@ -69,7 +69,7 @@ export function renderRecentPage({ blocks, assets }) {
 
     <header class="site-header">
       <div class="container">
-        <a class="wordmark" href="/">MAC Address Lookup</a>
+        <a class="wordmark" href="/" data-i18n="nav.brand">MAC Address Lookup</a>
         <div class="header-actions">
           <a class="button button--ghost button--icon" href="/help" data-i18n-title="nav.help" aria-label="Help and documentation" title="Help and documentation">?</a>
           <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
@@ -86,7 +86,7 @@ export function renderRecentPage({ blocks, assets }) {
     <main id="main">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb" data-i18n-aria="a11y.breadcrumb">
-          <a href="/">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span data-i18n="recent.title">Latest OUIs</span>
+          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span data-i18n="recent.title">Latest OUIs</span>
         </nav>
         <section class="prose">
           <h1 data-i18n="recent.title">Latest OUIs</h1>
@@ -123,7 +123,7 @@ ${rows}
           <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
         </p>
         <p>
-          <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
+          <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
           <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>

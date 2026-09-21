@@ -1,5 +1,5 @@
 # Public IEEE-derived data and pre-rendered lookup pages: open to all
-# crawlers by default. AI crawlers are explicitly welcomed — the site is
+# crawlers by default. AI crawlers are explicitly welcomed: the site is
 # static HTML readable without JavaScript, publishes downloadable data
 # files, and sets no tracking. See /llms.txt for the URL scheme.
 

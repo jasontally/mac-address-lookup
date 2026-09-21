@@ -8,10 +8,35 @@
 /**
  * English month abbreviations: the observation site is language-neutral
  * data, and a fixed 3-letter Latin month table renders identically in
- * every locale ("21 Feb 2016") — ICU short-month names vary by locale
- * ("sept.", "9月") and en-US reorders to "MMM D, YYYY".
+ * every locale ("21 Feb 2016") - ICU short-month names vary by locale
+ * ("sept.", "9月") and en-US reorders to "MMM D, YYYY". English keeps this
+ * fixed form (build-time rendering depends on it); other locales format
+ * the parts with Intl so month names and ordering are native
+ * ("21. feb. 2016", "2016年2月21日").
  */
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** English fallback form for a Date: `DD MMM YYYY` (UTC parts). */
+function englishDate(date) {
+  return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
+/** Locale-aware short-date form for a Date, falling back to English. */
+function localeDate(date, locale) {
+  if (!locale || locale === 'en' || typeof Intl === 'undefined' || !Intl.DateTimeFormat) {
+    return englishDate(date);
+  }
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(date);
+  } catch {
+    return englishDate(date); // unknown locale tag
+  }
+}
 
 /** Format an ISO `YYYY-MM-DD` observation date for display: `DD MMM YYYY`. */
 export function formatDate(iso, _locale = 'en') {
@@ -19,9 +44,9 @@ export function formatDate(iso, _locale = 'en') {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!match) return iso;
   const [, year, month, day] = match;
-  const monthName = MONTHS[Number(month) - 1];
-  if (!monthName) return iso;
-  return `${Number(day)} ${monthName} ${year}`;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  if (Number.isNaN(date.getTime())) return iso;
+  return localeDate(date, _locale);
 }
 
 /** Compact relative time for history entries. */
@@ -34,8 +59,7 @@ export function formatRelativeTime(timestamp, now = Date.now(), locale = 'en') {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 30) return `${days}d ago`;
-    const date = new Date(timestamp);
-    return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+    return englishDate(new Date(timestamp));
   }
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
   const deltaMinutes = Math.round((timestamp - now) / 60_000);
@@ -44,8 +68,7 @@ export function formatRelativeTime(timestamp, now = Date.now(), locale = 'en') {
   if (Math.abs(deltaHours) < 24) return rtf.format(deltaHours, 'hour');
   const deltaDays = Math.round(deltaHours / 24);
   if (Math.abs(deltaDays) < 30) return rtf.format(deltaDays, 'day');
-  const date = new Date(timestamp);
-  return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+  return localeDate(new Date(timestamp), locale);
 }
 
 export function formatCount(value, locale = 'en') {

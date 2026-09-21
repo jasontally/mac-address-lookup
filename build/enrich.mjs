@@ -1,7 +1,7 @@
 /**
  * Per-page computed context (step 3 of docs/thin-content-mitigation.md):
  * at most three short sentences per prefix page, every one derived from data
- * already on the record or in the build's org groups — portfolio position,
+ * already on the record or in the build's org groups - portfolio position,
  * block-type context, and registration cohort. Sentences are omitted, not
  * fudged, when the data is missing, and never repeat what the details grid,
  * badges, banners, or lineage already state.

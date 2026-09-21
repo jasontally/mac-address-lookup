@@ -214,8 +214,8 @@ async function runSingle(raw, { push = true } = {}) {
 
     document.title =
       result.kind === 'match'
-        ? `${result.match.orgName} — ${colonize(result.input.hex)} | MAC Address Lookup`
-        : `${colonize(result.input.hex)} | MAC Address Lookup`;
+        ? t('title.match', { org: result.match.orgName, colon: colonize(result.input.hex) })
+        : t('title.none', { colon: colonize(result.input.hex) });
 
     updateSingleUrl(result.input.hex, { push });
     setRobotsMeta(false);
@@ -283,7 +283,7 @@ async function runBatch(text, { push = true } = {}) {
     if (canonical) updateUrl(`/${encodeURIComponent(canonical)}`, { push });
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
-    document.title = `${limited.length} MAC lookups | MAC Address Lookup`;
+    document.title = t('title.batch', { count: formatCount(limited.length, getLocale()) });
     clearPendingLookup();
     requestAnimationFrame(() => ui.result.focus({ preventScroll: true }));
   } catch (error) {
@@ -313,7 +313,7 @@ async function runSearch(query, { push = true } = {}) {
     if (push || location.search) updateUrl(`/${encodeURIComponent(query)}`, { push });
     setRobotsMeta(true);
     setCanonical(`${location.origin}/`);
-    document.title = `${query} — MAC Address Lookup`;
+    document.title = t('title.search', { query });
     clearPendingLookup();
     requestAnimationFrame(() => ui.result.focus({ preventScroll: true }));
   } catch (error) {
@@ -456,7 +456,7 @@ if (!staticPage) {
       runRoute(route);
     } else if (location.search !== '' || !isLangHome(location.pathname)) {
       // Unknown path or non-lookup query: this is a soft 404 served by the SPA
-      // shell — but never for `/lang/{locale}/`, which is a real page.
+      // shell - but never for `/lang/{locale}/`, which is a real page.
       setRobotsMeta(true);
       setCanonical(`${location.origin}/`);
     }

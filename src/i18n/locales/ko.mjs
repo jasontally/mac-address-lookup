@@ -1,7 +1,7 @@
-/** ko locale table — complete. Key order follows en.mjs. */
+/** ko locale table - complete. Key order follows en.mjs. */
 
 export const ko = {
-  "nav.brand": "MAC Address Lookup",
+  "nav.brand": "MAC 주소 조회",
   "nav.help": "도움말 및 문서",
   "nav.helpTitle": "도움말 및 문서",
   "nav.theme": "테마 전환",
@@ -12,7 +12,7 @@ export const ko = {
   "examples.random": "무작위",
   "status.loadingRegistry": "레지스트리 불러오는 중…",
   "batch.title": "일괄 조회",
-  "batch.description": "MAC 주소나 CLI 출력을 붙여넣으세요 — 최대 250개까지, 쉼표·공백·줄바꿈 모두 지원합니다.",
+  "batch.description": "MAC 주소나 CLI 출력을 붙여넣으세요, 최대 250개까지, 쉼표·공백·줄바꿈 모두 지원합니다.",
   "batch.label": "MAC 주소",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a 출력\nFA:CA:DE:00:00:01",
   "batch.submit": "주소 조회",
@@ -56,14 +56,14 @@ export const ko = {
   "badge.private": "비공개 등록",
   "badge.vm": "가상 머신: {name}",
   "badge.randomized": "무작위화 추정",
-  "badge.subdivided": "OUI 세분화됨 — 제조사 조회가 적용되지 않습니다",
+  "badge.subdivided": "OUI 세분화됨, 제조사 조회가 적용되지 않습니다",
   "portfolio.label": "제조사 포트폴리오: {blocks} · {addresses}",
   "portfolio.viewAll": "모든 접두사 보기",
   "lineage.note": "이 접두사는 소유자가 바뀌었습니다. 날짜는 공개 등록 데이터(runZero mac-tracker)에서 각 변경이 처음 확인된 시점입니다.",
   "lineage.unknown": "알 수 없는 조직",
   "none.eyebrow": "제조사 없음",
   "none.title": "미등록 접두사",
-  "none.description": "이 접두사와 일치하는 IEEE 등록이 없습니다. 보통 로컬 관리 주소입니다 — 개인정보 보호를 위한 무작위화, 가상 머신 할당, 또는 수동 설정.",
+  "none.description": "이 접두사와 일치하는 IEEE 등록이 없습니다. 보통 로컬 관리 주소입니다, 개인정보 보호를 위한 무작위화, 가상 머신 할당, 또는 수동 설정.",
   "format.plain": "일반 16진수",
   "format.colon": "콜론 구분",
   "format.hyphen": "하이픈 구분",
@@ -138,7 +138,7 @@ export const ko = {
   "table.typicalUse": "일반적인 용도",
   "noscript.title": "JavaScript 필요",
   "noscript.body": "조회는 전적으로 브라우저에서 실행되며 JavaScript를 사용해야 합니다.",
-  "footer.dataNote": "모든 조회는 브라우저에서 실행됩니다 — 조회한 주소는 서버로 전송되지 않습니다.",
+  "footer.dataNote": "모든 조회는 브라우저에서 실행됩니다, 조회한 주소는 서버로 전송되지 않습니다.",
   "footer.help": "도움말 및 문서",
   "footer.source": "GitHub 소스 코드",
   "footer.recent": "최신 OUI",
@@ -169,7 +169,7 @@ export const ko = {
   "enrich.portfolio": "{org}이(가) 등록한 {count}개 블록 중 하나; 합계 {addresses}입니다.",
   "enrich.blockSize": "기존 24비트 OUI와 달리 {type} 할당은 {addresses}개 주소를 포괄합니다.",
   "enrich.cid": "CID 할당은 회사 식별자이며 네트워크 하드웨어에는 사용되지 않습니다.",
-  "enrich.oldest": "{date}에 처음 관측 — {org}의 가장 오래된 등록 중 하나입니다.",
+  "enrich.oldest": "{date}에 처음 관측, {org}의 가장 오래된 등록 중 하나입니다.",
   "hub.vendor.lede": "IEEE 레지스트리에는 {org}에 등록된 {blocks}개의 블록이 포함되어 있습니다. 총 {addresses}개의 주소이며, {first}에 처음 관찰되었습니다.",
   "hub.vendor.ledeLatest": "IEEE 레지스트리에는 {org}에 등록된 {blocks}개의 블록이 포함되어 있습니다. 총 {addresses}개의 주소이며, {first}에 처음 관찰되었고 가장 최근 관찰일은 {date}입니다.",
   "hub.beforeTracked": "추적 기록 이전",
@@ -188,4 +188,19 @@ export const ko = {
   "hub.rowsAll": "{total}개 전체 표시 중",
   "hub.rowsTail": "나머지는 이 페이지의 소스 HTML에 있습니다.",
   "hub.completeNote": "현재 IEEE 레지스트리 배포 기준의 전체 데이터입니다. 날짜는 각 등록이 공개 데이터에서 처음 관찰된 시점이며 법적 할당 날짜가 아닙니다.",
+
+  // Page titles and hub headings
+  "title.batch": "{count}건의 MAC 조회 | MAC 주소 조회",
+  "title.vendorHub": "{org}의 MAC 주소 블록 | MAC 주소 조회",
+  "title.formerHub": "이전 {org}의 MAC 주소 블록 | MAC 주소 조회",
+  "title.countryHub": "{country}의 MAC 주소 블록 | MAC 주소 조회",
+  "title.recent": "최신 OUI | MAC 주소 조회",
+  "hub.h1.vendor": "{org}의 MAC 주소 블록",
+  "hub.h1.former": "이전 {org}의 MAC 주소 블록",
+  "hub.h1.country": "{country}의 MAC 주소 블록",
+
+
+  "title.match": "{org} ({colon}) | MAC 주소 조회",
+  "title.none": "{colon} | MAC 주소 조회",
+  "title.search": "{query} | MAC 주소 조회",
 };

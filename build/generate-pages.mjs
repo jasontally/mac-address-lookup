@@ -24,7 +24,7 @@ async function mapConcurrent(items, limit, fn) {
  * Sitemap scoping for the phased index plan (docs/architecture.md →
  * "Sitemap indexing plan"). `all` keeps the current behavior; `hubs` drops
  * the 58,694 prefix pages; `core` keeps only the homepage, /help, and /recent.
- * Pages remain live and internally linked in every scope — the sitemap is a
+ * Pages remain live and internally linked in every scope - the sitemap is a
  * discovery hint and dropping rows cannot deindex anything.
  */
 export function sitemapUrlSelection({

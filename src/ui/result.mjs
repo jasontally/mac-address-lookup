@@ -360,7 +360,7 @@ export function renderPartial(container, result, { onSelect, onShowMore = null }
     el('tr', {}, [
       el('td', { 'data-label': t('table.prefix'), class: 'mono' }, [prefixCell(record.prefix, onSelect)]),
       el('td', { 'data-label': t('table.block') }, [record.blockType]),
-      el('td', { 'data-label': t('table.org'), class: 'org' }, [record.orgName || '—']),
+      el('td', { 'data-label': t('table.org'), class: 'org' }, [record.orgName || '-']),
     ]),
   );
 
@@ -429,7 +429,7 @@ export function renderBatch(container, entries, { summary = null, extracted = fa
         result.input ? colonize(result.input.hex) : raw,
       ]),
       el('td', { 'data-label': t('table.result'), class: 'org' }, [label]),
-      el('td', { 'data-label': t('table.flags') }, [flags.length ? flags.join(' · ') : '—']),
+      el('td', { 'data-label': t('table.flags') }, [flags.length ? flags.join(' · ') : '-']),
     ]);
   });
 
@@ -480,7 +480,7 @@ export function renderSearchResults(
     el('tr', {}, [
       el('td', { 'data-label': t('table.prefix'), class: 'mono' }, [prefixCell(record.prefix, onSelect)]),
       el('td', { 'data-label': t('table.block') }, [record.blockType]),
-      el('td', { 'data-label': t('table.org'), class: 'org' }, [record.orgName || '—']),
+      el('td', { 'data-label': t('table.org'), class: 'org' }, [record.orgName || '-']),
       el('td', { 'data-label': t('table.match') }, [
         reasonCell(reason),
       ]),
@@ -503,7 +503,7 @@ export function renderSearchResults(
       portfolio
         ? el('p', {
             class: 'summary-line',
-            text: `${portfolio.orgName} — ${formatCount(portfolio.blocks, getLocale())} · ${formatAddresses(portfolio.addresses, getLocale())}`,
+            text: `${portfolio.orgName} · ${formatCount(portfolio.blocks, getLocale())} · ${formatAddresses(portfolio.addresses, getLocale())}`,
           })
         : null,
       hubUrl

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Help & documentation — MAC Address Lookup</title>
+    <title>Help & documentation | MAC Address Lookup</title>
     <meta
       name="description"
       content="How MAC address lookup works: OUI and registry types, randomized and locally administered addresses, finding your own MAC address, prefix lineage, and answers to common questions."
@@ -13,7 +13,7 @@
     <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="MAC Address Lookup" />
-    <meta property="og:title" content="Help & documentation — MAC Address Lookup" />
+    <meta property="og:title" content="Help & documentation | MAC Address Lookup" />
     <meta
       property="og:description"
       content="How MAC address lookup works, IEEE registry types, randomized addresses, finding your own MAC address, and answers to common questions."
@@ -38,7 +38,7 @@
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Help & documentation — MAC Address Lookup",
+        "name": "Help & documentation | MAC Address Lookup",
         "url": "https://mac.jasontally.com/help",
         "isPartOf": { "@type": "WebSite", "name": "MAC Address Lookup", "url": "https://mac.jasontally.com/" }
       }
@@ -58,7 +58,7 @@
 
     <header class="site-header">
       <div class="container">
-        <a class="wordmark" href="/">MAC Address Lookup</a>
+        <a class="wordmark" href="/" data-i18n="nav.brand">MAC Address Lookup</a>
         <div class="header-actions">
           <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
           </select>
@@ -74,7 +74,7 @@
     <main id="main">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="/">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span data-i18n="help.breadcrumb">Help</span>
+          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span data-i18n="help.breadcrumb">Help</span>
         </nav>
 
         <section class="prose">
@@ -82,17 +82,17 @@
 
           <h2 data-i18n="help.whatThisTells">What this tool tells you</h2>
           <p>
-            Every network interface has a MAC address, and its first three bytes — the
-            <abbr title="Organizationally Unique Identifier">OUI</abbr> — are registered with the IEEE
+            Every network interface has a MAC address, and its first three bytes (the
+            <abbr title="Organizationally Unique Identifier">OUI</abbr>) are registered with the IEEE
             Registration Authority. This lookup resolves that prefix against the complete IEEE registries
             using longest-prefix matching, so small blocks resolve to the correct organization rather than a
             generic parent block.
           </p>
           <ul>
             <li>Vendor and registered organization, with block type and address range</li>
-            <li>Randomization detection — modern phones randomize Wi-Fi addresses, which have no vendor</li>
+            <li>Randomization detection: modern phones randomize Wi-Fi addresses, which have no vendor</li>
             <li>Virtual-machine prefixes for VMware, VirtualBox, Hyper-V, Parallels, Xen, QEMU/KVM, and Docker</li>
-            <li>Prefix lineage — acquisitions and renames, with the dates each change was first observed</li>
+            <li>Prefix lineage: acquisitions and renames, with the dates each change was first observed</li>
             <li>Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local</li>
           </ul>
 
@@ -123,7 +123,7 @@
                 <tr><td data-i18n-data-label="table.registry" data-label="Registry">MA-M</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">28 bits (7 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">1,048,576</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Mid-size allocations, common for newer vendors</td></tr>
                 <tr><td data-i18n-data-label="table.registry" data-label="Registry">MA-S</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">36 bits (9 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">4,096</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Small allocations; IoT modules and niche hardware</td></tr>
                 <tr><td data-i18n-data-label="table.registry" data-label="Registry">IAB</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">36 bits (9 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">4,096</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Legacy Individual Address Blocks from reserved ranges</td></tr>
-                <tr><td data-i18n-data-label="table.registry" data-label="Registry">CID</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">24 bits (6 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">—</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Company identifiers, not assigned to network interfaces</td></tr>
+                <tr><td data-i18n-data-label="table.registry" data-label="Registry">CID</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">24 bits (6 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">-</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Company identifiers, not assigned to network interfaces</td></tr>
               </tbody>
             </table>
           </div>
@@ -142,9 +142,9 @@
             registration itself, each with its complete table:
           </p>
           <ul>
-            <li><a href="/vendor/apple-inc">Vendor pages</a> — <code>/vendor/&lt;name&gt;</code>: every MAC block registered to one organization, with block types, address space, countries, and registration dates.</li>
-            <li><a href="/country/us">Country pages</a> — <code>/country/&lt;code&gt;</code>: every organization with blocks registered in that country, sorted by address space.</li>
-            <li>Former-owner pages — <code>/former/&lt;name&gt;</code>: organizations that no longer hold any of the prefixes once registered to them, showing what happened to each block — including acquisitions where a single new owner took over all of them (for example <a href="/former/apple-computer">Apple Computer</a>, whose blocks are now registered to Apple, Inc.).</li>
+            <li><a href="/vendor/apple-inc">Vendor pages</a> - <code>/vendor/&lt;name&gt;</code>: every MAC block registered to one organization, with block types, address space, countries, and registration dates.</li>
+            <li><a href="/country/us">Country pages</a> - <code>/country/&lt;code&gt;</code>: every organization with blocks registered in that country, sorted by address space.</li>
+            <li>Former-owner pages - <code>/former/&lt;name&gt;</code>: organizations that no longer hold any of the prefixes once registered to them, showing what happened to each block, including acquisitions where a single new owner took over all of them (for example <a href="/former/apple-computer">Apple Computer</a>, whose blocks are now registered to Apple, Inc.).</li>
           </ul>
 
           <h2 data-i18n="help.faq">Frequently asked questions</h2>
@@ -158,11 +158,11 @@
             registries, refreshed on every deploy. Historical changes come from
             <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> (MIT),
             which records when an organization name changed in the public data. Those dates are observation
-            dates, not legal transfer dates, and the registries do not reassign most prefixes — an
+            dates, not legal transfer dates, and the registries do not reassign most prefixes. An
             acquisition usually leaves the old vendor name on existing hardware forever.
           </p>
           <p>
-            Both datasets are downloadable as machine-readable files — one JSON object per line, no keys:
+            Both datasets are downloadable as machine-readable files: one JSON object per line, no keys:
             <a href="/data/registry.ndjson">registry.ndjson</a> for every assignment and
             <a href="/data/lineage.ndjson">lineage.ndjson</a> for every ownership change.
             The most recent registrations are listed on the <a href="/recent">Latest OUIs</a> page,
@@ -180,7 +180,7 @@
           <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
         </p>
         <p>
-          <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
+          <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
           <a href="/recent" data-i18n="footer.recent">Latest OUIs</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>

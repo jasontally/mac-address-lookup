@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MAC Address Lookup — Vendor & OUI Lookup</title>
+    <title>MAC Address Lookup | Vendor & OUI Lookup</title>
     <meta
       name="description"
-      content="Free, private MAC address lookup. Paste a full or partial MAC address or OUI to identify the vendor, IEEE block details, randomization, virtualization, and prefix lineage — all in your browser."
+      content="Free, private MAC address lookup. Paste a full or partial MAC address or OUI to identify the vendor, IEEE block details, randomization, virtualization, and prefix lineage, all in your browser."
     />
     <link rel="canonical" href="https://mac.jasontally.com/" />
     <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="MAC Address Lookup" />
-    <meta property="og:title" content="MAC Address Lookup — Vendor & OUI Lookup" />
+    <meta property="og:title" content="MAC Address Lookup | Vendor & OUI Lookup" />
     <meta
       property="og:description"
-      content="Identify the vendor behind any full or partial MAC address. IEEE block details, randomization detection, virtualization, and prefix lineage — all in your browser."
+      content="Identify the vendor behind any full or partial MAC address. IEEE block details, randomization detection, virtualization, and prefix lineage, all in your browser."
     />
     <meta property="og:url" content="https://mac.jasontally.com/" />
     <meta name="twitter:card" content="summary" />
@@ -165,7 +165,7 @@
 
     <header class="site-header">
       <div class="container">
-        <a class="wordmark" href="/">MAC Address Lookup</a>
+        <a class="wordmark" href="/" data-i18n="nav.brand">MAC Address Lookup</a>
         <div class="header-actions">
           <a class="button button--ghost button--icon" href="/help" data-i18n-title="nav.help" aria-label="Help and documentation" title="Help and documentation">?</a>
           <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
@@ -234,7 +234,7 @@
         <details class="disclosure" id="batch">
           <summary data-i18n="batch.title">Batch lookup</summary>
           <div class="disclosure-body">
-            <p data-i18n="batch.description">Paste MAC addresses or CLI output — up to 100 addresses, commas, spaces, and new lines all work.</p>
+            <p data-i18n="batch.description">Paste MAC addresses or CLI output: up to 100 addresses, commas, spaces, and new lines all work.</p>
             <form id="batch-form" novalidate>
               <label class="visually-hidden" for="batch-input" data-i18n="batch.label">MAC addresses</label>
               <textarea
@@ -276,7 +276,7 @@
           <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
         </p>
         <p>
-          <span data-i18n="footer.dataNote">All lookups run in your browser — the addresses you look up are never sent to a server.</span>
+          <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
           <a href="/recent" data-i18n="footer.recent">Latest OUIs</a> ·
           <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>

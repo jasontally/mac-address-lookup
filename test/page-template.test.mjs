@@ -24,7 +24,7 @@ test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JS
     assets: { appFile: '/assets/app.abc123.js', cssFile: '/assets/app.abc123.css' },
   });
 
-  assert.match(html, /<title>00:1A:2B — Intel Corporate \| MAC Address Lookup<\/title>/);
+  assert.match(html, /<title>00:1A:2B \(Intel Corporate\) \| MAC Address Lookup<\/title>/);
   assert.match(html, /<link rel="canonical" href="https:\/\/example\.test\/001A2B" \/>/);
   assert.match(html, /\/assets\/app\.abc123\.css/);
   assert.match(html, /\/assets\/app\.abc123\.js/);

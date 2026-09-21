@@ -1,7 +1,7 @@
-/** ja locale table — complete. Key order follows en.mjs. */
+/** ja locale table - complete. Key order follows en.mjs. */
 
 export const ja = {
-  "nav.brand": "MAC Address Lookup",
+  "nav.brand": "MACアドレス検索",
   "nav.help": "ヘルプとドキュメント",
   "nav.helpTitle": "ヘルプとドキュメント",
   "nav.theme": "テーマを切り替える",
@@ -12,7 +12,7 @@ export const ja = {
   "examples.random": "ランダム",
   "status.loadingRegistry": "レジストリを読み込み中…",
   "batch.title": "一括検索",
-  "batch.description": "MAC アドレスまたは CLI 出力を貼り付け — 最大 250 件、カンマ・スペース・改行すべて対応。",
+  "batch.description": "MAC アドレスまたは CLI 出力を貼り付け, 最大 250 件、カンマ・スペース・改行すべて対応。",
   "batch.label": "MAC アドレス",
   "batch.placeholder": "00:1B:21:3C:4D:5E\narp -a の出力\nFA:CA:DE:00:00:01",
   "batch.submit": "アドレスを検索",
@@ -56,14 +56,14 @@ export const ja = {
   "badge.private": "プライベート登録",
   "badge.vm": "仮想マシン: {name}",
   "badge.randomized": "ランダム化の可能性",
-  "badge.subdivided": "OUIは細分化済み — ベンダー検索は適用されません",
+  "badge.subdivided": "OUIは細分化済み, ベンダー検索は適用されません",
   "portfolio.label": "ベンダーポートフォリオ: {blocks} · {addresses}",
   "portfolio.viewAll": "すべてのプレフィックスを表示",
   "lineage.note": "このプレフィックスは所有者が変更されました。日付は公開登録データで各変更が最初に確認された日付です（runZero mac-tracker）。",
   "lineage.unknown": "不明な組織",
   "none.eyebrow": "ベンダー不一致",
   "none.title": "未登録プレフィックス",
-  "none.description": "このプレフィックスに一致する IEEE 登録はありません。通常、アドレスがローカル管理であることを意味します — プライバシーのためのランダム化、仮想マシンによる割り当て、または手動設定。",
+  "none.description": "このプレフィックスに一致する IEEE 登録はありません。通常、アドレスがローカル管理であることを意味します, プライバシーのためのランダム化、仮想マシンによる割り当て、または手動設定。",
   "format.plain": "16進数",
   "format.colon": "コロン区切り",
   "format.hyphen": "ハイフン区切り",
@@ -138,7 +138,7 @@ export const ja = {
   "table.typicalUse": "典型的な用途",
   "noscript.title": "JavaScript が必要です",
   "noscript.body": "検索は完全にブラウザ内で実行されるため、JavaScript を有効にする必要があります。",
-  "footer.dataNote": "すべての検索はブラウザ内で実行されます — 検索したアドレスがサーバーに送信されることはありません。",
+  "footer.dataNote": "すべての検索はブラウザ内で実行されます, 検索したアドレスがサーバーに送信されることはありません。",
   "footer.help": "ヘルプとドキュメント",
   "footer.source": "GitHub 上のソースコード",
   "footer.recent": "最新のOUI",
@@ -169,7 +169,7 @@ export const ja = {
   "enrich.portfolio": "{org}が登録した{count}ブロックの1つ。合計で{addresses}を含みます。",
   "enrich.blockSize": "従来の24ビットOUIとは異なり、{type}割り当ては{addresses}個のアドレスを含みます。",
   "enrich.cid": "CID割り当ては企業識別子であり、ネットワーク機器には使用されません。",
-  "enrich.oldest": "{date}に初めて観測 — {org} の最古級の登録です。",
+  "enrich.oldest": "{date}に初めて観測, {org} の最古級の登録です。",
   "hub.vendor.lede": "IEEEレジストリには、{org}に登録された{blocks}個のブロック（合計{addresses}個のアドレス）が記録されており、最初に観測されたのは{first}です。",
   "hub.vendor.ledeLatest": "IEEEレジストリには、{org}に登録された{blocks}個のブロック（合計{addresses}個のアドレス）が記録されており、最初に観測されたのは{first}、直近では{date}です。",
   "hub.beforeTracked": "追跡記録の開始前",
@@ -188,4 +188,19 @@ export const ja = {
   "hub.rowsAll": "全{total}件を表示しています",
   "hub.rowsTail": "残りのデータはこのページのソースHTMLにあります。",
   "hub.completeNote": "現在のIEEEレジストリ展開時点での完全なデータです。日付は、各登録が公開データで初めて観測された日時であり、法的な割り当て日ではありません。",
+
+  // Page titles and hub headings
+  "title.batch": "{count} 件のMAC検索 | MACアドレス検索",
+  "title.vendorHub": "{org} のMACアドレスブロック | MACアドレス検索",
+  "title.formerHub": "旧 {org} のMACアドレスブロック | MACアドレス検索",
+  "title.countryHub": "{country} のMACアドレスブロック | MACアドレス検索",
+  "title.recent": "最新のOUI | MACアドレス検索",
+  "hub.h1.vendor": "{org} のMACアドレスブロック",
+  "hub.h1.former": "旧 {org} のMACアドレスブロック",
+  "hub.h1.country": "{country} のMACアドレスブロック",
+
+
+  "title.match": "{org} ({colon}) | MACアドレス検索",
+  "title.none": "{colon} | MACアドレス検索",
+  "title.search": "{query} | MACアドレス検索",
 };

@@ -13,10 +13,10 @@ export function splitBatch(text) {
 
 /**
  * Decide how to handle raw user input:
- *   single  — one valid MAC address or prefix
- *   batch   — several valid addresses/prefixes, or addresses extracted from text
- *   search  — free-text query
- *   invalid — MAC-shaped input that does not parse
+ *   single  - one valid MAC address or prefix
+ *   batch   - several valid addresses/prefixes, or addresses extracted from text
+ *   search  - free-text query
+ *   invalid - MAC-shaped input that does not parse
  */
 export function classifyInput(text) {
   const value = String(text ?? '').trim();

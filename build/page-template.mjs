@@ -14,7 +14,7 @@ import { enrichDisplayParams } from './enrich.mjs';
 
 export const SITE = 'https://mac.jasontally.com';
 
-/** [i18n key, format key] — static HTML keeps the English label from en.mjs. */
+/** [i18n key, format key] - static HTML keeps the English label from en.mjs. */
 const FORMAT_LABELS = [
   ['format.plain', 'plain'],
   ['format.colon', 'colon'],
@@ -161,7 +161,7 @@ function vendorLink(record, vendorHub) {
 
 /**
  * Timeline organization name; links to the former-owner page when that org
- * no longer holds any of its prefixes (raw HTML — hub existence is resolved
+ * no longer holds any of its prefixes (raw HTML - hub existence is resolved
  * at build time).
  */
 function formerOrgHtml(event, formerHub) {
@@ -196,7 +196,7 @@ function renderResult(record, lineage, { vendorHub = null, countryHub = null, fo
 
   const badges = [
     badge(`${record.blockType} · ${record.prefixLen}-bit`),
-    isSubdivided(record) ? badge('OUI subdivided — vendor lookup does not apply', 'warning', 'badge.subdivided') : '',
+    isSubdivided(record) ? badge('OUI subdivided: vendor lookup does not apply', 'warning', 'badge.subdivided') : '',
     record.isPrivate ? badge('Private registration', 'warning', 'badge.private') : '',
     hypervisor ? badge(`Virtual machine: ${hypervisor.name}`, 'neutral', 'badge.vm', { name: hypervisor.name }) : '',
     randomization.likely ? badge('Likely randomized', 'warning', 'badge.randomized') : '',
@@ -350,7 +350,7 @@ export function renderPrefixPage({
   const canonical = `${site}/${record.prefix}`;
   const colon = colonize(record.prefix);
   const orgName = record.orgName || 'Unknown organization';
-  const title = `${colon} — ${orgName} | MAC Address Lookup`;
+  const title = `${colon} (${orgName}) | MAC Address Lookup`;
   const description = truncate(
     `${colon} is a ${record.prefixLen}-bit ${record.blockType} MAC address block registered to ${orgName}` +
       (record.country ? ` (${record.country})` : '') +
@@ -423,7 +423,7 @@ export function renderPrefixPage({
 
     <header class="site-header">
       <div class="container">
-        <a class="wordmark" href="/">MAC Address Lookup</a>
+        <a class="wordmark" href="/" data-i18n="nav.brand">MAC Address Lookup</a>
         <div class="header-actions">
           <a class="button button--ghost button--icon" href="/help" data-i18n-title="nav.help" aria-label="Help and documentation" title="Help and documentation">?</a>
           <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
@@ -440,7 +440,7 @@ export function renderPrefixPage({
     <main id="main">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb" data-i18n-aria="a11y.breadcrumb">
-          <a href="/">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>${escapeHtml(colon)}</span>
+          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>${escapeHtml(colon)}</span>
         </nav>
         <section class="hero hero--compact">
           <h1>${escapeHtml(orgName)} <span class="h1-prefix">${escapeHtml(colon)}</span></h1>
@@ -496,7 +496,7 @@ ${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
           <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
         </p>
         <p>
-          <span data-i18n="footer.dataNote">All lookups run in your browser — nothing is sent to a server.</span>
+          <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
           <span data-i18n="footer.refreshed">Data refreshed</span>
           <span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>
           <a href="/recent" data-i18n="footer.recent">Latest OUIs</a> ·

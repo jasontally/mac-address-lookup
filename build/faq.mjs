@@ -24,7 +24,7 @@ export const FAQ = [
   {
     question: 'Why does a MAC address show a company that no longer exists?',
     answer:
-      'MAC prefixes are registered once and are rarely reassigned when a company is acquired or renamed. The hardware keeps its original prefix forever, so the current registry entry may show the acquiring company — for example, Tekelec blocks now show Oracle. Prefix lineage on each result shows when those changes were observed.',
+      'MAC prefixes are registered once and are rarely reassigned when a company is acquired or renamed. The hardware keeps its original prefix forever, so the current registry entry may show the acquiring company. For example, Tekelec blocks now show Oracle. Prefix lineage on each result shows when those changes were observed.',
   },
   {
     question: 'What is prefix lineage?',

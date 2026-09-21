@@ -1,4 +1,4 @@
-/** Minimal DOM helpers. Text is always set via textContent — never innerHTML. */
+/** Minimal DOM helpers. Text is always set via textContent - never innerHTML. */
 
 export function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);

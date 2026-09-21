@@ -105,7 +105,7 @@ test('renderOrgHubPage renders the complete table without caps', () => {
   const hub = { ...orgHub, blocks: 1200, records };
   const html = renderOrgHubPage({ hub, assets: ASSETS, site: 'https://example.test' });
 
-  assert.match(html, /<title>Apple Inc\. MAC address blocks \| MAC Address Lookup<\/title>/);
+  assert.match(html, /<title[^>]*>Apple Inc\. MAC address blocks \| MAC Address Lookup<\/title>/);
   assert.match(html, /rel="canonical" href="https:\/\/example\.test\/vendor\/apple-inc"/);
   assert.match(html, /data-static-page="true"/);
   assert.match(html, /CollectionPage/);
@@ -164,7 +164,7 @@ test('renderCountryHubPage lists orgs sorted by address space, linking hubs', ()
   const html = renderCountryHubPage({ hub: countryHub, assets: ASSETS, site: 'https://example.test' });
 
   assert.match(html, /rel="canonical" href="https:\/\/example\.test\/country\/us"/);
-  assert.match(html, /<title>United States MAC address blocks \| MAC Address Lookup<\/title>/);
+  assert.match(html, /<title[^>]*>United States MAC address blocks \| MAC Address Lookup<\/title>/);
   const bigIndex = html.indexOf('href="/vendor/big-co"');
   const smallIndex = html.indexOf('Small Co</a>'.replace('</a>', ''));
   assert.ok(bigIndex !== -1);
@@ -292,7 +292,7 @@ test('renderFormerHubPage shows the full-takeover sentence and hub row link', ()
     assets: ASSETS,
     site: 'https://example.test',
   });
-  assert.match(html, /<title>Former Tekelec MAC address blocks \| MAC Address Lookup<\/title>/);
+  assert.match(html, /<title[^>]*>Former Tekelec MAC address blocks \| MAC Address Lookup<\/title>/);
   assert.match(html, /took over all of them/);
   assert.match(html, /href="\/vendor\/oracle"/);
   assert.match(html, /href="\/000017"/);

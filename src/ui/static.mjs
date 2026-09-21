@@ -1,7 +1,7 @@
 /**
  * Chrome-only entry for static pages (help, recent, vendor/country/former
  * hubs, built with data-static-page="true"): locale + theme + copy buttons
- * and the lookup-form deep-link. No engine, no Parquet, no hyparquet — a
+ * and the lookup-form deep-link. No engine, no Parquet, no hyparquet - a
  * fraction of the full app bundle for pages that never look up anything.
  */
 

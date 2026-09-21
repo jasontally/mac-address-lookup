@@ -3,7 +3,7 @@
  * clusters that declare them to search engines (docs/architecture.md →
  * "Multilingual SEO plan").
  *
- * Scope note: only the home page ships a `/lang/` twin — its visible text
+ * Scope note: only the home page ships a `/lang/` twin - its visible text
  * is entirely `data-i18n` UI strings (localized in all 30 locale tables)
  * plus an authored title/description pair per locale (src/i18n/seo.mjs).
  * The help page's prose and FAQ are English-only in the repo, so it stays
@@ -49,7 +49,7 @@ function escapeTextHtml(value) {
 }
 
 /**
- * Build-time translation of leaf text inside `data-i18n="key"` elements —
+ * Build-time translation of leaf text inside `data-i18n="key"` elements -
  * the server-side mirror of the client's `applyDom`, written for the
  * simple, well-formed chrome templates this build owns. Attribute-only
  * keys (data-i18n-title/-aria) stay English in the source; the client
