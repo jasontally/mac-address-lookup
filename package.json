@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "node build/build.mjs",
-    "test": "node --test test/",
+    "test": "node --test \"test/*.test.mjs\"",
     "test:e2e": "playwright test",
     "serve": "node build/serve.mjs",
     "dev": "wrangler dev",
