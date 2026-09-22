@@ -75,18 +75,32 @@ export async function generatePages({
 
   await mapConcurrent(selected, 64, async (record) => {
     const vendorHub = hubFor(record);
-    const html = renderPrefixPage({
-      record,
-      lineage: lineageByPrefix.get(record.prefix) ?? null,
-      site,
-      assets,
-      related: related.get(record.prefix) ?? null,
-      vendorHub,
-      countryHub: !record.isPrivate && record.country ? `/country/${record.country.toLowerCase()}` : null,
-      enrich: buildEnrichment(record, { orgFirstSeen: vendorHub?.firstSeen ?? null }),
-      formerHub: hubIndex?.formerHub ? hubIndex.formerHub(record.orgName) : null,
-    });
-    pageTracker?.record(`${site.replace(/\/$/, '')}/${record.prefix}`, html);
+    const render = (dataUpdated) =>
+      renderPrefixPage({
+        record,
+        lineage: lineageByPrefix.get(record.prefix) ?? null,
+        site,
+        assets,
+        related: related.get(record.prefix) ?? null,
+        vendorHub,
+        countryHub: !record.isPrivate && record.country ? `/country/${record.country.toLowerCase()}` : null,
+        enrich: buildEnrichment(record, { orgFirstSeen: vendorHub?.firstSeen ?? null }),
+        formerHub: hubIndex?.formerHub ? hubIndex.formerHub(record.orgName) : null,
+        dataUpdated,
+      });
+    const url = `${site.replace(/\/$/, '')}/${record.prefix}`;
+    // Two-pass date embedding (docs/architecture.md → "Per-page change dates"):
+    // unchanged pages render with their prior last-change date so their bytes
+    // stay identical; pages that really changed re-render with this build's
+    // refresh date, keeping footer date, JSON-LD dateModified, and sitemap
+    // lastmod consistent. Pages with no tracker (tests) render dateless.
+    const priorDate = pageTracker?.priorLastmod(url) ?? (pageTracker ? lastmod : null);
+    let html = render(priorDate);
+    pageTracker?.record(url, html);
+    if (pageTracker?.changedSince(url)) {
+      html = render(lastmod);
+      pageTracker.record(url, html);
+    }
     await writeFile(path.join(outDir, `${record.prefix}.html`), html);
   });
 
@@ -108,5 +122,9 @@ export async function generatePages({
     selectedByType,
     droppedByType,
     sitemap,
+    // The exact URLs this build's sitemap covers (entry.loc of every entry) —
+    // the IndexNow manifest intersects the changed pages with this set, so
+    // the ping follows the same phased scope contract as the sitemap.
+    sitemapUrlSet: urls.map((entry) => (typeof entry === 'string' ? entry : entry.loc)),
   };
 }

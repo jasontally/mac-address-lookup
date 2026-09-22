@@ -334,7 +334,7 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0 }) {
+function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0, dataUpdated = null, site = SITE }) {
   const breadcrumb = breadcrumbLd([
     { name: 'MAC Address Lookup', url: `${SITE}/` },
     { name: breadcrumbLabel, url: canonical },
@@ -349,10 +349,16 @@ function renderPage({ title, titleTag = null, description, canonical, breadcrumb
     <link rel="canonical" href="${escapeHtml(canonical)}" />
     <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MAC Address Lookup" />
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
+    <meta property="og:image" content="${site}/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MAC Address Lookup" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="alternate" type="text/markdown" href="/help.md" />
     <link rel="describedby" type="text/plain" href="/llms.txt" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -414,6 +420,12 @@ ${HUB_ROW_VIRTUALIZER}
         </p>
         <p>
           <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
+          <span data-i18n="footer.refreshed">Data refreshed</span>
+          ${
+            dataUpdated
+              ? `<time class="footer-date" datetime="${escapeHtml(dataUpdated)}">${escapeHtml(dataUpdated)}</time>`
+              : ''
+          }
           <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
@@ -430,7 +442,7 @@ ${HUB_ROW_VIRTUALIZER}
  * and the lede states the current owner(s) - including full acquisitions
  * ("X took over all of them"), the takeover case this page class exists for.
  */
-export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, site = SITE }) {
+export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, site = SITE, dataUpdated = null }) {
   const canonical = `${site}/former/${hub.slug}`;
   const title = `Former ${hub.displayName} MAC address blocks | MAC Address Lookup`;
   const description =
@@ -510,6 +522,7 @@ ${rows}
     '@type': 'CollectionPage',
     name: title,
     url: canonical,
+    ...(dataUpdated ? { dateModified: dataUpdated } : {}),
     isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${SITE}/` },
     about: { '@type': 'Organization', name: hub.displayName },
   }).replace(/</g, '\\u003c');
@@ -526,13 +539,15 @@ ${rows}
     assets,
     jsonLdNodes: [collectionLd],
     totalRows: hub.blocks,
+    dataUpdated,
+    site,
   });
 }
 
 function ownerWeight(owner) {
   return [...owner.nameCounts.values()].reduce((sum, count) => sum + count, 0);
 }
-export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [] }) {
+export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], dataUpdated = null }) {
   const canonical = `${site}${hub.url}`;
   const title = `${hub.displayName} MAC address blocks | MAC Address Lookup`;
   const suffix =
@@ -599,6 +614,7 @@ ${rows}
     '@type': 'CollectionPage',
     name: title,
     url: canonical,
+    ...(dataUpdated ? { dateModified: dataUpdated } : {}),
     isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${SITE}/` },
     about: { '@type': 'Organization', name: hub.displayName },
   }).replace(/</g, '\\u003c');
@@ -615,10 +631,12 @@ ${rows}
     assets,
     jsonLdNodes: [collectionLd],
     totalRows: hub.blocks,
+    dataUpdated,
+    site,
   });
 }
 
-export function renderCountryHubPage({ hub, assets, site = SITE }) {
+export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = null }) {
   const canonical = `${site}/country/${hub.code.toLowerCase()}`;
   const name = displayNameForCountry(hub.code);
   const title = `${name} MAC address blocks | MAC Address Lookup`;
@@ -673,6 +691,7 @@ ${rows}
     '@type': 'CollectionPage',
     name: title,
     url: canonical,
+    ...(dataUpdated ? { dateModified: dataUpdated } : {}),
     isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${SITE}/` },
   }).replace(/</g, '\\u003c');
 
@@ -688,6 +707,7 @@ ${rows}
     assets,
     jsonLdNodes: [collectionLd],
     totalRows: ranked.length,
+    dataUpdated,
   });
 }
 
@@ -720,8 +740,37 @@ function displayNameForCountry(code) {
 /**
  * Write all hub pages and return relative URL arrays for the sitemap plus
  * the data, for wiring vendor hub links into prefix pages.
+ *
+ * Each page embeds its own last-change date from the page-hash tracker
+ * (footer freshness line + JSON-LD dateModified). When the freshly rendered
+ * markup still differs from the deployed page, it is re-rendered once with
+ * this build's refresh date, so the embedded date, the JSON-LD, and the
+ * sitemap lastmod agree — and dates stay untouched for unchanged pages.
  */
-export async function writeHubPages({ hubData, outDir, assets, formerData = null, recordsByPrefix = new Map() }) {
+export async function writeHubPages({
+  hubData,
+  outDir,
+  assets,
+  formerData = null,
+  recordsByPrefix = new Map(),
+  pageTracker = null,
+  site = SITE,
+  refreshDate = null,
+}) {
+  const renderTracked = async (file, url, render) => {
+    const priorDate = pageTracker?.priorLastmod(url) ?? refreshDate;
+    let html = render(priorDate);
+    await writeFile(file, html);
+    if (pageTracker) {
+      pageTracker.record(url, html);
+      if (pageTracker.changedSince(url)) {
+        html = render(refreshDate);
+        await writeFile(file, html);
+        pageTracker.record(url, html);
+      }
+    }
+  };
+
   const vendorDir = path.join(outDir, 'vendor');
   const countryDir = path.join(outDir, 'country');
   await mkdir(vendorDir, { recursive: true });
@@ -730,9 +779,11 @@ export async function writeHubPages({ hubData, outDir, assets, formerData = null
   const vendorUrls = [];
   for (const hub of hubData.orgs) {
     const absorbed = formerData?.absorbedByVendor?.get(hub.key) ?? [];
-    await writeFile(
+    const url = `${site}${hub.url}`;
+    await renderTracked(
       path.join(vendorDir, `${hub.slug}.html`),
-      renderOrgHubPage({ hub, assets, absorbed }),
+      url,
+      (dataUpdated) => renderOrgHubPage({ hub, assets, site, absorbed, dataUpdated }),
     );
     vendorUrls.push(hub.url);
   }
@@ -740,9 +791,11 @@ export async function writeHubPages({ hubData, outDir, assets, formerData = null
   const countryUrls = [];
   for (const hub of hubData.countries) {
     const file = `${hub.code.toLowerCase()}.html`;
-    await writeFile(
+    const url = `${site}/country/${hub.code.toLowerCase()}`;
+    await renderTracked(
       path.join(countryDir, file),
-      renderCountryHubPage({ hub, assets }),
+      url,
+      (dataUpdated) => renderCountryHubPage({ hub, assets, site, dataUpdated }),
     );
     countryUrls.push(`/country/${hub.code.toLowerCase()}`);
   }
@@ -752,9 +805,11 @@ export async function writeHubPages({ hubData, outDir, assets, formerData = null
     const formerDir = path.join(outDir, 'former');
     await mkdir(formerDir, { recursive: true });
     for (const hub of formerData.formers) {
-      await writeFile(
+      const url = `${site}${hub.url}`;
+      await renderTracked(
         path.join(formerDir, `${hub.slug}.html`),
-        renderFormerHubPage({ hub, recordsByPrefix, assets }),
+        url,
+        (dataUpdated) => renderFormerHubPage({ hub, recordsByPrefix, assets, site, dataUpdated }),
       );
       formerUrls.push(hub.url);
     }

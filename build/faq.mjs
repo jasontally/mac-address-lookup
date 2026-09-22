@@ -44,7 +44,7 @@ export const FAQ = [
   {
     question: 'Is this lookup private?',
     answer:
-      'Yes. The IEEE dataset is downloaded once and every lookup runs in your browser. The addresses you type are never sent to a server, and the site sets no cookies.',
+      'Yes. The IEEE dataset is downloaded once and every lookup runs in your browser: the addresses you type are never sent to a server, and the app sets no cookies and does no tracking. The site is hosted on Cloudflare, which collects privacy-first, aggregate web analytics that use no cookies or client-side state and do not fingerprint individuals.',
   },
   {
     question: 'Does the vendor match identify the exact device?',

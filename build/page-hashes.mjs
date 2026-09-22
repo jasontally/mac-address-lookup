@@ -67,6 +67,13 @@ export function urlToDistPath(url) {
  * on the first build or when the fetch fails). `lastmodFor` resolves
  * lazily, so the sitemap writer can query it the moment every page is
  * recorded.
+ *
+ * Renderers use `priorLastmod(url)` to embed the page's own last-change
+ * date (footer freshness line + JSON-LD `dateModified`), then re-record:
+ * if the re-render still differs from the deployed bytes, the page is
+ * re-rendered once with `refreshDate`, keeping the embedded date, the
+ * JSON-LD, and the sitemap `<lastmod>` for that URL consistent — and
+ * untouched while the page really hasn't changed.
  */
 export function createPageTracker({ previous = null, refreshDate }) {
   const hashes = new Map(); // canonical URL → sha1 of the rendered HTML
@@ -74,6 +81,25 @@ export function createPageTracker({ previous = null, refreshDate }) {
   return {
     record(url, html) {
       hashes.set(url, sha1Hex(html));
+    },
+    /** The deployed manifest's entry for this URL (hash + lastmod), or null. */
+    prior(url) {
+      return previous?.pages?.[url] ?? null;
+    },
+    /** The URL's last recorded lastmod from the deployed site, or null. */
+    priorLastmod(url) {
+      return previous?.pages?.[url]?.m ?? null;
+    },
+    /**
+     * True when this build's recorded bytes differ from the deployed page's
+     * bytes (or the page is new — callers treat new pages as current-dated,
+     * so no re-render is needed there).
+     */
+    changedSince(url) {
+      const hash = hashes.get(url);
+      const prior = previous?.pages?.[url];
+      if (!prior) return false;
+      return prior.h !== hash;
     },
     has(url) {
       return hashes.has(url);
@@ -131,15 +157,30 @@ export async function loadPreviousPageHashes({
   }
 }
 
-/** Serialize the merged manifest atomically and return its stats. */
-export async function finalizePageHashes({ tracker, previous, refreshDate, outDir }) {
+/** Serialize the merged manifest atomically and return its stats.
+ *
+ * Also writes `data/indexnow.json`: the URLs whose bytes changed this build
+ * (sorted for byte stability), intersected with the current sitemap scope
+ * when `sitemapUrlSet` is provided, so the post-deploy IndexNow ping
+ * (build/indexnow.mjs) notifies exactly the pages the sitemap promotes.
+ */
+export async function finalizePageHashes({ tracker, previous, refreshDate, outDir, sitemapUrlSet = null }) {
   const merged = {};
   const pairs = [...tracker.entries()].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  const changedUrls = [];
+  const inScope = sitemapUrlSet ? new Set(sitemapUrlSet) : null;
   for (const [url, hash] of pairs) {
     const prior = previous?.pages?.[url];
     merged[url] = { h: hash, m: prior && prior.h === hash ? prior.m : refreshDate };
+    if ((!prior || prior.h !== hash) && (!inScope || inScope.has(url))) changedUrls.push(url);
   }
   const payload = `${JSON.stringify({ schemaVersion: PAGE_HASHES_SCHEMA, refreshDate, pages: merged })}\n`;
   await writeFile(path.join(outDir, PAGE_HASHES_FILE), payload);
-  return { urls: Object.keys(merged).length, bytes: Buffer.byteLength(payload) };
+  const indexnowPayload = `${JSON.stringify({ urls: changedUrls })}\n`;
+  await writeFile(path.join(outDir, 'data', 'indexnow.json'), indexnowPayload);
+  return {
+    urls: Object.keys(merged).length,
+    bytes: Buffer.byteLength(payload),
+    changedUrls: changedUrls.length,
+  };
 }

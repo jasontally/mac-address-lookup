@@ -1,7 +1,9 @@
 # Public IEEE-derived data and pre-rendered lookup pages: open to all
 # crawlers by default. AI crawlers are explicitly welcomed: the site is
 # static HTML readable without JavaScript, publishes downloadable data
-# files, and sets no tracking. See /llms.txt for the URL scheme.
+# files, and the app does no tracking (the host collects Cloudflare's
+# privacy-first, cookieless, aggregate web analytics). See /llms.txt for
+# the URL scheme.
 
 User-agent: *
 Allow: /

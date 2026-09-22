@@ -13,7 +13,7 @@
     "test:e2e": "playwright test",
     "serve": "node build/serve.mjs",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy && node build/indexnow.mjs"
   },
   "dependencies": {
     "hyparquet": "^1.30.1",

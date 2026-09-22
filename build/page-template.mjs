@@ -346,6 +346,7 @@ export function renderPrefixPage({
   countryHub = null,
   enrich = null,
   formerHub = null,
+  dataUpdated = null, // this page's own last content-change date (YYYY-MM-DD)
 }) {
   const canonical = `${site}/${record.prefix}`;
   const colon = colonize(record.prefix);
@@ -358,12 +359,18 @@ export function renderPrefixPage({
     156,
   );
 
+  // The page describes one IEEE registry record and links dataset downloads,
+  // so it is marked up as a Dataset (a CreativeWork subtype, the group Google
+  // recommends for date fields). dateModified is the page's own last content
+  // change from the page-hash tracker — never the wall clock, and never the
+  // IEEE registration date (that describes the data, not the page).
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: title,
+    '@type': 'Dataset',
+    name: `${colon} MAC address block (${orgName})`,
     url: canonical,
     description,
+    ...(dataUpdated ? { dateModified: dataUpdated } : {}),
     isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${site}/` },
     ...(record.orgName
       ? {
@@ -375,6 +382,18 @@ export function renderPrefixPage({
           },
         }
       : {}),
+    distribution: [
+      {
+        '@type': 'DataDownload',
+        encodingFormat: 'application/x-ndjson',
+        contentUrl: `${site}/data/registry.ndjson`,
+      },
+      {
+        '@type': 'DataDownload',
+        encodingFormat: 'application/x-ndjson',
+        contentUrl: `${site}/data/lineage.ndjson`,
+      },
+    ],
   }).replace(/</g, '\\u003c');
 
   const breadcrumbLd = JSON.stringify({
@@ -396,10 +415,16 @@ export function renderPrefixPage({
     <link rel="canonical" href="${escapeHtml(canonical)}" />
     <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MAC Address Lookup" />
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
+    <meta property="og:image" content="${site}/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MAC Address Lookup" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="${assets.cssFile}" />
     <script>
@@ -498,7 +523,11 @@ ${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
         <p>
           <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
           <span data-i18n="footer.refreshed">Data refreshed</span>
-          <span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>
+          ${
+            dataUpdated
+              ? `<time class="footer-date" datetime="${escapeHtml(dataUpdated)}">${escapeHtml(dataUpdated)}</time>`
+              : `<span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>`
+          }
           <a href="/recent" data-i18n="footer.recent">Latest OUIs</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>

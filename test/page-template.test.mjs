@@ -40,9 +40,31 @@ test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JS
   const jsonMatch = /<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/.exec(html);
   assert.ok(jsonMatch, 'JSON-LD script is present');
   const jsonLd = JSON.parse(jsonMatch[1]);
-  assert.equal(jsonLd['@type'], 'WebPage');
+  assert.equal(jsonLd['@type'], 'Dataset');
   assert.equal(jsonLd.url, 'https://example.test/001A2B');
   assert.equal(jsonLd.about.name, 'Intel Corporate');
+  assert.ok(jsonLd.distribution.some((entry) => entry.contentUrl.endsWith('/data/registry.ndjson')));
+  assert.equal(jsonLd.dateModified, undefined, 'dateless renders omit dateModified');
+  assert.doesNotMatch(html, /<time class="footer-date"/);
+});
+
+test('renderPrefixPage embeds the per-page change date in JSON-LD and the footer', () => {
+  const html = renderPrefixPage({
+    record,
+    site: 'https://example.test',
+    assets: { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
+    dataUpdated: '2026-09-21',
+  });
+  const scripts = [
+    ...html.matchAll(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/g),
+  ].map((match) => JSON.parse(match[1]));
+  const dataset = scripts.find((entry) => entry['@type'] === 'Dataset');
+  assert.equal(dataset.dateModified, '2026-09-21');
+  assert.match(
+    html,
+    /<time class="footer-date" datetime="2026-09-21">2026-09-21<\/time>/,
+  );
+  assert.doesNotMatch(html, /footer\.refreshPlaceholder/);
 });
 
 test('renderPrefixPage adds breadcrumb JSON-LD', () => {

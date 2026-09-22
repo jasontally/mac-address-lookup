@@ -27,7 +27,7 @@ export function recentBlocks(records, { limit = RECENT_LIMIT } = {}) {
     .slice(0, limit);
 }
 
-export function renderRecentPage({ blocks, assets }) {
+export function renderRecentPage({ blocks, assets, dataUpdated = null }) {
   const rows = blocks
     .map(
       (record) =>
@@ -51,9 +51,16 @@ export function renderRecentPage({ blocks, assets }) {
     <link rel="canonical" href="${SITE}/recent" />
     <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MAC Address Lookup" />
     <meta property="og:title" content="Latest OUIs | MAC Address Lookup" />
+    <meta property="og:description" content="The most recently registered IEEE MAC address blocks, with first-observed dates." />
     <meta property="og:url" content="${SITE}/recent" />
+    <meta property="og:image" content="${SITE}/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MAC Address Lookup" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="alternate" type="text/markdown" href="/help.md" />
     <link rel="describedby" type="text/plain" href="/llms.txt" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -124,6 +131,12 @@ ${rows}
         </p>
         <p>
           <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never sent to a server.</span>
+          <span data-i18n="footer.refreshed">Data refreshed</span>
+          ${
+            dataUpdated
+              ? `<time class="footer-date" datetime="${escapeHtml(dataUpdated)}">${escapeHtml(dataUpdated)}</time>`
+              : ''
+          }
           <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
@@ -134,8 +147,8 @@ ${rows}
 `;
 }
 
-export async function writeRecentPage({ distDir, records, assets, limit = RECENT_LIMIT }) {
+export async function writeRecentPage({ distDir, records, assets, limit = RECENT_LIMIT, dataUpdated = null }) {
   const blocks = recentBlocks(records, { limit });
-  await writeFile(path.join(distDir, 'recent.html'), renderRecentPage({ blocks, assets }));
+  await writeFile(path.join(distDir, 'recent.html'), renderRecentPage({ blocks, assets, dataUpdated }));
   return blocks;
 }

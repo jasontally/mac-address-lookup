@@ -4,7 +4,7 @@ Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial M
 
 **[mac.jasontally.com](https://mac.jasontally.com)**
 
-There are no ads and no tracking. Similar lookup pages are often wrapped in intrusive advertising, which is what prompted this project: identifying a MAC vendor is a small utility, and it should be possible to build and host it for close to nothing.
+The app does no tracking: there are no ads, no cookies, and every lookup runs in your browser, so the addresses you look up never leave it. The site is hosted on Cloudflare, which collects privacy-first, aggregate web analytics (Cloudflare Web Analytics) that use no cookies or client-side state and do not fingerprint individuals. Similar lookup pages are often wrapped in intrusive advertising, which is what prompted this project: identifying a MAC vendor is a small utility, and it should be possible to build and host it for close to nothing.
 
 ## Features
 
@@ -21,7 +21,7 @@ There are no ads and no tracking. Similar lookup pages are often wrapped in intr
 - **Registration dates and portfolios** — first-registered dates for every prefix, and per-vendor block/address-space totals
 - **Format conversions** — see the address in every common notation
 - **URL-driven lookups** — no pasting required: `mac.jasontally.com/001A2B` renders the result directly. Batch lookups and vendor searches work the same way.
-- **Static & private** — the IEEE dataset loads in the browser; all searching, processing, and presentation happen locally. The addresses you look up are never sent to a server, and the site sets no cookies.
+- **Static & private** — the IEEE dataset loads in the browser; all searching, processing, and presentation happen locally. The addresses you look up are never sent to a server, and the app sets no cookies. The host (Cloudflare) collects privacy-first, cookieless, aggregate web analytics (Cloudflare Web Analytics).
 - **Dark mode** — follows your system preference by default, with a manual toggle
 - **History, copy & share** — recent lookups are stored locally; results are copyable and permalinked
 
@@ -45,7 +45,7 @@ The page consumes the value from the URL path and displays the result without an
 
 ## Pre-rendered pages
 
-A build step pre-renders a real HTML page for every registered IEEE assignment — each OUI (MA-L), MA-M, MA-S, IAB, and CID prefix — so that search engines can index those pages and people can find them when they look up a prefix or a vendor. Every page contains the vendor record without requiring JavaScript, and the interactive tool hydrates on top to resolve everything else in the browser: full addresses, partial prefixes, batch lists, vendor names, former owners, countries, and registration years. Generated pages include canonical URLs, schema.org metadata, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
+A build step pre-renders a real HTML page for every registered IEEE assignment — each OUI (MA-L), MA-M, MA-S, IAB, and CID prefix — so that people can find the tool when they look up a prefix or a vendor in their own words. No brand is promoted as part of the app (and the title is translated into local words for each language) because an English-only brand name would make it harder to find for everyone else. Every page contains the vendor record without requiring JavaScript, and the interactive tool hydrates on top to resolve everything else in the browser: full addresses, partial prefixes, batch lists, vendor names, former owners, countries, and registration years. Generated pages include canonical URLs, schema.org metadata, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
 
 On top of the prefix pages, the build generates **vendor pages** (`/vendor/<slug>`, every block registered to one organization — 3,469 today) and **country pages** (`/country/<code>`, every organization with blocks registered in a country — 249). Both are complete static tables with no row caps, plus an internal relational link web: related-prefix sections (same vendor, adjacent prefixes, same registration year) on every prefix page, hub links from prefix pages, and org directory links on country pages. Rationale and capacity accounting: [`docs/thin-content-mitigation.md`](docs/thin-content-mitigation.md).
 
@@ -65,7 +65,7 @@ On top of the prefix pages, the build generates **vendor pages** (`/vendor/<slug
 - Static HTML/CSS/JavaScript — no backend at runtime; all lookup work happens in the browser
 - Single client bundle built with esbuild (engine + Hyparquet inlined): ~88 KB JS / ~15 KB CSS, gzip-served by Cloudflare
 - IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies) — sharded by prefix so a lookup fetches a few KB instead of the full registry; no database or API
-- Pre-rendered prefix pages generated at build time so search engines can index them and people can find them
+- Pre-rendered prefix pages generated at build time so people can find the tool when they look up a prefix or a vendor
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)
 - Architecture, platform constraints, and capacity planning: [`docs/architecture.md`](docs/architecture.md)
 - Design language and UX requirements: [`docs/design.md`](docs/design.md)

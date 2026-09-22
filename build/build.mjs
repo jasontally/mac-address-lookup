@@ -213,7 +213,7 @@ console.log(
     `${staticAssets.cssFile} ${formatBytes(staticAssets.cssBytes)}`,
 );
 
-// Localized home variants + hreflang clusters (Multilingual SEO plan).
+// Localized home variants + hreflang clusters (Multilingual discoverability plan).
 const SITE = 'https://mac.jasontally.com';
 const langPages = await writeLangPages({ distDir, site: SITE });
 console.log(
@@ -240,6 +240,7 @@ for (const url of langPages.urls) {
 await recordDistFile(pageTracker, { distDir, distRelativePath: 'help.html', site: SITE });
 
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
+let sitemapUrlSet = null;
 if (!flags.has('--no-pages')) {
   console.log(
     `Generating ${hubData.orgs.length.toLocaleString('en-US')} vendor, ` +
@@ -253,22 +254,33 @@ if (!flags.has('--no-pages')) {
     assets: staticAssets,
     formerData: formerHubData,
     recordsByPrefix,
+    pageTracker,
+    site: SITE,
+    refreshDate,
   });
-  for (const url of [...hubFiles.vendorUrls, ...hubFiles.countryUrls, ...hubFiles.formerUrls]) {
-    await recordDistFile(pageTracker, {
-      distDir,
-      distRelativePath: urlToDistPath(`${url}`) ?? '',
-      site: SITE,
-    });
-  }
 
   // /recent before the sitemap: it reports its own lastmod inside
-  // generatePages' per-URL map.
-  const recent = await writeRecentPage({ distDir, records, assets: staticAssets });
+  const recentUrl = `${SITE}/recent`;
+  const recentPriorDate = pageTracker?.priorLastmod(recentUrl) ?? (pageTracker ? refreshDate : null);
+  const recent = await writeRecentPage({
+    distDir,
+    records,
+    assets: staticAssets,
+    dataUpdated: recentPriorDate,
+  });
+  await recordDistFile(pageTracker, { distDir, distRelativePath: 'recent.html', site: SITE });
+  if (pageTracker?.changedSince(recentUrl)) {
+    await writeRecentPage({
+      distDir,
+      records,
+      assets: staticAssets,
+      dataUpdated: refreshDate,
+    });
+    await recordDistFile(pageTracker, { distDir, distRelativePath: 'recent.html', site: SITE });
+  }
   console.log(
     `  /recent: ${recent.length} newest blocks, first ${recent[0]?.prefix ?? 'n/a'} (${recent[0]?.firstSeen ?? ''})`,
   );
-  await recordDistFile(pageTracker, { distDir, distRelativePath: 'recent.html', site: SITE });
 
   console.log(
     `  hubs in ${((Date.now() - hubWriteStartedAt) / 1000).toFixed(1)}s ` +
@@ -316,6 +328,7 @@ if (!flags.has('--no-pages')) {
         .join(', ')})`,
   );
   console.log(`  sitemap: ${pages.sitemap.files.join(', ')} (${pages.sitemap.urls} URLs)`);
+  sitemapUrlSet = pages.sitemapUrlSet;
 }
 
 const agentFiles = await writeAgentFiles({
@@ -340,8 +353,10 @@ const pageHashes = await finalizePageHashes({
   previous: previousPageHashes,
   refreshDate,
   outDir: distDir,
+  sitemapUrlSet,
 });
 console.log(`  page hashes: ${pageHashes.urls} URLs (${formatBytes(pageHashes.bytes)})`);
+console.log(`  pages changed this build: ${pageHashes.changedUrls.toLocaleString('en-US')}`);
 
 const files = await walkDir(distDir);
 const budget = checkBudget({ files });

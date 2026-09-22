@@ -1,11 +1,11 @@
 /**
  * Localized static home pages under /lang/{locale}/ plus the hreflang
  * clusters that declare them to search engines (docs/architecture.md →
- * "Multilingual SEO plan").
+ * "Multilingual discoverability plan").
  *
  * Scope note: only the home page ships a `/lang/` twin - its visible text
  * is entirely `data-i18n` UI strings (localized in all 30 locale tables)
- * plus an authored title/description pair per locale (src/i18n/seo.mjs).
+ * plus an authored title/description pair per locale (src/i18n/discovery.mjs).
  * The help page's prose and FAQ are English-only in the repo, so it stays
  * a single URL until prose translations exist (a mostly-English page
  * claiming an hreflang variant is doorway-page risk).
@@ -15,7 +15,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { SUPPORTED, RTL_LOCALES, loadLocale } from '../src/i18n/locales.mjs';
 import { en } from '../src/i18n/en.mjs';
-import { seoFor } from '../src/i18n/seo.mjs';
+import { discoveryFor } from '../src/i18n/discovery.mjs';
 import { SITE } from './page-template.mjs';
 
 /**
@@ -88,18 +88,18 @@ function metaTagByName(html, name) {
 
 /** Localized <title>/<meta description>/og + canonical + hreflang cluster. */
 function localizedHead(html, { locale, url, alternates }) {
-  const seo = seoFor(locale);
+  const discovery = discoveryFor(locale);
   let out = html
-    .replace(/<title>[^<]*<\/title>/, `<title>${attr(seo.title)}</title>`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${attr(discovery.title)}</title>`)
     .replace(/<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="${url}" />`)
     .replace(
       /<meta property="og:url" content="[^"]*" \/>/,
       `<meta property="og:url" content="${url}" />`,
     );
   for (const [name, metaHtml] of [
-    ['description', `<meta name="description" content="${attr(seo.description)}" />`],
-    ['og:title', `<meta property="og:title" content="${attr(seo.title)}" />`],
-    ['og:description', `<meta property="og:description" content="${attr(seo.description)}" />`],
+    ['description', `<meta name="description" content="${attr(discovery.description)}" />`],
+    ['og:title', `<meta property="og:title" content="${attr(discovery.title)}" />`],
+    ['og:description', `<meta property="og:description" content="${attr(discovery.description)}" />`],
   ]) {
     const tag = metaTagByName(out, name);
     if (tag) out = out.replace(tag, metaHtml);

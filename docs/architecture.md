@@ -357,7 +357,7 @@ hubs, `/recent` rows linking hubs) before retrying expansion.
 (`/lang/{locale}/`; see the multilingual plan below), so phase 1 ships
 ~33 sitemap URLs and the counts change by +30 in every scope.
 
-## Multilingual SEO plan (Tier 1 + Tier 2, 2026-09-18)
+## Multilingual discoverability plan (Tier 1 + Tier 2, 2026-09-18)
 
 The interface translates client-side on shared URLs, which search engines
 cannot see. The agreed plan: Tier 3 (localized hub pages) is parked; help-doc
@@ -365,13 +365,21 @@ localization waits for prose translations (its body is English-only in the
 repo — a mostly-English page under an hreflang cluster invites doorway
 treatment).
 
+Terminology note (2026-09-21): this work is framed as *discoverability*,
+not "SEO" — the goal is letting people find a utility in their own words.
+No brand is promoted as part of the app, and each locale's title leads with
+its own native site name (see `src/i18n/discovery.mjs`), because an
+English-only brand name would make the tool harder to find for speakers of
+other languages. The former `src/i18n/seo.mjs` / `seoFor` are now
+`src/i18n/discovery.mjs` / `discoveryFor`.
+
 - **Tier 1 (documentation-level):** `llms.txt` and `help.md`/`help.txt`
   state the 31-language interface and the `/lang/{locale}/` scheme.
 - **Tier 2 (shipped scope — the home page only):** every supported locale
   gets a pre-rendered home at `/lang/{locale}/` (`build/lang-pages.mjs`:
   a server-side `i18nSwap` over the built shell's `data-i18n` leaf texts,
   mirroring the client's `applyDom`, plus *authored* per-locale
-  title/description in `src/i18n/seo.mjs` — no machine translation). RTL
+  title/description in `src/i18n/discovery.mjs` — no machine translation). RTL
   locales get `<html dir="rtl">`; each variant sets `window.__malLocale`
   as the boot-time default (src/i18n/index.mjs), below the visitor's stored
   manual choice in resolution order.
@@ -398,7 +406,7 @@ treatment).
 - **Note (2026-09-21):** the brand localizes — `nav.brand` (header
   wordmark + breadcrumb home link) and every `title.*` suffix use each
   locale's own site name (e.g. German "MAC-Adressen-Suche"), matching the
-  head phrase of the authored SEO titles in `src/i18n/seo.mjs`. The
+  head phrase of the authored home titles in `src/i18n/discovery.mjs`. The
   English "MAC Address Lookup" remains the canonical name in crawlable
   HTML, JSON-LD, `og:site_name`, and the fallback `en` table.
 - **Punctuation policy (2026-09-21):** no em dashes. Titles separate the
@@ -412,15 +420,17 @@ treatment).
 
 ## Build & deployment
 
-- **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy` (default). No GitHub Actions required.
+- **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy && node build/indexnow.mjs` (deploy, then the post-deploy IndexNow ping — see below; the deploy command is configured in the Cloudflare dashboard, Workers & Pages → project → Settings → Build). No GitHub Actions required for deploys; the daily data-refresh workflow only commits the refresh bump, and Cloudflare's build does the rest.
 - **Node version:** build image defaults to Node 24.18.0; pin with `.nvmrc` (`24`).
 - **Deterministic builds & per-URL lastmod:** every data-without-code-change build renders byte-identical HTML. Two ties were cut for this: all build-time "now" stamps (`generatedAt`, `retrievedAt`, sitemap lastmod) come from `data/refresh.txt` instead of the wall clock, and per-page content hashes live in `dist/data/page-hashes.json` (`build/page-hashes.mjs`). Each build hashes every pre-rendered page; the **next** build fetches that manifest from production, so a URL keeps its previous `<lastmod>` when its bytes are unchanged and only re-dates (to the current refresh date) when its content actually changed. The sitemap resolves per-URL lastmod through this map (`writeSitemaps({ ..., lastmodFor })`) — for the entire core scope today and ready to cover every page when the sitemap expands. Byte-stable output also means Cloudflare's content-hash dedupe uploads only files that really changed on data-refresh deploys, keeping edge caches warm for unchanged pages. `data/page-hashes.json` currently tracks ~4,100 URLs at ~500 KB; if that grows unwieldy as the sitemap expands, the manifest can move behind a build env fallback without changing the contract.
+- **Per-page change dates (2026-09-21):** the same hash manifest is the single source of truth for page freshness off the sitemap too. Prefix pages, hubs, and `/recent` embed each page's own last-change date twice — a footer `<time>` line ("Data refreshed <date>") and JSON-LD `dateModified` (prefix pages as `Dataset`, hubs as `CollectionPage`) — and always the same date as that URL's sitemap `<lastmod>`. Renderers use a two-pass contract (`render → record → re-render with the refresh date only if the bytes differ from the deployed page`), so an unchanged page keeps byte-identical output (and its old date), while a changed page converges to `dateModified = lastmod = refreshDate`. No wall-clock stamps, no per-refresh footers (a changed footer date on an otherwise unchanged page would re-date everything and teach Google the dates are meaningless), and the IEEE registration dates on a page are never reused as `dateModified` or `datePublished` (they describe the data, not the page). The home/help shells carry no static dates; their client-filled date (`manifest.refreshDate`) describes the dataset refresh, not the page.
+- **IndexNow (post-deploy, Cloudflare-side):** `build/indexnow.mjs` runs after `wrangler deploy` (much of the deployed set is chunked ≤10,000 URLs per POST to `api.indexnow.org`; the key/ownership file lives at `/{key}.txt` from `public/`). The build emits `dist/data/indexnow.json` = the URLs whose bytes changed this build, intersected with the current sitemap scope (finalizePageHashes) — so the ping covers exactly changed pages the sitemap already promotes, and sends an empty manifest when nothing changed (Bing, Yandex, Seznam, Yep consume IndexNow; Google does not). Ping failures never fail the deploy. Regenerate the og-card (og:image/twitter:card on every page) with `node build/make-og-card.mjs` when the site copy changes.
 - **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. The **daily** GitHub Action does this automatically when sources change (see [Source resilience & data refresh](#source-resilience--data-refresh)), and forces a monthly refresh so indexed pages stay current.
 - **Local development:** `npm install`; `npm run build` (or `npm run build -- --no-pages` for quick iterations, `PAGE_BUDGET=500 npm run build` to limit pages); `npm run serve` previews `dist/` at `http://localhost:8788` with the SPA fallback; `npm test` runs the unit tests; `node build/check-sources.mjs` performs the weekly source check locally.
 - **Limits:** 3,000 build min/month free, 6,000 paid (+$0.005/min after); 20-minute build timeout; concurrent builds 1 free / 6 paid; paid build environment: 4 vCPU / 8 GB RAM / 20 GB disk.
 - **Runtime cost:** static asset requests are free and unlimited; an assets-only deployment has no billed Worker invocations.
 - **Measured duration:** ~6 minutes end-to-end for 62,763 files / ~753 MB (2026-09-16), comfortably inside the 20-minute timeout. Added page weight grows roughly linearly with the registry; the page budget (or a `PAGE_BUDGET` build variable) bounds upload time.
-- **No in-app analytics:** page-priority demand comes from the seed vendor list. Note: the Cloudflare zone injects a Web Analytics beacon — see open items.
+- **No in-app analytics:** page-priority demand comes from the seed vendor list. The Cloudflare zone injects a Web Analytics beacon — see the analytics disclosure note in the open items.
 
 ## Production verification (2026-09-12)
 
@@ -438,7 +448,7 @@ treatment).
 
 ## Open items
 
-1. **Cloudflare Web Analytics beacon:** the zone injects `static.cloudflareinsights.com/beacon.min.js` and `/cdn-cgi/rum`. Keep (cookieless, aggregate) or disable in the dashboard; site copy says addresses are never sent to a server and no cookies are set.
+1. **Analytics disclosure (resolved 2026-09-21):** the Cloudflare zone injects the Web Analytics beacon (`static.cloudflareinsights.com/beacon.min.js` and `/cdn-cgi/rum`). Decision: keep it. It is Cloudflare Web Analytics — privacy-first, aggregate, cookieless (no cookies or localStorage, no fingerprinting per Cloudflare's documentation). All user-facing privacy claims now follow one framing: the *app* does no tracking, no cookies, and lookups never leave the browser; the *host* (Cloudflare) collects privacy-first, cookieless, aggregate web analytics. Claims updated in README.md, the on-site FAQ (`build/faq.mjs`), `llms.txt` (`build/agent-files.mjs`), and `public/robots.txt`.
 2. Monitor Search Console indexing; re-evaluate the provisional sitemap policy if the page budget ever trims long-tail pages.
 3. CID pages are included while they fit the budget (219 files); revisit only if the budget binds.
 4. **Device-type hints (not implemented, unlikely to be reliable):** IEEE registries record who owns a prefix, never what devices use it. Vendors span categories (HP: printers, PCs, servers; HPE: servers and network gear; Samsung: phones, TVs, appliances, SSDs), contract manufacturers and module vendors (AzureWave, Wistron, Foxconn) appear in many product types, and a single vendor's prefixes are spread across product lines with no public mapping. Sources that offer categories — for example OUI-Master-Database's `device_type` field, or vendor-name heuristics like "name contains Printer" — are guesses rather than registrations. If this is ever added it should be a clearly labeled low-confidence category derived from a curated vendor list, never a claim about the specific device.

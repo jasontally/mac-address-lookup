@@ -36,7 +36,10 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 
 > Free, private MAC address and OUI vendor lookup. Every prefix page is
 > pre-rendered static HTML that reads cleanly without JavaScript. No API
-> keys, no auth, no tracking. Run by Jason Tally.
+> keys, no auth. The app itself does no tracking: lookups run client-side
+> and never leave the browser, and the app sets no cookies. The host
+> (Cloudflare) collects privacy-first, cookieless, aggregate web analytics.
+> Run by Jason Tally.
 
 - [Help & documentation](${SITE}/help): how lookup works, block types, finding your own MAC, FAQ
 - [Help (Plain text)](${SITE}/help.txt): the same documentation as plain text, for tools that
@@ -80,8 +83,9 @@ ${dataLines.join('\n')}
 
 The registry data is derived from the public IEEE Registration Authority
 registries (no restrictions apply). Ownership-history events come from the
-runZero mac-tracker dataset (MIT). The site itself ships no ads, no cookies,
-and no tracking; lookups run client-side.
+runZero mac-tracker dataset (MIT). The app itself ships no ads and no
+cookies, does no tracking, and all lookups run client-side; the host
+(Cloudflare) collects privacy-first, cookieless, aggregate web analytics.
 `;
 }
 

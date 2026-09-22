@@ -47,6 +47,18 @@ test('tracker keeps the prior lastmod for unchanged pages and re-dates changed o
   assert.equal(tracker.lastmodFor('https://example.test/different'), '2026-09-22');
   assert.equal(tracker.lastmodFor('https://example.test/new'), '2026-09-22');
   assert.equal(tracker.lastmodFor('https://example.test/changed2'), '2026-09-22');
+
+  // Per-page date embedding helpers (docs/architecture.md → "Per-page change dates").
+  assert.equal(tracker.priorLastmod('https://example.test/same'), '2026-08-15');
+  assert.equal(tracker.priorLastmod('https://example.test/new'), null);
+  assert.equal(tracker.prior('https://example.test/new'), null);
+  assert.equal(tracker.changedSince('https://example.test/same'), false);
+  assert.equal(tracker.changedSince('https://example.test/changed'), true);
+  // New pages are not flagged "changed": their first render is already
+  // current-dated, so no second pass is needed.
+  assert.equal(tracker.changedSince('https://example.test/new'), false);
+  // A page that does not exist in this build is not flagged as changed.
+  assert.equal(tracker.changedSince('https://example.test/unrecorded'), false);
 });
 
 test('finalizePageHashes writes sorted deterministic JSON and drops pages that are gone', async () => {
@@ -75,6 +87,9 @@ test('finalizePageHashes writes sorted deterministic JSON and drops pages that a
   assert.equal(manifest.pages['https://example.test/gone'], undefined);
   assert.equal(manifest.pages['https://example.test/stays'].m, '2026-09-01');
   assert.equal(manifest.pages['https://example.test/z-prefix'].m, '2026-09-22');
+  // indexnow.json lists only the URLs whose bytes actually changed.
+  const indexnow = JSON.parse(await (await import('node:fs/promises')).readFile(path.join(outDir, 'data/indexnow.json'), 'utf8'));
+  assert.deepEqual(indexnow.urls, ['https://example.test/z-prefix']);
   rmSync(outDir, { recursive: true, force: true });
 });
 

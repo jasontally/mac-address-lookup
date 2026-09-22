@@ -233,7 +233,7 @@ stayed 200 only until `e2e/measure-limits.mjs` re-derived them from real timings
   against the measured 500. Update it to reference the measured caps and this
   static-complete / dynamic-capped split.
 
-This is a client-side change orthogonal to the SEO steps; ship it with step 2 (same
+This is a client-side change orthogonal to the discoverability steps; ship it with step 2 (same
 deploy) or separately — it does not gate steps 1 or 3.
 
 ---

@@ -1,6 +1,12 @@
 /**
- * Authored per-locale SEO copy for the localized home page
+ * Authored per-locale home-page copy for the localized home pages
  * (`/lang/{locale}/`). Build-time only, never shipped to the client.
+ *
+ * This is discoverability work, not "SEO": the goal is helping people
+ * find a utility in their own words. No brand is promoted as part of the
+ * app; each locale's title leads with its own native site name, because
+ * an English brand name would make the tool harder to find for everyone
+ * else.
  *
  * Every entry is hand-authored, not machine-translated, so each
  * `hreflang` variant serves genuinely native copy (Google's guidance for
@@ -17,7 +23,7 @@ const EN = {
     'Free, private MAC address lookup. Paste a full or partial MAC address or OUI to identify the vendor, IEEE block details, randomization, virtualization, and prefix lineage, all in your browser.',
 };
 
-export const SEO = {
+export const DISCOVERY = {
   en: EN,
   de: {
     title: 'MAC-Adressen-Suche | Vendor- & OUI-Lookup',
@@ -171,7 +177,7 @@ export const SEO = {
   },
 };
 
-/** SEO copy for a locale code, falling back to English. */
-export function seoFor(locale) {
-  return SEO[locale] ?? EN;
+/** Home-page copy for a locale code, falling back to English. */
+export function discoveryFor(locale) {
+  return DISCOVERY[locale] ?? EN;
 }
