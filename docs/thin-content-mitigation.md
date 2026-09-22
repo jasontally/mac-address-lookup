@@ -161,8 +161,10 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
 - **Country hubs** (`/country/<code>`, lowercase code, name via
   `src/engine/countries.mjs`): `h1` country name; lede (N blocks, total addresses,
   distinct orgs); `.data-table` of **all** orgs registered in that country (name →
-  org hub, block count, addresses), sorted by address space. The 61 records with no
-  country simply get no country link.
+  org hub, block count, addresses), sorted by address space. Orgs with a single
+  block have no org hub, so their name links the page of that one block instead
+  (2026-09-22: every row is a link, and both targets are checked against the
+  page-budget selection). The 61 records with no country simply get no country link.
 - **Former-owner hubs** (`/former/<slug>`): one per organization that no longer
   holds any of its once-registered prefixes (≥ 2 of them; 345 today). The lede
   states the takeaway for each portfolio — e.g. Apple Computer: "Apple, Inc. took

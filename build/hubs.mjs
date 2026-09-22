@@ -232,8 +232,9 @@ function countOwnerBlocks(hub, ownerKey) {
 
 /**
  * Orgs with a single block get no hub (their prefix page already serves as
- * the org page). Private and empty organizations are excluded, matching
- * page selection. Returns `{ orgs, countries }`, both sorted and sluged.
+ * the org page, and country pages link straight to it). Private and empty
+ * organizations are excluded, matching page selection. Returns
+ * `{ orgs, countries }`, both sorted and sluged.
  */
 export function computeHubs(records) {
   const orgs = new Map(); // key → hub entry
@@ -636,7 +637,7 @@ ${rows}
   });
 }
 
-export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = null }) {
+export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = null, selectedPrefixes = null }) {
   const canonical = `${site}/country/${hub.code.toLowerCase()}`;
   const name = displayNameForCountry(hub.code);
   const title = `${name} MAC address blocks | MAC Address Lookup`;
@@ -661,7 +662,7 @@ export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = n
     .map(
       (entry, index) =>
         `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
-        `<td class="org">${orgAnchor(entry)}</td>` +
+        `<td class="org">${orgAnchor(entry, selectedPrefixes)}</td>` +
         `<td>${escapeHtml(formatCount(entry.blocks, 'en'))}</td>` +
         `<td>${escapeHtml(formatAddresses(entry.addresses, 'en'))}</td>` +
         `<td>${escapeHtml(formatDate(entry.firstSeen, 'en') || '-')}</td>` +
@@ -711,12 +712,25 @@ ${rows}
   });
 }
 
-/** Org display name rendered as a link to the org hub when one exists. */
-function orgAnchor(entry) {
+/**
+ * Org display name rendered as a link to that org's page: the org hub when
+ * the org has one (≥ 2 blocks), otherwise the pre-rendered page of its only
+ * block - so every row on a country page is a link, and every target is a
+ * pre-rendered page (the cross-cutting rule in docs/thin-content-mitigation.md:
+ * the SPA shell is never a link destination). `selectedPrefixes` is the page
+ * budget selection; a single-block org whose page was dropped by the budget
+ * stays plain text instead of aiming at a soft-404.
+ */
+function orgAnchor(entry, selectedPrefixes = null) {
   const label = displayNameOf(entry.nameCounts);
-  return entry.slug
-    ? `<a href="/vendor/${escapeHtml(entry.slug)}">${escapeHtml(label)}</a>`
-    : escapeHtml(label);
+  if (entry.slug) {
+    return `<a href="/vendor/${escapeHtml(entry.slug)}">${escapeHtml(label)}</a>`;
+  }
+  const prefix = entry.records?.length === 1 ? entry.records[0].prefix : null;
+  if (prefix && (!selectedPrefixes || selectedPrefixes.has(prefix))) {
+    return `<a href="/${escapeHtml(prefix)}">${escapeHtml(label)}</a>`;
+  }
+  return escapeHtml(label);
 }
 
 function countryLinks(codes) {
@@ -756,6 +770,7 @@ export async function writeHubPages({
   pageTracker = null,
   site = SITE,
   refreshDate = null,
+  selectedPrefixes = null,
 }) {
   const renderTracked = async (file, url, render) => {
     const priorDate = pageTracker?.priorLastmod(url) ?? refreshDate;
@@ -795,7 +810,8 @@ export async function writeHubPages({
     await renderTracked(
       path.join(countryDir, file),
       url,
-      (dataUpdated) => renderCountryHubPage({ hub, assets, site, dataUpdated }),
+      (dataUpdated) =>
+        renderCountryHubPage({ hub, assets, site, dataUpdated, selectedPrefixes }),
     );
     countryUrls.push(`/country/${hub.code.toLowerCase()}`);
   }

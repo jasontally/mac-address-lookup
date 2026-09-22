@@ -12,6 +12,7 @@ import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { generatePages } from './generate-pages.mjs';
 import { computeHubs, computeFormerHubs, writeHubPages } from './hubs.mjs';
+import { selectPages } from './select-pages.mjs';
 import { writeAgentFiles } from './agent-files.mjs';
 import { writeLangPages } from './lang-pages.mjs';
 import { writeRecentPage } from './recent.mjs';
@@ -240,6 +241,16 @@ for (const url of langPages.urls) {
 await recordDistFile(pageTracker, { distDir, distRelativePath: 'help.html', site: SITE });
 
 const pageBudget = Number(process.env.PAGE_BUDGET ?? 90_000);
+// Page selection runs once, before any hub page is written: country pages
+// link single-block orgs to the page of their only block, and those links
+// must only ever target pre-rendered pages (the budget decides that).
+// generatePages renders this same selection.
+const vendorPriority = JSON.parse(
+  await readFile(path.join(root, 'build', 'vendor-priority.json'), 'utf8'),
+);
+const pageSelection = selectPages(records, { pageBudget, vendorPriority });
+const selectedPrefixes = new Set(pageSelection.selected.map((record) => record.prefix));
+
 let sitemapUrlSet = null;
 if (!flags.has('--no-pages')) {
   console.log(
@@ -257,6 +268,7 @@ if (!flags.has('--no-pages')) {
     pageTracker,
     site: SITE,
     refreshDate,
+    selectedPrefixes,
   });
 
   // /recent before the sitemap: it reports its own lastmod inside
@@ -288,15 +300,16 @@ if (!flags.has('--no-pages')) {
   );
 
   console.log(`Generating up to ${pageBudget.toLocaleString('en-US')} prefix pages...`);
-  const vendorPriority = JSON.parse(
-    await readFile(path.join(root, 'build', 'vendor-priority.json'), 'utf8'),
-  );
   const pagesStartedAt = Date.now();
   // Phased sitemap (docs/architecture.md → "Sitemap indexing plan"): the
-  // 62,760-URL index diluted discovery against the 4,063 pages we most want
-  // indexed (home, help, hubs). Phase 1 = core; expand with SITEMAP_SCOPE
-  // (hubs → all) once Search Console shows the previous phase indexed.
-  const sitemapScope = process.env.SITEMAP_SCOPE ?? 'core';
+  // 62,760-URL index diluted discovery against the handful of pages we most
+  // want indexed (home, help, hubs). Scopes compose:
+  //   core (home/help/recent + localized homes)
+  //   country (phase 2, the default: + the 249 /country/ hubs)
+  //   hubs (+ vendor and former-owner hubs) → all (everything)
+  // Expand with SITEMAP_SCOPE once Search Console shows the current phase
+  // indexed. Pages stay live and internally linked in every scope.
+  const sitemapScope = process.env.SITEMAP_SCOPE ?? 'country';
   console.log(`Sitemap scope: ${sitemapScope}`);
   const pages = await generatePages({
     records,
@@ -307,17 +320,15 @@ if (!flags.has('--no-pages')) {
     vendorPriority,
     lastmod: refreshDate,
     extraUrls: ['/help', '/recent'],
-    hubUrls: [
-      ...hubFiles.vendorUrls,
-      ...hubFiles.countryUrls,
-      ...hubFiles.formerUrls,
-    ],
+    hubUrls: [...hubFiles.vendorUrls, ...hubFiles.formerUrls],
+    countryUrls: hubFiles.countryUrls,
     sitemapScope,
     homeUrl: langPages.sitemapEntry,
     langUrls: langPages.urls,
     assets: staticAssets,
     hubIndex,
     pageTracker,
+    selection: pageSelection,
   });
   console.log(
     `  ${pages.selected.toLocaleString('en-US')} pages in ` +

@@ -166,11 +166,49 @@ test('renderCountryHubPage lists orgs sorted by address space, linking hubs', ()
   assert.match(html, /rel="canonical" href="https:\/\/example\.test\/country\/us"/);
   assert.match(html, /<title[^>]*>United States MAC address blocks \| MAC Address Lookup<\/title>/);
   const bigIndex = html.indexOf('href="/vendor/big-co"');
-  const smallIndex = html.indexOf('Small Co</a>'.replace('</a>', ''));
+  const smallIndex = html.indexOf('href="/000003"');
   assert.ok(bigIndex !== -1);
-  assert.ok(smallIndex !== -1);
+  assert.ok(smallIndex !== -1, 'a single-block org links the page of its only block');
   assert.ok(bigIndex < smallIndex, 'sorted by address space, hub-linked org first');
+  assert.match(html, /<td class="org"><a href="\/000003">Small Co<\/a><\/td>/);
   assert.match(html, /data-i18n="table.blocks"/);
+});
+
+test('country rows honour the page budget: dropped single-block pages stay plain text', () => {
+  const entry = {
+    key: 'SOLO CO',
+    displayName: 'Solo Co',
+    blocks: 1,
+    addresses: 16_777_216,
+    firstSeen: '2005-01-05',
+    slug: null,
+    nameCounts: new Map([['Solo Co', 1]]),
+    records: [record('000003', 'Solo Co')],
+  };
+  const hub = {
+    code: 'US',
+    blocks: 1,
+    addresses: 16_777_216,
+    orgs: new Map([['SOLO CO', entry]]),
+  };
+  const budgeted = renderCountryHubPage({
+    hub,
+    assets: ASSETS,
+    site: 'https://example.test',
+    selectedPrefixes: new Set(['000003']),
+  });
+  assert.match(budgeted, /<td class="org"><a href="\/000003">Solo Co<\/a><\/td>/);
+
+  const dropped = renderCountryHubPage({
+    hub,
+    assets: ASSETS,
+    site: 'https://example.test',
+    selectedPrefixes: new Set(['FFFFFFFFFF']),
+  });
+  assert.ok(
+    dropped.includes('<td class="org">Solo Co</td>'),
+    'never link a page the budget dropped - the SPA shell is not a link destination',
+  );
 });
 
 test('computeFormerHubs rolls up takeovers and skips single-prefix former orgs', () => {

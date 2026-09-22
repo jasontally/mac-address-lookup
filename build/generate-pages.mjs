@@ -22,8 +22,11 @@ async function mapConcurrent(items, limit, fn) {
 
 /**
  * Sitemap scoping for the phased index plan (docs/architecture.md →
- * "Sitemap indexing plan"). `all` keeps the current behavior; `hubs` drops
- * the 58,694 prefix pages; `core` keeps only the homepage, /help, and /recent.
+ * "Sitemap indexing plan"). Scopes compose cumulatively:
+ *   `core`    → home, /help, /recent + the localized homes
+ *   `country` → `core` + the 249 /country/<code> hubs
+ *   `hubs`    → `core` + every hub (vendor + country + former-owner)
+ *   `all`     → everything, including the ~58,700 prefix pages
  * Pages remain live and internally linked in every scope - the sitemap is a
  * discovery hint and dropping rows cannot deindex anything.
  */
@@ -32,11 +35,14 @@ export function sitemapUrlSelection({
   coreUrls = [],
   langUrls = [],
   hubUrls = [],
+  countryUrls = [],
   prefixUrls = [],
 } = {}) {
-  if (scope === 'core') return [...coreUrls, ...langUrls];
-  if (scope === 'hubs') return [...coreUrls, ...langUrls, ...hubUrls];
-  if (scope === 'all') return [...coreUrls, ...langUrls, ...hubUrls, ...prefixUrls];
+  const base = [...coreUrls, ...langUrls];
+  if (scope === 'core') return base;
+  if (scope === 'country') return [...base, ...countryUrls];
+  if (scope === 'hubs') return [...base, ...hubUrls, ...countryUrls];
+  if (scope === 'all') return [...base, ...hubUrls, ...countryUrls, ...prefixUrls];
   throw new Error(`Unknown sitemap scope: ${scope}`);
 }
 
@@ -54,17 +60,24 @@ export async function generatePages({
   lastmod,
   extraUrls = [],
   hubUrls = [],
+  countryUrls = [],
   langUrls = [],
   sitemapScope = 'all',
   homeUrl = null,
   assets = { appFile: '/assets/app.js', cssFile: '/assets/app.css' },
   hubIndex = null,
   pageTracker = null,
+  // Pre-computed page selection (build.mjs picks pages before it writes the
+  // hub pages, so country-hub links can already honour the budget). When
+  // omitted (tests, callers with no hubs) the pages are selected here.
+  selection = null,
 }) {
-  const { selected, dropped, selectedByType, droppedByType } = selectPages(records, {
-    pageBudget,
-    vendorPriority,
-  });
+  const { selected, dropped, selectedByType, droppedByType } =
+    selection ??
+    selectPages(records, {
+      pageBudget,
+      vendorPriority,
+    });
 
   const lineageByPrefix = new Map(lineageEntries.map((entry) => [entry.prefix, entry]));
 
@@ -112,6 +125,7 @@ export async function generatePages({
     ],
     langUrls,
     hubUrls: hubUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
+    countryUrls: countryUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     prefixUrls: selected.map((record) => `${site}/${record.prefix}`),
   });
   const sitemap = await writeSitemaps({ urls, site, outDir, lastmod, lastmodFor: pageTracker?.lastmodFor ?? null });

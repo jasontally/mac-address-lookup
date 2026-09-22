@@ -106,20 +106,29 @@ test('all sitemap scopes include the lang URLs, prefix pages only in all', () =>
   const core = ['https://e/'];
   const lang = ['https://e/lang/es/'];
   const hubs = ['https://e/vendor/intel'];
+  const countries = ['https://e/country/us'];
   const prefixes = ['https://e/001A2B'];
-  assert.deepEqual(sitemapUrlSelection({ scope: 'core', coreUrls: core, langUrls: lang, hubUrls: hubs, prefixUrls: prefixes }), [
+  const withCountry = { coreUrls: core, langUrls: lang, hubUrls: hubs, countryUrls: countries, prefixUrls: prefixes };
+  assert.deepEqual(sitemapUrlSelection({ scope: 'core', ...withCountry }), [
     ...core,
     ...lang,
   ]);
-  assert.deepEqual(sitemapUrlSelection({ scope: 'hubs', coreUrls: core, langUrls: lang, hubUrls: hubs, prefixUrls: prefixes }), [
+  assert.deepEqual(sitemapUrlSelection({ scope: 'country', ...withCountry }), [
     ...core,
     ...lang,
-    ...hubs,
+    ...countries,
   ]);
-  assert.deepEqual(sitemapUrlSelection({ scope: 'all', coreUrls: core, langUrls: lang, hubUrls: hubs, prefixUrls: prefixes }), [
+  assert.deepEqual(sitemapUrlSelection({ scope: 'hubs', ...withCountry }), [
     ...core,
     ...lang,
     ...hubs,
+    ...countries,
+  ]);
+  assert.deepEqual(sitemapUrlSelection({ scope: 'all', ...withCountry }), [
+    ...core,
+    ...lang,
+    ...hubs,
+    ...countries,
     ...prefixes,
   ]);
 });
