@@ -746,6 +746,21 @@ main {
   background: var(--color-tint);
 }
 
+/* Expand controls render as a <tfoot> row: the table's own last line, on
+   both the static hub tables and the SPA's partial listing. */
+td.hub-expand {
+  text-align: center;
+}
+
+td.hub-expand .button + .button {
+  margin-left: var(--space-3);
+}
+
+/* Stacked cells print their column name from data-label; this one has none. */
+.stack-table td.hub-expand::before {
+  content: none;
+}
+
 .prefix-button {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -802,6 +817,17 @@ main {
 
   .stack-table td:first-child {
     padding-top: 0;
+  }
+
+  .stack-table td.hub-expand {
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    text-align: center;
+  }
+
+  .stack-table td.hub-expand .button + .button {
+    margin-left: 0;
   }
 }
 

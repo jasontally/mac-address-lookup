@@ -116,7 +116,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Lineage**: `createLineageIndex` groups event rows per prefix and exposes `forPrefix(prefix)`; `loadRegistry` returns `{ manifest, registry, lineage }`.
 - **Normalization**: strip separators (`:` `-` `.` space), uppercase, validate `[0-9A-F]`, accept 1–12 hex digits.
 - **Lookup**: longest-prefix match over 9-hex (MA-S/IAB), 7-hex (MA-M), 6-hex (MA-L/CID), using a first-byte index over sorted prefix arrays.
-- **Partials**: 1–5 hex digits return all matching assignments, capped at 500 rows plus a total count; a "show more" reveal re-queries `listPartials` in 500-row chunks (measured render budget in `e2e/measure-limits.mjs`), never refetching data.
+- **Partials**: 1–5 hex digits return all matching assignments, capped at 500 rows plus a total count; a "show more" reveal re-queries `listPartials` in 500-row chunks (measured render budget in `e2e/measure-limits.mjs`), never refetching data, and a "show all" beside it renders every match in one pass — suffixed "(slow)" past 1,500 rows, where that rebuild measures 2.2 s at 1× / 9.4 s at 4× CPU (`e2e/measure-showall.mjs`). Both controls sit in a `<tfoot>` row: the table's own last line, not a button under it.
 - **Bit analysis**: I/G bit (multicast), U/L bit (locally administered → likely randomized when unregistered); broadcast (`FF:FF:FF:FF:FF:FF`) and all-zero special cases.
 - **VM/hypervisor detection**: known prefix map (VMware, VirtualBox, Microsoft Hyper-V/Virtual PC, Parallels, Xen, QEMU/KVM, Docker).
 - **Format conversions**: colon, hyphen, Cisco dot, plain hex, EUI-64, IPv6 link-local.
@@ -280,6 +280,7 @@ production edge.
 | Measurement | Result | Decision |
 | --- | --- | --- |
 | Table render, N rows | 200 rows = 10 ms, 1000 = 48 ms, 5000 = 296 ms at 4× CPU | Display caps raised 200 → **500** (23 ms throttled; well below any degradation) |
+| Full-reveal "Show all" (`e2e/measure-showall.mjs`, 2026-09-22, mobile viewport) | Hub un-hide: 1,573 rows = 613 ms, 5,402 = 2,891 ms, 8,885 (`/country/us`) = 4,091 ms to paint at 4× CPU (US = 1,018 ms at 1×); `/00` rebuild of 17,394 partial rows = 2,242 ms at 1× / 9,414 ms at 4× | "Show all" suffixed **(slow)** past **1,500 rows** (~0.6 s phone stall); below that it stays plain |
 | Engine compute | `lookup()` ×2000 = 4 ms; full search incl. fuzzy fallback over 58,700 names = 30–64 ms | Search/token limits are not compute-bound |
 | Batch, end-to-end (production) | n=25/50 stay on shards (~370–420 ms); n=100 diverse addresses exceeds the shard union → full-registry fallback (~950 ms cold, dominated by the 3 MB fetch) | Batch cap raised 100 → **250** (rows are cheap; the fallback that dominates cost happens anyway for diverse batches) |
 | Shard crossover | 24 parallel shards: fetch 169 ms + decode 63 ms ≈ 130 ms best vs full registry 267 ms; on slow networks the gap widens (336 KB vs 3 MB) | `MAX_SHARDS = 24` confirmed |

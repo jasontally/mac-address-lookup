@@ -112,7 +112,7 @@ test('renderOrgHubPage renders the complete table without caps', () => {
   assert.match(html, /CollectionPage/);
   assert.match(html, /"name":"Apple Inc."/);
   assert.match(html, /BreadcrumbList/);
-  assert.equal((html.match(/<tr/g) ?? []).length, 1201, 'header row plus all 1200 rows, count via <tr prefix');
+  assert.equal((html.match(/<tr/g) ?? []).length, 1202, 'header row, all 1200 rows, plus the expand footer row, count via <tr prefix');
   assert.equal((html.match(/<tr hidden>/g) ?? []).length, 700, 'rows past the initial batch ship hidden');
   assert.match(html, /00001199/, 'late rows carry real prefixes');
   assert.match(html, /1200 blocks registered to/, 'lede states the full total');
@@ -126,6 +126,66 @@ test('renderOrgHubPage links country hubs and the free-text search', () => {
   const html = renderOrgHubPage({ hub: orgHub, assets: ASSETS, site: 'https://example.test' });
   assert.match(html, /href="\/country\/us"/);
   assert.match(html, /href="\/Apple%20Inc\."[^>]*>Free-text search<\/a>/);
+});
+
+test('expand controls sit in the table last line and only call big reveals slow', () => {
+  const rows = (n) =>
+    Array.from({ length: n }, (_, i) => record(`0000${String(i).padStart(4, '0')}`, 'Apple Inc.'));
+  const page = (n) =>
+    renderOrgHubPage({
+      hub: { ...orgHub, blocks: n, records: rows(n) },
+      assets: ASSETS,
+      site: 'https://example.test',
+    });
+
+  const small = page(2);
+  assert.ok(!small.includes('<tfoot>'), 'tables within the display cap need no expand row');
+  assert.ok(!small.includes('<noscript>'), 'no noscript shim without a control row');
+
+  const plain = page(1200);
+  const foot = /<tfoot>[\s\S]*?<\/tfoot>/.exec(plain)?.[0];
+  assert.ok(foot, 'row-capped tables end with an expand row');
+  assert.match(foot, /<td class="hub-expand" colspan="5">/, 'the control row spans the whole table');
+  assert.ok(plain.indexOf(foot) > plain.indexOf('</tbody>'), 'after the last data row');
+  assert.ok(plain.indexOf(foot) < plain.indexOf('</table>'), 'still inside the table');
+  assert.match(
+    foot,
+    /data-hub-expand="more"><span aria-hidden="true">▾<\/span> <span data-i18n="partial.showMore">Show more<\/span>/,
+    'Show more keeps its translated label behind a decorative glyph',
+  );
+  assert.match(foot, /data-i18n="partial.showAll">Show all</, '1,200 rows reveal plainly');
+  assert.ok(!foot.includes('slow'), 'no slow warning below the threshold');
+
+  assert.match(page(1600), /data-i18n="partial.showAllSlow">Show all \(slow\)</, 'past the threshold it warns');
+
+  // The inline virtualizer wires both buttons; tbody stays data rows only.
+  assert.match(plain, /\[data-hub-expand="more"\]'\)\.addEventListener/);
+  assert.match(plain, /\[data-hub-expand="all"\]'\)\.addEventListener/);
+  assert.match(plain, /querySelectorAll\('\.hub tbody tr'\)/);
+  // Without JS nothing reveals, so the dead controls hide themselves.
+  assert.match(plain, /<noscript><style>\.hub tfoot\{display:none\}<\/style><\/noscript>/);
+
+  // Country tables have four columns, so their control cell spans four.
+  const countryOrgs = new Map(
+    Array.from({ length: 520 }, (_, i) => {
+      const name = `Org ${i}`;
+      return [name.toUpperCase(), {
+        key: name.toUpperCase(),
+        displayName: name,
+        blocks: 1,
+        addresses: 16_777_216,
+        firstSeen: '2005-01-05',
+        slug: null,
+        nameCounts: new Map([[name, 1]]),
+      }];
+    }),
+  );
+  const country = renderCountryHubPage({
+    hub: { code: 'XX', blocks: 520, addresses: 8_724_152_320, orgs: countryOrgs },
+    assets: ASSETS,
+    site: 'https://example.test',
+  });
+  assert.match(country, /<td class="hub-expand" colspan="4">/);
 });
 
 test('renderCountryHubPage lists orgs sorted by address space, linking hubs', () => {

@@ -158,6 +158,8 @@ export const en = {
   'partial.note.cap': ', showing the first {shown}',
   'partial.note.end': '. Select a prefix for full details.',
   'partial.showMore': 'Show more',
+  'partial.showAll': 'Show all',
+  'partial.showAllSlow': 'Show all (slow)',
 
   // Search
   'search.matching': '{count} matching prefix',

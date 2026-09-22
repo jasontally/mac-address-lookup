@@ -56,6 +56,37 @@ export function hubRowHidden(index) {
   return index >= HUB_ROWS_SHOWN;
 }
 
+/**
+ * "Show all" earns the "(slow)" suffix past this row count. Measured in
+ * e2e/measure-showall.mjs (mobile viewport, paint after revealing every
+ * hidden row): 1,573 rows = 613 ms, 5,402 = 2,891 ms, 8,885 (/country/us)
+ * = 4,091 ms at 4x CPU throttle — so 1,500 rows already reads as a ~0.6 s
+ * stall on a phone and the US page as a 4 s one. Pages at or under it
+ * reveal fast enough to stay plain.
+ */
+const SHOW_ALL_SLOW_ROWS = 1500;
+
+/**
+ * The expand controls are a real `<tfoot>` row: the table's own last line,
+ * directly under the last data row, rather than a button appended to the
+ * note below the table. `tfoot` also keeps the control row out of the
+ * virtualizer's `.hub tbody tr` query, so row counts never include it.
+ * Rendered only where rows actually hide behind it.
+ */
+function expandFooter(columns, totalRows) {
+  if (totalRows <= HUB_ROWS_SHOWN) return '';
+  const slow = totalRows > SHOW_ALL_SLOW_ROWS;
+  return `            <tfoot>
+              <tr>
+                <td class="hub-expand" colspan="${columns}">
+                  <button type="button" class="button button--ghost button--small" data-hub-expand="more"><span aria-hidden="true">▾</span> <span data-i18n="partial.showMore">Show more</span></button>
+                  <button type="button" class="button button--ghost button--small" data-hub-expand="all"><span aria-hidden="true">▾</span> <span data-i18n="${slow ? 'partial.showAllSlow' : 'partial.showAll'}">${slow ? 'Show all (slow)' : 'Show all'}</span></button>
+                </td>
+              </tr>
+            </tfoot>
+`;
+}
+
 const HUB_ROW_VIRTUALIZER = `<script>
       (function () {
         var rows = document.querySelectorAll('.hub tbody tr');
@@ -64,22 +95,26 @@ const HUB_ROW_VIRTUALIZER = `<script>
         var total = rows.length;
         if (total <= SHOW) return;
         var host = document.querySelector('#hub-rows-note');
-        if (!host) return;
-        var button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'button button--ghost button--small';
-        button.setAttribute('data-i18n', 'partial.showMore');
-        button.textContent = 'Show more';
-        button.addEventListener('click', function () {
-          var until = Math.min(total, SHOW + STEP);
-          for (var i = 0; i < until; i++) rows[i].removeAttribute('hidden');
-          SHOW = until;
+        var footer = document.querySelector('.hub tfoot');
+        if (!host || !footer) return;
+        var report = function () {
           // The static bundle (data-i18n-params aware) formats the count via
           // the active locale; the inline script only reports the state.
           host.dispatchEvent(new CustomEvent('hub-rows', { detail: { shown: SHOW, total: total } }));
-          if (SHOW >= total) button.remove();
+        };
+        footer.querySelector('[data-hub-expand="more"]').addEventListener('click', function () {
+          var until = Math.min(total, SHOW + STEP);
+          for (var i = 0; i < until; i++) rows[i].removeAttribute('hidden');
+          SHOW = until;
+          report();
+          if (SHOW >= total) footer.remove();
         });
-        host.append(' ', button);
+        footer.querySelector('[data-hub-expand="all"]').addEventListener('click', function () {
+          for (var i = SHOW; i < total; i++) rows[i].removeAttribute('hidden');
+          SHOW = total;
+          report();
+          footer.remove();
+        });
       })();
       </script>`;;
 
@@ -375,7 +410,7 @@ function renderPage({ title, titleTag = null, description, canonical, breadcrumb
     <link rel="describedby" type="text/plain" href="/llms.txt" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="${assets.cssFile}" />
-    <script>
+${totalRows > HUB_ROWS_SHOWN ? '    <noscript><style>.hub tfoot{display:none}</style></noscript>\n' : ''}    <script>
       ${BOOT}
       window.__malWorker = '${escapeHtml(assets.workerFile)}';
     </script>
@@ -526,7 +561,7 @@ export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, 
             <tbody>
 ${rows}
             </tbody>
-          </table>
+${expandFooter(5, hub.prefixes.size)}          </table>
         </div>`;
 
   const collectionLd = JSON.stringify({
@@ -617,7 +652,7 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], data
             <tbody>
 ${rows}
             </tbody>
-          </table>
+${expandFooter(5, hub.records.length)}          </table>
         </div>
       <p class="section-note"><span data-i18n="hub.vendor.caption" ${paramsAttr({ org: hub.displayName })}>Every block registered to ${escapeHtml(hub.displayName)} in the IEEE registries, complete.</span> <a href="${escapeHtml(searchHref)}" data-i18n="hub.search.link">Free-text search</a> <span data-i18n="hub.search.tail">also matches former owners.</span></p>`;
 
@@ -694,7 +729,7 @@ export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = n
             <tbody>
 ${rows}
             </tbody>
-          </table>
+${expandFooter(4, ranked.length)}          </table>
         </div>
       <p class="section-note"><span data-i18n="hub.country.caption" ${paramsAttr({ country: name })}>Every organization with blocks registered in ${escapeHtml(name)}, sorted by total address space.</span></p>`;
 
@@ -786,7 +821,7 @@ export function renderCountryIndexPage({ hubData, assets, site = SITE, dataUpdat
             <tbody>
 ${rows}
             </tbody>
-          </table>
+${expandFooter(5, countries.length)}          </table>
         </div>
       <p class="section-note"><span data-i18n="hub.countries.caption">Every country with at least one registered MAC address block, with organization, block, and address totals, sorted by total address space.</span></p>`;
 

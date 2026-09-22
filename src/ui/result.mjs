@@ -198,7 +198,7 @@ function prefixCell(prefix, onSelect) {
     : el('code', { text: colonize(prefix) });
 }
 
-function resultsTable(headerKeys, rows) {
+function resultsTable(headerKeys, rows, footer = null) {
   return el('div', { class: 'table-wrap' }, [
     el('table', { class: 'data-table stack-table' }, [
       el('thead', {}, [
@@ -207,8 +207,25 @@ function resultsTable(headerKeys, rows) {
         ]),
       ]),
       el('tbody', {}, rows),
+      footer
+        ? el('tfoot', {}, [
+            el('tr', {}, [el('td', { class: 'hub-expand', colspan: headerKeys.length }, footer)]),
+          ])
+        : null,
     ]),
   ]);
+}
+
+/**
+ * Expand control for a table's <tfoot> last line. The triangle glyph is
+ * aria-hidden, so the accessible name stays "Show more"/"Show all".
+ */
+function expandButton(label, onClick) {
+  return el(
+    'button',
+    { type: 'button', class: 'button button--ghost button--small', onClick },
+    [el('span', { 'aria-hidden': 'true', text: '▾' }), ' ', label],
+  );
 }
 
 function countryLabel(code) {
@@ -352,7 +369,10 @@ export function renderNone(container, result) {
   );
 }
 
-export function renderPartial(container, result, { onSelect, onShowMore = null } = {}) {
+/** See build/hubs.mjs SHOW_ALL_SLOW_ROWS: ~0.6 s stall on a phone at 4x. */
+const PARTIAL_SLOW_ROWS = 1500;
+
+export function renderPartial(container, result, { onSelect, onShowMore = null, onShowAll = null } = {}) {
   clear(container);
   const { matches, total, truncated, input } = result;
 
@@ -363,6 +383,26 @@ export function renderPartial(container, result, { onSelect, onShowMore = null }
       el('td', { 'data-label': t('table.org'), class: 'org' }, [record.orgName || '-']),
     ]),
   );
+
+  // The expand controls are the table's own last line (a <tfoot> row), not a
+  // button under it. "Show all" renders every match in one pass, so past
+  // PARTIAL_SLOW_ROWS it warns that the page will stall (measured in
+  // e2e/measure-showall.mjs: /00's 17,394 rows take 2.2 s to rebuild+paint
+  // at 1x CPU and 9.4 s at 4x).
+  const footer =
+    truncated && onShowMore
+      ? [
+          expandButton(t('partial.showMore'), onShowMore),
+          ...(onShowAll
+            ? [
+                expandButton(
+                  total > PARTIAL_SLOW_ROWS ? t('partial.showAllSlow') : t('partial.showAll'),
+                  onShowAll,
+                ),
+              ]
+            : []),
+        ]
+      : null;
 
   const heading = total === 1
     ? t('search.matching', { count: formatCount(total) })
@@ -378,17 +418,7 @@ export function renderPartial(container, result, { onSelect, onShowMore = null }
           (truncated ? t('partial.note.cap', { shown: formatCount(matches.length) }) : '') +
           t('partial.note.end'),
       }),
-      resultsTable(['table.prefix', 'table.block', 'table.org'], rows),
-      truncated && onShowMore
-        ? el('p', { class: 'summary-line' }, [
-            el('button', {
-              type: 'button',
-              class: 'button button--ghost button--small',
-              text: t('partial.showMore'),
-              onClick: onShowMore,
-            }),
-          ])
-        : null,
+      resultsTable(['table.prefix', 'table.block', 'table.org'], rows, footer),
     ]),
   );
 }

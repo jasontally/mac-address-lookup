@@ -198,6 +198,10 @@ async function runSingle(raw, { push = true } = {}) {
           partialState.limit += PARTIAL_STEP;
           runSingle(raw, { push: false });
         },
+        onShowAll: () => {
+          partialState.limit = Number.MAX_SAFE_INTEGER;
+          runSingle(raw, { push: false });
+        },
       });
     } else {
       renderInvalid(ui.result, { error: result.error });
