@@ -1,49 +1,21 @@
 /**
- * Measure the cost of a "Show all" reveal, at 1x and 4x CPU throttling.
- * 1. Hub pages (/country/us etc.): rows ship `hidden`; "Show all" removes
- *    every hidden flag at once -> cost is style+layout+paint.
- * 2. SPA partial listing (/00): "Show all" re-renders with limit = total
- *    (measured as the click that finally reaches `total` rows).
+ * Measure the cost of a partial-listing "Show all" rebuild, at 1x and 4x
+ * CPU throttling: SPA partial (/00) "Show all" re-renders with limit = total
+ * (measured as the click that finally reaches `total` rows).
  *
- * Usage: node /tmp/opencode/measure-showall.mjs [base-url]
+ * Static hub tables no longer cap or reveal anything - every row ships
+ * visible since 2026-09-22; their pre-removal un-hide costs are recorded in
+ * docs/architecture.md ("Full-reveal Show all" row).
+ *
+ * Usage: node e2e/measure-showall.mjs [base-url]
  */
 import { chromium } from '@playwright/test';
 
 const BASE = process.argv[2] ?? 'http://localhost:8788';
 const browser = await chromium.launch({ channel: 'chrome' });
-const out = { hub: {}, partial: {} };
+const out = { partial: {} };
 
-// ---- 1. Hub page full reveal ------------------------------------------------
-const hubPages = ['/country/us', '/country/cn', '/vendor/apple-inc'];
-for (const path of hubPages) {
-  for (const rate of [1, 4]) {
-    const ctx = await browser.newContext({ viewport: { width: 360, height: 740 } });
-    const page = await ctx.newPage();
-    await page.goto(`${BASE}${path}`, { waitUntil: 'load' });
-    const client = await ctx.newCDPSession(page);
-    await client.send('Emulation.setCPUThrottlingRate', { rate });
-    const m = await page.evaluate(async () => {
-      const rows = [...document.querySelectorAll('.data-table tbody tr')];
-      const hidden = rows.filter((r) => r.hasAttribute('hidden'));
-      const shown = rows.length - hidden.length;
-      const t0 = performance.now();
-      for (const r of hidden) r.removeAttribute('hidden');
-      document.querySelector('.data-table').getBoundingClientRect(); // force layout
-      const t1 = performance.now();
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      const t2 = performance.now();
-      return { total: rows.length, revealed: hidden.length, shownBefore: shown, layout: t1 - t0, paint: t2 - t0 };
-    });
-    out.hub[`${path}@${rate}`] = m;
-    console.log(
-      `hub ${path} @CPU x${rate}: total=${m.total} (shown ${m.shownBefore} -> reveal ${m.revealed}) ` +
-        `layout=${Math.round(m.layout)}ms paint=${Math.round(m.paint)}ms`,
-    );
-    await ctx.close();
-  }
-}
-
-// ---- 2. SPA partial full render --------------------------------------------
+// SPA partial full render -----------------------------------------------------
 // Clicks run in-page (Playwright's actionability check stalls against a
 // button that the app re-creates on every render).
 {

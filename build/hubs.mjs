@@ -28,17 +28,6 @@ const BOOT = `(function () {
       })();`;
 
 /**
- * Chunked rendering for very large hub tables (thin-content plan's fallback):
- * rows past the initial batch ship with `hidden` in the source HTML - the
- * complete data remains in the document for non-JS crawlers, but the browser
- * never lays out 8,881 rows at boot. A tiny inline script adds the "show
- * more" reveal; without JavaScript the note tells the reader, and the full
- * table remains in the page source either way.
- */
-const HUB_ROWS_SHOWN = 500;
-const HUB_ROWS_STEP = 1000;
-
-/**
  * data-i18n-params attribute: client `applyDom` re-interpolates through
  * the active locale table. Values are engine-derived (counts, org names),
  * so JSON needs only entity escaping for the attribute literally.
@@ -50,73 +39,6 @@ function paramsAttr(params) {
     .replace(/</g, '&lt;');
   return `data-i18n-params='${json}'`;
 }
-
-/** Rows beyond the initial batch get `hidden`; caller tracks no state. */
-export function hubRowHidden(index) {
-  return index >= HUB_ROWS_SHOWN;
-}
-
-/**
- * "Show all" earns the "(slow)" suffix past this row count. Measured in
- * e2e/measure-showall.mjs (mobile viewport, paint after revealing every
- * hidden row): 1,573 rows = 613 ms, 5,402 = 2,891 ms, 8,885 (/country/us)
- * = 4,091 ms at 4x CPU throttle — so 1,500 rows already reads as a ~0.6 s
- * stall on a phone and the US page as a 4 s one. Pages at or under it
- * reveal fast enough to stay plain.
- */
-const SHOW_ALL_SLOW_ROWS = 1500;
-
-/**
- * The expand controls are a real `<tfoot>` row: the table's own last line,
- * directly under the last data row, rather than a button appended to the
- * note below the table. `tfoot` also keeps the control row out of the
- * virtualizer's `.hub tbody tr` query, so row counts never include it.
- * Rendered only where rows actually hide behind it.
- */
-function expandFooter(columns, totalRows) {
-  if (totalRows <= HUB_ROWS_SHOWN) return '';
-  const slow = totalRows > SHOW_ALL_SLOW_ROWS;
-  return `            <tfoot>
-              <tr>
-                <td class="hub-expand" colspan="${columns}">
-                  <button type="button" class="button button--ghost button--small" data-hub-expand="more"><span aria-hidden="true">▾</span> <span data-i18n="partial.showMore">Show more</span></button>
-                  <button type="button" class="button button--ghost button--small" data-hub-expand="all"><span aria-hidden="true">▾</span> <span data-i18n="${slow ? 'partial.showAllSlow' : 'partial.showAll'}">${slow ? 'Show all (slow)' : 'Show all'}</span></button>
-                </td>
-              </tr>
-            </tfoot>
-`;
-}
-
-const HUB_ROW_VIRTUALIZER = `<script>
-      (function () {
-        var rows = document.querySelectorAll('.hub tbody tr');
-        var SHOW = ${HUB_ROWS_SHOWN};
-        var STEP = ${HUB_ROWS_STEP};
-        var total = rows.length;
-        if (total <= SHOW) return;
-        var host = document.querySelector('#hub-rows-note');
-        var footer = document.querySelector('.hub tfoot');
-        if (!host || !footer) return;
-        var report = function () {
-          // The static bundle (data-i18n-params aware) formats the count via
-          // the active locale; the inline script only reports the state.
-          host.dispatchEvent(new CustomEvent('hub-rows', { detail: { shown: SHOW, total: total } }));
-        };
-        footer.querySelector('[data-hub-expand="more"]').addEventListener('click', function () {
-          var until = Math.min(total, SHOW + STEP);
-          for (var i = 0; i < until; i++) rows[i].removeAttribute('hidden');
-          SHOW = until;
-          report();
-          if (SHOW >= total) footer.remove();
-        });
-        footer.querySelector('[data-hub-expand="all"]').addEventListener('click', function () {
-          for (var i = SHOW; i < total; i++) rows[i].removeAttribute('hidden');
-          SHOW = total;
-          report();
-          footer.remove();
-        });
-      })();
-      </script>`;;
 
 const LOOKUP_FORM = `          <form class="lookup-form" id="lookup-form" novalidate>            <label class="visually-hidden" for="lookup-input" data-i18n="lookup.label">MAC address or OUI prefix</label>
             <input
@@ -370,7 +292,7 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0, dataUpdated = null, site = SITE, countriesLink = true }) {
+function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], dataUpdated = null, site = SITE, countriesLink = true }) {
   // Breadcrumbs are Home / [index /] this page: country pages sit under the
   // /country rollup, which gives that index its internal links.
   const breadcrumb = breadcrumbLd([
@@ -410,7 +332,7 @@ function renderPage({ title, titleTag = null, description, canonical, breadcrumb
     <link rel="describedby" type="text/plain" href="/llms.txt" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="${assets.cssFile}" />
-${totalRows > HUB_ROWS_SHOWN ? '    <noscript><style>.hub tfoot{display:none}</style></noscript>\n' : ''}    <script>
+    <script>
       ${BOOT}
       window.__malWorker = '${escapeHtml(assets.workerFile)}';
     </script>
@@ -448,13 +370,7 @@ ${LOOKUP_FORM}
         <article class="hub">
 ${body}
         </article>
-        <p class="section-note" id="hub-rows-note">${
-          totalRows > HUB_ROWS_SHOWN
-            ? `<span class="hub-rows-count" data-i18n="hub.rowsCount" ${paramsAttr({ shown: HUB_ROWS_SHOWN, total: totalRows })}>Showing the first ${HUB_ROWS_SHOWN} of ${totalRows}</span> · <span data-i18n="hub.rowsTail">the rest is in this page's source HTML.</span>`
-            : ''
-        }</p>
         <p class="section-note" data-i18n="hub.completeNote">Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.</p>
-${HUB_ROW_VIRTUALIZER}
       </div>
     </main>
 
@@ -528,7 +444,7 @@ export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, 
 
   const rows = [...hub.prefixes.values()]
     .sort((a, b) => (a.prefix < b.prefix ? -1 : a.prefix > b.prefix ? 1 : 0))
-    .map((instance, index) => {
+    .map((instance) => {
       const record = recordsByPrefix.get(instance.prefix);
       const blockLabel = record ? record.blockType : '-';
       const addresses = record ? formatAddresses(record.addressCount, 'en') : '-';
@@ -536,10 +452,10 @@ export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, 
         ? `<a href="/vendor/${escapeHtml(instance.currentSlug)}">${escapeHtml(instance.currentDisplay)}</a>`
         : escapeHtml(instance.currentDisplay || '-');
       return (
-        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
+        `            <tr>` +
         `<td class="mono"><a href="/${escapeHtml(instance.prefix)}">${escapeHtml(colonize(instance.prefix))}</a></td>` +
         `<td>${escapeHtml(blockLabel)}</td>` +
-        `<td>${escapeHtml(addresses)}</td>` +
+        `<td class="num">${escapeHtml(addresses)}</td>` +
         `<td>${escapeHtml(formatDate(instance.firstDate, 'en') || '-')}</td>` +
         `<td class="org">${ownerHtml}</td>` +
         `</tr>`
@@ -561,7 +477,7 @@ export function renderFormerHubPage({ hub, recordsByPrefix = new Map(), assets, 
             <tbody>
 ${rows}
             </tbody>
-${expandFooter(5, hub.prefixes.size)}          </table>
+          </table>
         </div>`;
 
   const collectionLd = JSON.stringify({
@@ -585,7 +501,6 @@ ${expandFooter(5, hub.prefixes.size)}          </table>
     body: `${body}\n`,
     assets,
     jsonLdNodes: [collectionLd],
-    totalRows: hub.blocks,
     dataUpdated,
     site,
   });
@@ -626,11 +541,11 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], data
 
   const rows = hub.records
     .map(
-      (record, index) =>
-        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
+      (record) =>
+        `            <tr>` +
         `<td class="mono"><a href="/${escapeHtml(record.prefix)}">${escapeHtml(colonize(record.prefix))}</a></td>` +
         `<td>${escapeHtml(record.blockType)}</td>` +
-        `<td>${escapeHtml(formatAddresses(record.addressCount, 'en'))}</td>` +
+        `<td class="num">${escapeHtml(formatAddresses(record.addressCount, 'en'))}</td>` +
         `<td>${escapeHtml(record.country ?? '-')}</td>` +
         `<td>${escapeHtml(formatDate(record.firstSeen, 'en') || '-')}</td>` +
         `</tr>`,
@@ -652,7 +567,7 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], data
             <tbody>
 ${rows}
             </tbody>
-${expandFooter(5, hub.records.length)}          </table>
+          </table>
         </div>
       <p class="section-note"><span data-i18n="hub.vendor.caption" ${paramsAttr({ org: hub.displayName })}>Every block registered to ${escapeHtml(hub.displayName)} in the IEEE registries, complete.</span> <a href="${escapeHtml(searchHref)}" data-i18n="hub.search.link">Free-text search</a> <span data-i18n="hub.search.tail">also matches former owners.</span></p>`;
 
@@ -677,7 +592,6 @@ ${expandFooter(5, hub.records.length)}          </table>
     body: `${body}\n`,
     assets,
     jsonLdNodes: [collectionLd],
-    totalRows: hub.blocks,
     dataUpdated,
     site,
   });
@@ -706,11 +620,11 @@ export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = n
 
   const rows = ranked
     .map(
-      (entry, index) =>
-        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
+      (entry) =>
+        `            <tr>` +
         `<td class="org">${orgAnchor(entry, selectedPrefixes)}</td>` +
         `<td>${escapeHtml(formatCount(entry.blocks, 'en'))}</td>` +
-        `<td>${escapeHtml(formatAddresses(entry.addresses, 'en'))}</td>` +
+        `<td class="num">${escapeHtml(formatAddresses(entry.addresses, 'en'))}</td>` +
         `<td>${escapeHtml(formatDate(entry.firstSeen, 'en') || '-')}</td>` +
         `</tr>`,
     )
@@ -729,7 +643,7 @@ export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = n
             <tbody>
 ${rows}
             </tbody>
-${expandFooter(4, ranked.length)}          </table>
+          </table>
         </div>
       <p class="section-note"><span data-i18n="hub.country.caption" ${paramsAttr({ country: name })}>Every organization with blocks registered in ${escapeHtml(name)}, sorted by total address space.</span></p>`;
 
@@ -755,7 +669,6 @@ ${expandFooter(4, ranked.length)}          </table>
     body: `${body}\n`,
     assets,
     jsonLdNodes: [collectionLd],
-    totalRows: ranked.length,
     dataUpdated,
   });
 }
@@ -796,13 +709,13 @@ export function renderCountryIndexPage({ hubData, assets, site = SITE, dataUpdat
 
   const rows = countries
     .map(
-      (hub, index) =>
-        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
+      (hub) =>
+        `            <tr>` +
         `<td class="org"><a href="/country/${escapeHtml(hub.code.toLowerCase())}">${escapeHtml(displayNameForCountry(hub.code))}</a></td>` +
         `<td class="mono">${escapeHtml(hub.code)}</td>` +
         `<td>${escapeHtml(formatCount(hub.orgs.size, 'en'))}</td>` +
         `<td>${escapeHtml(formatCount(hub.blocks, 'en'))}</td>` +
-        `<td>${escapeHtml(formatAddresses(hub.addresses, 'en'))}</td>` +
+        `<td class="num">${escapeHtml(formatAddresses(hub.addresses, 'en'))}</td>` +
         `</tr>`,
     )
     .join('\n');
@@ -821,7 +734,7 @@ export function renderCountryIndexPage({ hubData, assets, site = SITE, dataUpdat
             <tbody>
 ${rows}
             </tbody>
-${expandFooter(5, countries.length)}          </table>
+          </table>
         </div>
       <p class="section-note"><span data-i18n="hub.countries.caption">Every country with at least one registered MAC address block, with organization, block, and address totals, sorted by total address space.</span></p>`;
 
@@ -846,7 +759,6 @@ ${expandFooter(5, countries.length)}          </table>
     body: `${body}\n`,
     assets,
     jsonLdNodes: [collectionLd],
-    totalRows: countries.length,
     dataUpdated,
     site,
     countriesLink: false, // no self-link in the footer

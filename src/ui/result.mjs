@@ -369,7 +369,12 @@ export function renderNone(container, result) {
   );
 }
 
-/** See build/hubs.mjs SHOW_ALL_SLOW_ROWS: ~0.6 s stall on a phone at 4x. */
+/**
+ * Partials keep a "(slow)" suffix past 1,500 rows: every row is built in JS
+ * per query, and e2e/measure-showall.mjs measured a 17,394-row rebuild at
+ * 2.2 s (1x) / 9.4 s (4x CPU throttle) on /00. Static hub tables ship every
+ * row visible and never use this threshold.
+ */
 const PARTIAL_SLOW_ROWS = 1500;
 
 export function renderPartial(container, result, { onSelect, onShowMore = null, onShowAll = null } = {}) {

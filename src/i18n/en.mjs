@@ -283,9 +283,6 @@ export const en = {
   'hub.countries.caption':
     'Every country with at least one registered MAC address block, with organization, block, and address totals, sorted by total address space.',
   'hub.countries.all': 'All countries',
-  'hub.rowsCount': 'Showing the first {shown} of {total}',
-  'hub.rowsAll': 'Showing all {total}',
-  'hub.rowsTail': 'the rest is in this page’s source HTML.',
   'hub.completeNote':
     'Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.',
 

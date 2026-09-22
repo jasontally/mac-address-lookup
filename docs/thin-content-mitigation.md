@@ -44,7 +44,7 @@ Guardrails honored throughout (from the project owner, 2026-09-16):
 | Countries in the `country` field | **249** (`extractCountry` scans the last 4 address tokens; verified the `… STATE COUNTRY ZIP` tail format resolves correctly); 61 records have none |
 | Worst-case hub tables | Apple: 1,553 block rows (~227 KB raw, ~23 KB compressed) · US: 8,879 orgs (~1.3 MB raw, ~130 KB compressed) |
 | Dynamic display caps (measured 2026-09-15, `e2e/measure-limits.mjs`) | 500 rows display (23 ms throttled) · 250 batch · 5,000 rows renders in 296 ms at 4× throttle |
-| "Show all" full reveal (measured 2026-09-22, `e2e/measure-showall.mjs`) | 19 capped tables + partial listings: un-hide 8,885 rows = 4,091 ms to paint at 4× CPU (1,018 ms at 1×); `/00`'s 17,394 rows rebuild in 2,242 ms / 9,414 ms | "(slow)" suffix past 1,500 rows |
+| "Show all" full reveal (measured 2026-09-22, `e2e/measure-showall.mjs`) | Partials: `/00`'s 17,394 rows rebuild in 2,242 ms (1×) / 9,414 ms (4×); the hub un-hide measurement (8,885 rows = 4,091 ms at 4×) plus a real-phone <1 s reveal removed the static caps the same day | "(slow)" suffix past 1,500 rows, partial listings only |
 | Current non-page files | ~316 of the 2,000 allowance |
 | Avg prefix-page size / total output | ~8 KB · ~479 MB |
 
@@ -187,19 +187,15 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
 - **No display caps on static pages.** Static HTML is the fast path — repetitive
   table rows compress ~10:1 at the edge, so the worst pages stay small on the wire
   (Apple ~23 KB, US ~130 KB) and the complete data is crawlable in one document.
-  Totals are stated in the lede ("1,553 blocks"), not as a truncation notice. DOM
-  weight is the real cost, and the shipped adjustment (2026-09-16, after Lighthouse
-  mobile runs) is the plan's fallback: rows past an initial 500-row batch ship
-  `hidden` in the source (complete table stays in the document for crawlers and
-  noscript; nothing is removed), so the browser never lays out 8,881 rows at boot —
-  main-thread blocking on `/country/us` dropped from ~1.2 s to ~20 ms. A tiny
-  inline script adds the "show more" reveal (1,000 rows per click) with the
-  existing `showing-first-of` note; the same key (`partial.showMore`) is reused.
-  A "show all" sits beside it (reveals every row in one pass). Both live in a
-  `<tfoot>` row — the table's last line, glyph `▾` each — and "show all"
-  reads "Show all (slow)" past 1,500 rows, where the full un-hide measures
-  613 ms–4,091 ms to paint at 4× CPU (1,573–8,885 rows; `e2e/measure-showall.mjs`).
-  Without JS nothing reveals, so a `<noscript>` style hides the control row.
+  Totals are stated in the lede ("1,553 blocks"), not as a truncation notice. Every
+  row ships visible: the plan's fallback cap (shipped 2026-09-16 — rows past an
+  initial 500-row batch `hidden` in the source, revealed by an inline "show more" /
+  "show all" script behind a cap note, with a `<noscript>` style hiding the dead
+  controls) was removed 2026-09-22, after a real phone revealed all 8,885
+  `/country/us` rows in well under a second where the lab's 4× CPU throttle had
+  predicted ~4 s (`e2e/measure-showall.mjs` recorded both sides). Hub tables now
+  ship no reveal controls, cap note, or inline script; dynamic partial listings
+  keep the measured cap and its controls.
 - Excluded from hubs: `Private` and empty-org records (consistent with page
   selection). Former-owner pages were out of scope for v1 and shipped on
   2026-09-16 (see above).

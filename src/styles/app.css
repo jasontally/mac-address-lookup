@@ -738,6 +738,12 @@ main {
   white-space: nowrap;
 }
 
+/* Numeric cells (Addresses) hold one line on desktop, where the column can
+   claim the width; the stacked mobile layout may wrap them. */
+.data-table td.num {
+  white-space: nowrap;
+}
+
 .data-table .org {
   overflow-wrap: anywhere;
 }
@@ -817,6 +823,9 @@ td.hub-expand .button + .button {
 
   .stack-table td:first-child {
     padding-top: 0;
+  }
+  .data-table td.num {
+    white-space: normal;
   }
 
   .stack-table td.hub-expand {

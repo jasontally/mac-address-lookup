@@ -5,7 +5,7 @@
  * fraction of the full app bundle for pages that never look up anything.
  */
 
-import { LOCALE_NAMES, SUPPORTED_LOCALES, applyDom, getLocale, initI18n, setLocale, t } from '../i18n/index.mjs';
+import { LOCALE_NAMES, SUPPORTED_LOCALES, applyDom, getLocale, initI18n, setLocale } from '../i18n/index.mjs';
 import { initTheme } from './theme.mjs';
 import { wireCopyButtons } from './clipboard.mjs';
 
@@ -29,19 +29,6 @@ if (localePicker) {
   localePicker.addEventListener('change', () => {
     setLocale(localePicker.value);
     location.reload();
-  });
-}
-
-// Hub tables: the inline virtualizer (build/hubs.mjs) reports revealed-row
-// state as events; format the visible count with the active locale (the
-// initial state ships pre-rendered with data-i18n-params, swapped above).
-const rowsNote = document.getElementById('hub-rows-note');
-if (rowsNote) {
-  const count = rowsNote.querySelector('.hub-rows-count');
-  rowsNote.addEventListener('hub-rows', (event) => {
-    const { shown, total } = event.detail ?? {};
-    if (!count || !Number.isFinite(shown) || !Number.isFinite(total)) return;
-    count.textContent = shown >= total ? t('hub.rowsAll', { total }) : t('hub.rowsCount', { shown, total });
   });
 }
 

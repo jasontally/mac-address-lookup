@@ -1,45 +1,41 @@
 import { test, expect } from '@playwright/test';
 
-/** The display-cap note is locale-formatted after boot ("of 8,885"). */
-const totalFromNote = (note) => Number(/of ([\d,]+)/.exec(note)[1].replace(/,/g, ''));
+/** Row totals drift a few rows per registry refresh; the lede states them. */
+const totalFromLede = async (page, pattern) => {
+  const lede = await page.locator('.lede').textContent();
+  return Number(pattern.exec(lede)[1].replace(/,/g, ''));
+};
 
 test.describe('Vendor and country hub pages', () => {
   test('/vendor/apple-inc serves the complete static table — no row caps', async ({ page }) => {
     await page.goto('/vendor/apple-inc');
     await expect(page.locator('h1')).toContainText('Apple, Inc. MAC address blocks');
     expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://mac.jasontally.com/vendor/apple-inc');
-    // Complete data: >1,500 blocks ship in one document. Row totals drift a few
-    // blocks per registry refresh; derive the total from the display-cap note.
-    await expect(page.locator('#hub-rows-note')).toContainText('Showing the first 500 of', { timeout: 10_000 });
-    const total = totalFromNote(await page.locator('#hub-rows-note').textContent());
+    // Complete data: >1,500 blocks ship visible in one document — no cap
+    // note, no hidden rows, no controls.
+    const total = await totalFromLede(page, /carries ([\d,]+) blocks/);
     expect(total).toBeGreaterThan(1500);
     await expect(page.locator('.data-table tbody tr')).toHaveCount(total, { timeout: 15_000 });
+    await expect(page.locator('.data-table tbody tr[hidden]')).toHaveCount(0);
+    await expect(page.locator('.data-table tfoot')).toHaveCount(0);
+    await expect(page.locator('#hub-rows-note')).toHaveCount(0);
     expect(await page.locator('.hub-countries a[href="/country/us"]').count()).toBe(1);
     await expect(page.locator('#lookup-form')).toHaveCount(1);
   });
 
-  test('very large tables hide rows past the initial batch and reveal on click', async ({ page }) => {
+  test('very large tables ship every row visible with no reveal controls', async ({ page }) => {
     await page.goto('/country/us');
-    await page.getByRole('button', { name: 'Show more' }).waitFor({ timeout: 10_000 });
-    const visible = await page.locator('.data-table tbody tr:not([hidden])').count();
-    expect(visible).toBe(500);
-    const note = await page.locator('#hub-rows-note').textContent();
-    // Row totals drift a few orgs per data refresh; derive from the note.
-    const total = totalFromNote(note);
-    await page.getByRole('button', { name: 'Show more' }).click();
-    await expect(page.locator('.data-table tbody tr:not([hidden])')).toHaveCount(1500, { timeout: 10_000 });
-    await expect(page.locator('#hub-rows-note')).toContainText(`Showing the first 1500 of`);
-
-    // Both controls are a <tfoot> row - the table's own last line - and this
-    // page (8,885 rows, a ~4 s reveal at 4x CPU) is over the slow threshold.
-    const foot = page.locator('.data-table tfoot');
-    await expect(foot.locator('td.hub-expand')).toHaveCount(1);
-    const showAll = page.getByRole('button', { name: 'Show all' });
-    await expect(showAll.locator('[data-i18n="partial.showAllSlow"]')).toHaveCount(1);
-    await showAll.click();
-    await expect(page.locator('.data-table tbody tr:not([hidden])')).toHaveCount(total, { timeout: 20_000 });
-    await expect(page.locator('#hub-rows-note')).toContainText(`Showing all`);
-    await expect(foot).toHaveCount(0, 'the control row leaves once everything is revealed');
+    // The lede states the org total; the same count renders the rows.
+    const total = await totalFromLede(page, /across ([\d,]+) organizations/);
+    expect(total).toBeGreaterThan(8000);
+    await expect(page.locator('.data-table tbody tr')).toHaveCount(total, { timeout: 20_000 });
+    // No cap machinery at any size: nothing hidden, no controls, no note.
+    await expect(page.locator('.data-table tbody tr[hidden]')).toHaveCount(0);
+    await expect(page.locator('.data-table tfoot')).toHaveCount(0);
+    await expect(page.locator('#hub-rows-note')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Show more' })).toHaveCount(0);
+    // Addresses cells carry the desktop one-line class.
+    await expect(page.locator('.data-table td.num').first()).toHaveCount(1);
   });
 
   test('/vendor/qualcomm-inc renders a mid-size hub with static chrome', async ({ page }) => {
@@ -52,9 +48,8 @@ test.describe('Vendor and country hub pages', () => {
   test('/country/us renders every org, sorted by address space', async ({ page }) => {
     await page.goto('/country/us');
     await expect(page.locator('h1')).toContainText('United States MAC address blocks');
-    // Row counts drift a few orgs per data refresh; the page's note states the total.
-    const note = await page.locator('#hub-rows-note').textContent();
-    const total = totalFromNote(note);
+    // Row counts drift a few orgs per data refresh; the lede states the total.
+    const total = await totalFromLede(page, /across ([\d,]+) organizations/);
     expect(total).toBeGreaterThan(8000);
     await expect(page.locator('.data-table tbody tr')).toHaveCount(total, { timeout: 20_000 });
     // Hub-linked orgs appear in the table (biggest portfolios first).
@@ -73,7 +68,7 @@ test.describe('Vendor and country hub pages', () => {
     await page.goto('/former/apple-computer');
     await expect(page.locator('h1')).toContainText('Former Apple Computer MAC address blocks');
     await expect(page.locator('.lede')).toContainText('took over all of them');
-    const ownerLinks = page.locator('.data-table tbody tr:not([hidden]) a[href="/vendor/apple-inc"]');
+    const ownerLinks = page.locator('.data-table tbody tr a[href="/vendor/apple-inc"]');
     await expect(ownerLinks.first()).toHaveText('Apple, Inc.');
     // The domestic search path stays intact.
     await expect(page.locator('a[href^="/form"]')).toHaveCount(0);
@@ -119,7 +114,8 @@ test.describe('Dynamic hub affordances', () => {
     await expect(page.locator('.data-table tbody tr')).toHaveCount(1000, { timeout: 10_000 });
 
     // Show all sits beside it in the table's last line, labelled slow because
-    // this query matches ~17,000 prefixes (a 9 s rebuild at 4x CPU).
+    // this query matches ~17,000 prefixes (a 9 s rebuild at 4x CPU). Dynamic
+    // partials keep their cap; static hubs do not.
     const heading = await page.locator('.result-card h2').first().textContent();
     const total = Number(/\d[\d,]*/.exec(heading)[0].replace(/\D/g, ''));
     expect(total).toBeGreaterThan(1500);

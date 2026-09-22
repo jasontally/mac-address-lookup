@@ -153,7 +153,11 @@ When a prefix has lineage (scope and provenance: [architecture](architecture.md#
   500 rows (23 ms throttled; `e2e/measure-limits.mjs`) with a total count and a
   "show more" / "show all" reveal — both as a `<tfoot>` row, the table's own
   last line, with "show all" marked *(slow)* past the measured 1,500-row
-  threshold (`e2e/measure-showall.mjs`). Static pages ship complete data with no
-  row caps (static HTML compresses ~10:1 at the edge) — see
-  [thin-content-mitigation](thin-content-mitigation.md).
+  threshold (`e2e/measure-showall.mjs`). Static pages ship every row visible with
+  no caps, hidden rows, or controls (static HTML compresses ~10:1 at the edge;
+  the 2026-09-16 reveal cap was removed 2026-09-22 after a real-phone reveal
+  measured <1 s) — see [thin-content-mitigation](thin-content-mitigation.md).
+- [x] Addresses cells hold one line on desktop (`.data-table td.num`,
+  `white-space: nowrap`); the stacked mobile layout wraps them onto a second
+  line when needed.
 - [x] Data ops: Cloudflare Workers Builds triggered by push; manual refresh via a committed refresh date; no analytics initially.

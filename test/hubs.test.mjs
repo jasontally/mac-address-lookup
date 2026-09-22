@@ -112,13 +112,12 @@ test('renderOrgHubPage renders the complete table without caps', () => {
   assert.match(html, /CollectionPage/);
   assert.match(html, /"name":"Apple Inc."/);
   assert.match(html, /BreadcrumbList/);
-  assert.equal((html.match(/<tr/g) ?? []).length, 1202, 'header row, all 1200 rows, plus the expand footer row, count via <tr prefix');
-  assert.equal((html.match(/<tr hidden>/g) ?? []).length, 700, 'rows past the initial batch ship hidden');
+  assert.equal((html.match(/<tr/g) ?? []).length, 1201, 'header row plus all 1200 rows, count via <tr prefix');
+  assert.equal((html.match(/<tr hidden>/g) ?? []).length, 0, 'every row ships visible');
   assert.match(html, /00001199/, 'late rows carry real prefixes');
   assert.match(html, /1200 blocks registered to/, 'lede states the full total');
-  assert.match(html, /Showing the first 500 of 1200/, 'display-cap note states the total');
-  assert.match(html, /data-i18n="hub.rowsCount" data-i18n-params='\{"shown":500,"total":1200\}'/, 'the count note is a translated span');
-  // Complete data is still in the source: the last row exists.
+  assert.ok(!html.includes('hub-rows-note'), 'no display-cap note');
+  // Complete data is in the rendered page: the last row exists.
   assert.match(html, /<a href="\/00001199">/);
 });
 
@@ -128,7 +127,7 @@ test('renderOrgHubPage links country hubs and the free-text search', () => {
   assert.match(html, /href="\/Apple%20Inc\."[^>]*>Free-text search<\/a>/);
 });
 
-test('expand controls sit in the table last line and only call big reveals slow', () => {
+test('hub tables ship every row visible: no caps, no controls, Addresses nowrap', () => {
   const rows = (n) =>
     Array.from({ length: n }, (_, i) => record(`0000${String(i).padStart(4, '0')}`, 'Apple Inc.'));
   const page = (n) =>
@@ -138,34 +137,17 @@ test('expand controls sit in the table last line and only call big reveals slow'
       site: 'https://example.test',
     });
 
-  const small = page(2);
-  assert.ok(!small.includes('<tfoot>'), 'tables within the display cap need no expand row');
-  assert.ok(!small.includes('<noscript>'), 'no noscript shim without a control row');
+  const big = page(1600);
+  assert.equal((big.match(/<tr hidden>/g) ?? []).length, 0, 'rows ship visible at any size');
+  assert.ok(!big.includes('<tfoot>'), 'no expand row: nothing hides behind it');
+  assert.ok(!big.includes('data-hub-expand'), 'no expand buttons');
+  assert.ok(!big.includes('hub-rows-note'), 'no display-cap note');
+  assert.ok(!big.includes("querySelectorAll('.hub tbody tr')"), 'no reveal script');
+  assert.ok(!big.includes('.hub tfoot'), 'no noscript shim for absent controls');
+  // Addresses cells carry the desktop one-line class (mobile stacked may wrap).
+  assert.match(big, /<td class="num">/);
 
-  const plain = page(1200);
-  const foot = /<tfoot>[\s\S]*?<\/tfoot>/.exec(plain)?.[0];
-  assert.ok(foot, 'row-capped tables end with an expand row');
-  assert.match(foot, /<td class="hub-expand" colspan="5">/, 'the control row spans the whole table');
-  assert.ok(plain.indexOf(foot) > plain.indexOf('</tbody>'), 'after the last data row');
-  assert.ok(plain.indexOf(foot) < plain.indexOf('</table>'), 'still inside the table');
-  assert.match(
-    foot,
-    /data-hub-expand="more"><span aria-hidden="true">▾<\/span> <span data-i18n="partial.showMore">Show more<\/span>/,
-    'Show more keeps its translated label behind a decorative glyph',
-  );
-  assert.match(foot, /data-i18n="partial.showAll">Show all</, '1,200 rows reveal plainly');
-  assert.ok(!foot.includes('slow'), 'no slow warning below the threshold');
-
-  assert.match(page(1600), /data-i18n="partial.showAllSlow">Show all \(slow\)</, 'past the threshold it warns');
-
-  // The inline virtualizer wires both buttons; tbody stays data rows only.
-  assert.match(plain, /\[data-hub-expand="more"\]'\)\.addEventListener/);
-  assert.match(plain, /\[data-hub-expand="all"\]'\)\.addEventListener/);
-  assert.match(plain, /querySelectorAll\('\.hub tbody tr'\)/);
-  // Without JS nothing reveals, so the dead controls hide themselves.
-  assert.match(plain, /<noscript><style>\.hub tfoot\{display:none\}<\/style><\/noscript>/);
-
-  // Country tables have four columns, so their control cell spans four.
+  // Country tables (four columns) carry the same guarantee past 500 rows.
   const countryOrgs = new Map(
     Array.from({ length: 520 }, (_, i) => {
       const name = `Org ${i}`;
@@ -185,7 +167,9 @@ test('expand controls sit in the table last line and only call big reveals slow'
     assets: ASSETS,
     site: 'https://example.test',
   });
-  assert.match(country, /<td class="hub-expand" colspan="4">/);
+  assert.equal((country.match(/<tr hidden>/g) ?? []).length, 0, 'country rows ship visible');
+  assert.ok(!country.includes('<tfoot>'), 'no expand row on country tables');
+  assert.match(country, /<td class="num">/);
 });
 
 test('renderCountryHubPage lists orgs sorted by address space, linking hubs', () => {
@@ -298,7 +282,7 @@ test('renderCountryIndexPage rolls up organizations, blocks, and addresses per c
   assert.deepEqual(order, ['de', 'us', 'hk']);
   assert.match(
     html,
-    /<td class="org"><a href="\/country\/us">United States<\/a><\/td><td class="mono">US<\/td><td>2<\/td><td>3<\/td><td>50.3 million<\/td>/,
+    /<td class="org"><a href="\/country\/us">United States<\/a><\/td><td class="mono">US<\/td><td>2<\/td><td>3<\/td><td class="num">50.3 million<\/td>/,
   );
   assert.match(html, /<th scope="col" data-i18n="table\.iso">ISO<\/th>/);
 
