@@ -6,6 +6,7 @@ import {
   computeHubs,
   displayNameOf,
   renderCountryHubPage,
+  renderCountryIndexPage,
   renderFormerHubPage,
   renderOrgHubPage,
   writeHubPages,
@@ -211,6 +212,85 @@ test('country rows honour the page budget: dropped single-block pages stay plain
   );
 });
 
+const indexHubData = {
+  orgs: [],
+  countries: [
+    { code: 'US', blocks: 3, addresses: 50_331_648, orgs: new Map([['US ORP', {}], ['SHARED', {}]]) },
+    { code: 'HK', blocks: 2, addresses: 1_000_000, orgs: new Map([['SHARED', {}]]) },
+    { code: 'DE', blocks: 7, addresses: 50_331_648, orgs: new Map([['DE ORP', {}]]) },
+  ],
+};
+
+test('renderCountryIndexPage rolls up organizations, blocks, and addresses per country', () => {
+  const html = renderCountryIndexPage({ hubData: indexHubData, assets: ASSETS, site: 'https://example.test' });
+
+  assert.match(html, /rel="canonical" href="https:\/\/example\.test\/country"/);
+  assert.match(
+    html,
+    /<title data-i18n="title\.countries">MAC address blocks by country \| MAC Address Lookup<\/title>/,
+  );
+  assert.match(html, /data-static-page="true"/);
+  assert.match(html, /CollectionPage/);
+
+  // One row per country, linked to that country's page, sorted by address
+  // space (ties by code), each carrying org/block/address totals.
+  const order = [...html.matchAll(/<a href="\/country\/([a-z]{2})">/g)].map((match) => match[1]);
+  assert.deepEqual(order, ['de', 'us', 'hk']);
+  assert.match(
+    html,
+    /<td class="org"><a href="\/country\/us">United States<\/a><\/td><td class="mono">US<\/td><td>2<\/td><td>3<\/td><td>50.3 million<\/td>/,
+  );
+  assert.match(html, /<th scope="col" data-i18n="table\.iso">ISO<\/th>/);
+
+  // Rollups: blocks and addresses are sums; organizations are distinct - the
+  // org registered in both US and HK counts once, so the lede says 3 where
+  // the column would add up to 4.
+  assert.match(
+    html,
+    /data-i18n-params='\{"countries":3,"blocks":12,"addresses":101663296,"orgs":3\}'/,
+  );
+  assert.match(html, /together 102 million addresses across 3 organizations/);
+
+  // The index never links itself from its own footer.
+  assert.ok(!html.includes('href="/country" data-i18n="footer.countries"'));
+});
+
+test('country pages breadcrumb through the /country index; hubs keep the flat footer', () => {
+  const hub = {
+    code: 'HK',
+    blocks: 1,
+    addresses: 16_777_216,
+    orgs: new Map([
+      [
+        'SOLO CO',
+        {
+          key: 'SOLO CO',
+          displayName: 'Solo Co',
+          blocks: 1,
+          addresses: 16_777_216,
+          firstSeen: '2005-01-05',
+          slug: null,
+          nameCounts: new Map([['Solo Co', 1]]),
+          records: [record('000003', 'Solo Co')],
+        },
+      ],
+    ]),
+  };
+  const html = renderCountryHubPage({ hub, assets: ASSETS, site: 'https://example.test' });
+
+  assert.match(
+    html,
+    /<a href="https:\/\/example\.test\/country" data-i18n="hub\.countries\.all">All countries<\/a> <span aria-hidden="true">\/<\/span> <span>Hong Kong<\/span>/,
+    'the visible breadcrumb carries an index link above the country',
+  );
+  assert.match(html, /"position":3,"name":"Hong Kong"/, 'the JSON-LD breadcrumb has three items');
+  assert.match(html, /href="\/country" data-i18n="footer\.countries"/, 'country pages link the index in the footer too');
+
+  const vendor = renderOrgHubPage({ hub: orgHub, assets: ASSETS, site: 'https://example.test' });
+  assert.ok(!vendor.includes('hub.countries.all'), 'vendor breadcrumbs stay flat (Home / Org)');
+  assert.match(vendor, /href="\/country" data-i18n="footer\.countries"/);
+});
+
 test('computeFormerHubs rolls up takeovers and skips single-prefix former orgs', () => {
   const lineage = [
     {
@@ -412,7 +492,10 @@ test('writeHubPages writes nested files and reports relative URLs', async () => 
   const result = await writeHubPages({ hubData: data, outDir: dir, assets: ASSETS });
   assert.deepEqual(result.vendorUrls, ['/vendor/apple-inc']);
   assert.deepEqual(result.countryUrls, ['/country/us']);
+  assert.equal(result.countryIndexUrl, '/country');
   const { readFile } = await import('node:fs/promises');
   const vendorHtml = await readFile(join(dir, 'vendor', 'apple-inc.html'), 'utf8');
   assert.match(vendorHtml, /MAC Address Lookup/);
+  const indexHtml = await readFile(join(dir, 'country.html'), 'utf8');
+  assert.match(indexHtml, /rel="canonical" href="https:\/\/mac\.jasontally\.com\/country"/, 'the rollup index is written beside the country pages');
 });

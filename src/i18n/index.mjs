@@ -18,6 +18,7 @@ function displayedParams(params, locale) {
   const formats = {
     blocks: (value) => formatCount(value, locale),
     count: (value) => formatCount(value, locale),
+    countries: (value) => formatCount(value, locale),
     orgs: (value) => formatCount(value, locale),
     shown: (value) => formatCount(value, locale),
     total: (value) => formatCount(value, locale),

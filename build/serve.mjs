@@ -31,18 +31,40 @@ createServer(async (req, res) => {
     return;
   }
 
-  try {
-    const info = await stat(filePath);
-    if (info.isDirectory()) filePath = path.join(filePath, 'index.html');
-  } catch {
-    // Mirror Workers Assets html_handling: /001A2B serves 001A2B.html.
+  const exists = async (candidate) => {
     try {
-      const htmlPath = `${filePath}.html`;
-      await stat(htmlPath);
-      filePath = htmlPath;
+      await stat(candidate);
+      return candidate;
     } catch {
-      filePath = path.join(distDir, 'index.html'); // SPA fallback
+      return null;
     }
+  };
+
+  // Workers Assets 307s a trailing slash onto the flat .html URL
+  // (/country/ -> /country, /001A2B/ -> /001A2B); mirror it locally.
+  if (url.pathname.endsWith('/')) {
+    const flat = path.join(distDir, url.pathname.replace(/^\/|\/+$/g, ''));
+    if (url.pathname !== '/' && (await exists(`${flat}.html`))) {
+      res.writeHead(307, { location: url.pathname.replace(/\/+$/, '') }).end();
+      return;
+    }
+  }
+
+  let info = null;
+  try {
+    info = await stat(filePath);
+  } catch {
+    info = null;
+  }
+
+  if (info?.isDirectory()) {
+    // Mirror Workers Assets: a directory serves its index.html; without one
+    // the .html twin of the path still matches (/country -> country.html).
+    const index = await exists(path.join(filePath, 'index.html'));
+    filePath = index ?? (await exists(`${filePath}.html`)) ?? path.join(distDir, 'index.html');
+  } else if (!info) {
+    // Mirror Workers Assets html_handling: /001A2B serves 001A2B.html.
+    filePath = (await exists(`${filePath}.html`)) ?? path.join(distDir, 'index.html'); // SPA fallback
   }
 
   try {

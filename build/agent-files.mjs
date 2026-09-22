@@ -57,6 +57,9 @@ export function llmsTxt({ dataFiles = {} } = {}) {
   address resolves to its vendor. Pages are pre-rendered HTML.
 - \`/vendor/{slug}\` - pre-rendered provider page: every MAC block registered
   to one organization (vendors with two or more blocks), as a complete table.
+- \`/country\` - pre-rendered country index: every country with at least one
+  registered block, with organization, block, and address-space totals, each
+  row linking the country's page.
 - \`/country/{code}\` - pre-rendered country page: every organization with
   blocks registered in that country, with block counts and address space.
 - \`/former/{name}\` - pre-rendered former-owner page: organizations that no
@@ -148,6 +151,9 @@ registration itself, each with its complete table:
 
 - **Vendor pages** (\`${site}/vendor/{slug}\`): every MAC block registered to one
   organization, with block types, address space, countries, and registration dates.
+- **Country index** (\`${site}/country\`): every country with at least one
+  registered MAC address block, with organization, block, and address totals
+  per country, sorted by address space; each row links that country's page.
 - **Country pages** (\`${site}/country/{code}\`): every organization with blocks
   registered in that country, sorted by address space.
 - **Former-owner pages** (\`${site}/former/{name}\`): organizations that no longer

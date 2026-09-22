@@ -128,6 +128,7 @@ export const en = {
   'table.org': 'Organization',
   'table.addresses': 'Addresses',
   'table.blocks': 'Blocks',
+  'table.iso': 'ISO',
   'table.match': 'Match',
   'table.input': 'Input',
   'table.result': 'Result',
@@ -234,12 +235,14 @@ export const en = {
   'title.vendorHub': '{org} MAC address blocks | MAC Address Lookup',
   'title.formerHub': 'Former {org} MAC address blocks | MAC Address Lookup',
   'title.countryHub': '{country} MAC address blocks | MAC Address Lookup',
+  'title.countries': 'MAC address blocks by country | MAC Address Lookup',
   'title.recent': 'Latest OUIs | MAC Address Lookup',
 
   // Hub headings (visible h1s; org and country names stay language-neutral)
   'hub.h1.vendor': '{org} MAC address blocks',
   'hub.h1.former': 'Former {org} MAC address blocks',
   'hub.h1.country': '{country} MAC address blocks',
+  'hub.h1.countries': 'MAC address blocks by country',
 
   // Skip link
   'a11y.skip': 'Skip to content',
@@ -273,6 +276,11 @@ export const en = {
   'hub.country.lede':
     'The IEEE registry carries {blocks} blocks with registration addresses in {country}, together {addresses} addresses across {count} organizations.',
   'hub.country.caption': 'Every organization with blocks registered in {country}, sorted by total address space.',
+  'hub.countries.lede':
+    'The IEEE registry carries {blocks} blocks with registration addresses in {countries} countries, together {addresses} addresses across {orgs} organizations.',
+  'hub.countries.caption':
+    'Every country with at least one registered MAC address block, with organization, block, and address totals, sorted by total address space.',
+  'hub.countries.all': 'All countries',
   'hub.rowsCount': 'Showing the first {shown} of {total}',
   'hub.rowsAll': 'Showing all {total}',
   'hub.rowsTail': 'the rest is in this page’s source HTML.',
@@ -284,6 +292,7 @@ export const en = {
   'footer.bundled': 'Bundled software:',
   'footer.refreshed': 'Data refreshed',
   'footer.refreshPlaceholder': 'on the latest deploy',
+  'footer.countries': 'Countries',
 
   // Detail labels
   'detail.match': 'Match',

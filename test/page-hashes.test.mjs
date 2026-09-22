@@ -16,6 +16,7 @@ test('distPathToUrl maps every deployed layout to its canonical URL', () => {
   assert.equal(distPathToUrl('help.html'), '/help');
   assert.equal(distPathToUrl('recent.html'), '/recent');
   assert.equal(distPathToUrl('vendor/apple-inc.html'), '/vendor/apple-inc');
+  assert.equal(distPathToUrl('country.html'), '/country');
   assert.equal(distPathToUrl('country/us.html'), '/country/us');
   assert.equal(distPathToUrl('lang/ja/index.html'), '/lang/ja/');
   assert.equal(distPathToUrl('data/page-hashes.json'), null);
@@ -23,7 +24,7 @@ test('distPathToUrl maps every deployed layout to its canonical URL', () => {
 });
 
 test('urlToDistPath is the inverse of distPathToUrl', () => {
-  for (const url of ['/', '/help', '/recent', '/lang/ja/', '/vendor/apple-inc', '/001B21', '/country/us']) {
+  for (const url of ['/', '/help', '/recent', '/lang/ja/', '/vendor/apple-inc', '/001B21', '/country', '/country/us']) {
     assert.equal(distPathToUrl(urlToDistPath(url)), url);
   }
 });

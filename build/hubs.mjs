@@ -1,9 +1,9 @@
 /**
  * Pre-rendered hub pages (step 2 of docs/thin-content-mitigation.md): one
- * page per multi-block organization (/vendor/<slug>) and one per country
- * (/country/<code>), both carrying the complete data as static tables -
- * no row caps; the whole table ships (static HTML compresses ~10:1 at the
- * edge; sizing in the plan).
+ * page per multi-block organization (/vendor/<slug>), one per country
+ * (/country/<code>), and the /country rollup index over them, all carrying
+ * their complete data as static tables - no row caps; the whole table ships
+ * (static HTML compresses ~10:1 at the edge; sizing in the plan).
  *
  * Grouping uses the same `normalizeOrgName` key as the vendor portfolio
  * stats on result cards, so hub membership can never disagree with them.
@@ -335,11 +335,22 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0, dataUpdated = null, site = SITE }) {
+function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], totalRows = 0, dataUpdated = null, site = SITE, countriesLink = true }) {
+  // Breadcrumbs are Home / [index /] this page: country pages sit under the
+  // /country rollup, which gives that index its internal links.
   const breadcrumb = breadcrumbLd([
     { name: 'MAC Address Lookup', url: `${SITE}/` },
+    ...(breadcrumbParent ? [{ name: breadcrumbParent.name, url: breadcrumbParent.url }] : []),
     { name: breadcrumbLabel, url: canonical },
   ]);
+  const breadcrumbNav =
+    `          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> ` +
+    (breadcrumbParent
+      ? `<a href="${escapeHtml(breadcrumbParent.url)}"${
+          breadcrumbParent.key ? ` data-i18n="${breadcrumbParent.key}"` : ''
+        }>${escapeHtml(breadcrumbParent.name)}</a> <span aria-hidden="true">/</span> `
+      : '') +
+    `<span${breadcrumbKey ? ` data-i18n="${breadcrumbKey}"` : ''}>${escapeHtml(breadcrumbLabel)}</span>`;
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -392,7 +403,7 @@ ${jsonLdNodes.map(jsonLdScript).join('')}${jsonLdScript(breadcrumb)}    <script 
     <main id="main">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb" data-i18n-aria="a11y.breadcrumb">
-          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>${escapeHtml(breadcrumbLabel)}</span>
+${breadcrumbNav}
         </nav>
         <section class="hero hero--compact">
           <h1>${heading}</h1>
@@ -427,7 +438,7 @@ ${HUB_ROW_VIRTUALIZER}
               ? `<time class="footer-date" datetime="${escapeHtml(dataUpdated)}">${escapeHtml(dataUpdated)}</time>`
               : ''
           }
-          <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
+          ${countriesLink ? `<a href="/country" data-i18n="footer.countries">Countries</a> ·\n          ` : ''}<a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>
@@ -701,6 +712,8 @@ ${rows}
     description,
     canonical,
     breadcrumbLabel: name,
+    // Every country page links the rollup index above it in the breadcrumb.
+    breadcrumbParent: { name: 'All countries', url: `${site}/country`, key: 'hub.countries.all' },
     titleTag,
     heading,
     ledeHtml,
@@ -709,6 +722,99 @@ ${rows}
     jsonLdNodes: [collectionLd],
     totalRows: ranked.length,
     dataUpdated,
+  });
+}
+
+/**
+ * Country index (`/country`): the rollup over every country hub - one row per
+ * country with organization, block, and address totals, sorted by address
+ * space, each row linking the country's own page. The sitemap's `country`
+ * scope leads with it, and the country pages' breadcrumbs point back here.
+ */
+export function renderCountryIndexPage({ hubData, assets, site = SITE, dataUpdated = null }) {
+  const canonical = `${site}/country`;
+  const countries = [...hubData.countries].sort(
+    (a, b) => b.addresses - a.addresses || (a.code < b.code ? -1 : 1),
+  );
+  const blocks = countries.reduce((sum, hub) => sum + hub.blocks, 0);
+  const addresses = countries.reduce((sum, hub) => sum + hub.addresses, 0);
+  // An organization registered in two countries appears on both country pages,
+  // so this counts distinct organizations, not the sum of the column.
+  const orgKeys = new Set();
+  for (const hub of countries) for (const key of hub.orgs.keys()) orgKeys.add(key);
+  const orgs = orgKeys.size;
+
+  const title = 'MAC address blocks by country | MAC Address Lookup';
+  const description =
+    `${countries.length} countries carry IEEE-registered MAC address blocks: ` +
+    `${formatCount(blocks, 'en')} blocks covering ${formatAddresses(addresses, 'en')} addresses ` +
+    `across ${formatCount(orgs, 'en')} organizations. Totals per country, each linking its full page.`;
+  const titleTag = `<title data-i18n="title.countries">${escapeHtml(title)}</title>`;
+  const heading =
+    `<span data-i18n="hub.h1.countries">MAC address blocks by country</span>`;
+  const ledeHtml =
+    `          <p class="lede" data-i18n="hub.countries.lede" ${paramsAttr({ countries: countries.length, blocks, addresses, orgs })}>` +
+    `The IEEE registry carries ${escapeHtml(formatCount(blocks, 'en'))} blocks with registration ` +
+    `addresses in ${escapeHtml(formatCount(countries.length, 'en'))} countries, together ` +
+    `${escapeHtml(formatAddresses(addresses, 'en'))} addresses across ` +
+    `${escapeHtml(formatCount(orgs, 'en'))} organizations.</p>`;
+
+  const rows = countries
+    .map(
+      (hub, index) =>
+        `            <tr${hubRowHidden(index) ? ' hidden' : ''}>` +
+        `<td class="org"><a href="/country/${escapeHtml(hub.code.toLowerCase())}">${escapeHtml(displayNameForCountry(hub.code))}</a></td>` +
+        `<td class="mono">${escapeHtml(hub.code)}</td>` +
+        `<td>${escapeHtml(formatCount(hub.orgs.size, 'en'))}</td>` +
+        `<td>${escapeHtml(formatCount(hub.blocks, 'en'))}</td>` +
+        `<td>${escapeHtml(formatAddresses(hub.addresses, 'en'))}</td>` +
+        `</tr>`,
+    )
+    .join('\n');
+
+  const body = `        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="detail.country">Country</th>
+                <th scope="col" data-i18n="table.iso">ISO</th>
+                <th scope="col" data-i18n="table.org">Organization</th>
+                <th scope="col" data-i18n="table.blocks">Blocks</th>
+                <th scope="col" data-i18n="table.addresses">Addresses</th>
+              </tr>
+            </thead>
+            <tbody>
+${rows}
+            </tbody>
+          </table>
+        </div>
+      <p class="section-note"><span data-i18n="hub.countries.caption">Every country with at least one registered MAC address block, with organization, block, and address totals, sorted by total address space.</span></p>`;
+
+  const collectionLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    url: canonical,
+    ...(dataUpdated ? { dateModified: dataUpdated } : {}),
+    isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${SITE}/` },
+  }).replace(/</g, '\\u003c');
+
+  return renderPage({
+    title,
+    titleTag,
+    description,
+    canonical,
+    breadcrumbLabel: 'All countries',
+    breadcrumbKey: 'hub.countries.all',
+    heading,
+    ledeHtml,
+    body: `${body}\n`,
+    assets,
+    jsonLdNodes: [collectionLd],
+    totalRows: countries.length,
+    dataUpdated,
+    site,
+    countriesLink: false, // no self-link in the footer
   });
 }
 
@@ -816,6 +922,14 @@ export async function writeHubPages({
     countryUrls.push(`/country/${hub.code.toLowerCase()}`);
   }
 
+  // The rollup index over those pages: the country scope of the sitemap leads
+  // with it (build.mjs), and it gets the same last-change bookkeeping.
+  await renderTracked(
+    path.join(outDir, 'country.html'),
+    `${site}/country`,
+    (dataUpdated) => renderCountryIndexPage({ hubData, assets, site, dataUpdated }),
+  );
+
   const formerUrls = [];
   if (formerData?.formers?.length) {
     const formerDir = path.join(outDir, 'former');
@@ -831,5 +945,5 @@ export async function writeHubPages({
     }
   }
 
-  return { vendorUrls, countryUrls, formerUrls };
+  return { vendorUrls, countryUrls, formerUrls, countryIndexUrl: '/country' };
 }

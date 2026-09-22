@@ -321,7 +321,9 @@ if (!flags.has('--no-pages')) {
     lastmod: refreshDate,
     extraUrls: ['/help', '/recent'],
     hubUrls: [...hubFiles.vendorUrls, ...hubFiles.formerUrls],
-    countryUrls: hubFiles.countryUrls,
+    // The /country rollup leads the country set: it is the parent of the
+    // 249 country pages and the one the country scope should surface first.
+    countryUrls: [hubFiles.countryIndexUrl, ...hubFiles.countryUrls],
     sitemapScope,
     homeUrl: langPages.sitemapEntry,
     langUrls: langPages.urls,

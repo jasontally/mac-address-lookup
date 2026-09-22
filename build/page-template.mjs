@@ -529,6 +529,7 @@ ${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
               : `<span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>`
           }
           <a href="/recent" data-i18n="footer.recent">Latest OUIs</a> ·
+          <a href="/country" data-i18n="footer.countries">Countries</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>

@@ -121,7 +121,8 @@ build/budget.mjs currently counts only root-level `.html` files, so `vendor/*.ht
 would land in the 2,000-file non-page allowance. Rework before generating any hubs:
 
 - `countPages` = root-level prefix pages + `vendor/*.html` + `country/*.html`
-  (excluding shells `index.html` / `404.html` as today).
+  (excluding shells `index.html` / `404.html` as today). The `/country` rollup
+  index is root-level `country.html` and counts as a country page, not a prefix.
 - Report the three page classes separately in the build log and in
   `checkBudget` stats; the 90,000 page budget covers their sum.
 - Update docs/architecture.md capacity tables (below).
@@ -165,6 +166,16 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   block have no org hub, so their name links the page of that one block instead
   (2026-09-22: every row is a link, and both targets are checked against the
   page-budget selection). The 61 records with no country simply get no country link.
+- **Country index** (`/country`, written as root-level `country.html` next to
+  the `country/` directory, 2026-09-22): the rollup over all country pages —
+  one row per country (linked name, ISO code, organizations, blocks,
+  addresses), sorted by address space, totals in the lede (blocks and
+  addresses summed; organizations counted distinct, since an org registered in
+  two countries appears on both pages). It leads the `country` sitemap scope,
+  is the breadcrumb parent of every country page (a `breadcrumbParent` item in
+  `renderPage`, so each of the 249 pages links it), and gets a footer
+  `Countries` link site-wide. Flat `country.html` (not `country/index.html`)
+  keeps the canonical extensionless at `/country`, like `/help` and `/recent`.
 - **Former-owner hubs** (`/former/<slug>`): one per organization that no longer
   holds any of its once-registered prefixes (≥ 2 of them; 345 today). The lede
   states the takeaway for each portfolio — e.g. Apple Computer: "Apple, Inc. took
@@ -188,12 +199,15 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   2026-09-16 (see above).
 - **JSON-LD:** `CollectionPage` + `BreadcrumbList` (Home / Vendors / Org) for org
   hubs, with an `about` `Organization` node (name, address, country) reusing the
-  prefix-page pattern; `CollectionPage` + `BreadcrumbList` for country hubs.
+  prefix-page pattern; `CollectionPage` + `BreadcrumbList` for country hubs,
+  whose breadcrumb gained a middle item (Home / All countries / country) when
+  the index shipped; the index page itself is Home / All countries.
   Canonical `https://mac.jasontally.com/vendor/<slug>`.
 
 **Prefix-page updates** (small template diff): the step-1 same-org group gains
 "View all N prefixes" → the org hub; the card's org name links to the hub; the
-country detail value links to the country hub when one exists.
+country detail value links to the country hub when one exists; the footer
+links the `/country` index.
 
 **Sitemap:** home, `/help`, `/recent`, then hubs, then prefixes — hubs ahead of the
 bulk so crawlers reach them early. Passed via the existing `extraUrls` mechanism in

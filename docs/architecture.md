@@ -249,6 +249,7 @@ a second block), so the portal/prefix split inside the 90,000 cap self-balances.
 - **Related-prefix links** (`build/related.mjs`): same-org siblings (≤ 6), adjacent prefixes (2), same-year cohort (≤ 4), deduped and capped at 12 links per page, targets limited to pre-rendered pages. Sections live inside `#result`, so a follow-up lookup clears them with the card ([thin-content-mitigation](thin-content-mitigation.md)).
 - **Per-page context** (`build/enrich.mjs`): at most three computed sentences — portfolio position (`vendorBlocks`/`vendorAddresses`), block-type note for non-MA-L assignments, and a "org's oldest registration" note. English rendered statically; raw params ride in `data-enrich` for the client locale swap. Omitted, never padded, when data is missing.
 - **Hub pages** (`build/hubs.mjs`): `/vendor/<slug>` for every org with ≥ 2 blocks (3,472; grouping uses the same `normalizeOrgName` key as the portfolio stats, slugs resolve collisions by sorted org key) and `/country/<code>` for every country (249). Complete static tables (no row caps — the plan's sizing holds: Apple 227 KB, US 1.05 MB raw; ~10:1 compression at the edge), lookup form wired via the static-page path, `CollectionPage` + `BreadcrumbList` JSON-LD, canonical URLs, `data-static-page` hydration. Every country-table row is a link: multi-block orgs go to their org hub, single-block orgs (29,905 of the 33,581 rows) to the pre-rendered page of their only block, and both are checked against the page-budget selection so a row never targets the SPA shell.
+- **Country rollup index** (`/country`, 2026-09-22): the page over the 249 country pages — one row per country (linked name, ISO code, organizations, blocks, addresses) sorted by address space, with the totals in the lede (blocks and addresses summed; organizations counted **distinct**, since one org can register in several countries). Written as root-level `country.html` beside the `country/` directory so the canonical is extensionless `/country` like `/help` and `/recent`; it leads the `country` sitemap scope, is the breadcrumb parent of every country page (`renderPage`'s `breadcrumbParent`), and is linked from every footer except its own (`footer.countries`), plus `/help` and the agent files (`llms.txt`, `help.md`).
 - **Canonical & alternate URLs (audited 2026-09-22):** every static page is self-referential and points at the exact URL that serves it — `/`, `/help`, `/recent`, the 30 `/lang/{locale}/` homes, prefix pages (uppercase, extensionless), and all hubs; Cloudflare `html_handling` 307s `.html`, trailing-slash and case variants onto those URLs (verified live). The home set carries one identical hreflang cluster (en + 30 locales + `x-default`) in the HTML of all 31 pages and on the sitemap's home entry. The only URLs without a self-canonical are dynamic paths: `not_found_handling: single-page-application` returns the shell at `200` with the shell's own `canonical → /`, and `noindex, follow` is added client-side (`src/ui/app.mjs`). Google reports those as **"Alternate page with proper canonical tag"** — expected for internal search results, which is what the ~22 excluded URLs are (the only non-static internal links are the 3,472 vendor-hub "Free-text search" links to `/<org name>`; every other internal link resolves to a real file). Nothing to fix: canonical-to-`/` + `noindex` is the sanctioned treatment for internal search results.
 - Sitemap order: home, `/help`, `/recent`, hub pages, then prefixes — hubs ahead of the bulk.
 - The home page is generated at build time with ten FAQ entries; the visible content and `FAQPage` schema come from a single source (`build/faq.mjs`), and a `WebSite` + `SearchAction` node covers `?q=` deep links.
@@ -332,13 +333,15 @@ live and internally linked in every phase, so trimming rows cannot deindex
 anything already indexed, and prefix pages Google already knows about are
 unaffected. What actually drives hub discovery without the sitemap is internal
 linking — every prefix page links its vendor/country/former hubs and related
-prefixes, so the indexed subset keeps the rest of the graph reachable.
+prefixes, every country page breadcrumbs up to `/country`, and every footer
+carries a Countries link, so the indexed subset keeps the rest of the graph
+reachable.
 
 | Phase | `SITEMAP_SCOPE` | Sitemap URLs | Flip when (Search Console gate, user-side) |
 | --- | --- | --- | --- |
 | 1 | `core` | 33: `/`, `/help`, `/recent` + the 30 localized homes | Home (`site:` query) + `/help` indexed — typically 1–4 weeks |
-| 2 (now, the default) | `country` | 282: phase 1 + the 249 `/country/<code>` hubs | Country hubs entered the sitemap 2026-09-22; watch their coverage |
-| 3 | `hubs` | 4,099: phase 2 + 3,472 vendor + 345 former-owner hubs | Hub pages indexing healthily (e.g. ≥ half showing coverage after a few weeks) |
+| 2 (now, the default) | `country` | 283: phase 1 + the `/country` rollup + the 249 `/country/<code>` hubs | Country hubs entered the sitemap 2026-09-22; watch their coverage |
+| 3 | `hubs` | 4,100: phase 2 + 3,472 vendor + 345 former-owner hubs | Hub pages indexing healthily (e.g. ≥ half showing coverage after a few weeks) |
 | 4 | `all` (the 2026-09-17 behavior) | ~62,800: everything | Always the end state; prefix pages are the proven traffic source |
 
 Expand by editing the `?? 'country'` default in `build/build.mjs` (Workers
@@ -361,7 +364,9 @@ them (+30 over the pre-multilingual counts). (2026-09-22) the default moved
 from `core` to `country` — country hubs are the second-rarest page class, they
 are the target of the prefix pages' country links, and the IndexNow manifest
 (`finalizePageHashes`) intersects changed URLs with the same scope, so the
-country pages now ride along in post-deploy pings too.
+country pages now ride along in post-deploy pings too. (2026-09-22, same day)
+the country set gained the `/country` rollup index as its first row, so the
+scope is 283 URLs (33 core + 1 index + 249 hubs).
 
 ## Multilingual discoverability plan (Tier 1 + Tier 2, 2026-09-18)
 
