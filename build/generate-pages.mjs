@@ -24,7 +24,7 @@ async function mapConcurrent(items, limit, fn) {
  * Sitemap scoping for the phased index plan (docs/architecture.md →
  * "Sitemap indexing plan"). Scopes compose cumulatively:
  *   `core`    → home, /help, /recent + the localized homes
- *   `country` → `core` + the /country and /vendor rollup indexes and the 249
+ *   `country` → `core` + the /country and /vendor rollup indexes and the 127
  *               /country/<code> hubs (the indexes lead the set)
  *   `hubs`    → `core` + every hub (vendor + country + former-owner)
  *   `all`     → everything, including the ~58,700 prefix pages

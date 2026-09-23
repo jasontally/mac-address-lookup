@@ -1,3 +1,5 @@
+import { COUNTRY_NAMES } from '../src/engine/countries.mjs';
+
 /** Supported assignment lengths → prefix bits. */
 export const PREFIX_LENGTH_BITS = { 6: 24, 7: 28, 9: 36 };
 
@@ -45,16 +47,27 @@ export function parseCsv(text) {
 }
 
 /**
- * IEEE organization addresses end with a country code, often followed by a
- * postal code. Scan the last few tokens for a two-letter uppercase code.
+ * IEEE organization addresses mix tail formats: `… Bloomington MN US 55438`
+ * (country before the postal code), `… Tokyo 101-0031 JP` (postal code first),
+ * and the Dutch `… NL 5656 AE` (country, then a digits+letters postcode whose
+ * two-letter suffix is not a country). Scan the last few tokens for an
+ * ISO 3166-1 alpha-2 code (plus the sanctioned `UK` alias) so subdivision
+ * codes like `NY` or `BC` never become countries, and prefer a candidate that
+ * is not preceded by a digit run: `AE` in `… NL 5656 AE` yields to the earlier
+ * `NL`, while `JP` in `… 101-0031 JP` stands when nothing better is in reach.
  */
 export function extractCountry(address) {
   if (!address) return null;
   const tokens = address.trim().toUpperCase().split(/\s+/);
+  let digitPreceded = null;
   for (let i = tokens.length - 1; i >= 0 && i >= tokens.length - 4; i--) {
-    if (/^[A-Z]{2}$/.test(tokens[i])) return tokens[i];
+    const token = tokens[i];
+    if (!/^[A-Z]{2}$/.test(token)) continue;
+    if (!Object.hasOwn(COUNTRY_NAMES, token) && token !== 'UK') continue;
+    if (i === 0 || !/\d/.test(tokens[i - 1])) return token;
+    digitPreceded ??= token;
   }
-  return null;
+  return digitPreceded;
 }
 
 /** Normalize one registry assignment string into prefix metadata, or null if invalid. */

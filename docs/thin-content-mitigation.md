@@ -41,7 +41,7 @@ Guardrails honored throughout (from the project owner, 2026-09-16):
 | Organizations with ≥ 3 blocks | 1,411 |
 | Largest portfolios (blocks) | Apple 1,553 · Huawei Technologies 1,408 · Cisco 1,252 · Samsung 909 · Intel 667 |
 | Org-name slug collisions | 34 total; **4 among multi-block orgs**; 7 orgs slug to empty |
-| Countries in the `country` field | **249** (`extractCountry` scans the last 4 address tokens; verified the `… STATE COUNTRY ZIP` tail format resolves correctly); 61 records have none |
+| Countries in the `country` field | **127** (`extractCountry` whitelists ISO 3166-1 alpha-2 + `UK` over the last 4 address tokens and prefers a non-digit-preceded candidate, so Dutch `… NL 5656 AE` postcode tails resolve to NL and subdivision codes like `NY` never become countries; measured 2026-09-23); 352 records have none |
 | Worst-case hub tables | Apple: 1,553 block rows (~227 KB raw, ~23 KB compressed) · US: 8,879 orgs (~1.3 MB raw, ~130 KB compressed) |
 | Dynamic display caps (measured 2026-09-15, `e2e/measure-limits.mjs`) | 500 rows display (23 ms throttled) · 250 batch · 5,000 rows renders in 296 ms at 4× throttle |
 | "Show all" full reveal (measured 2026-09-22, `e2e/measure-showall.mjs`) | Partials: `/00`'s 17,394 rows rebuild in 2,242 ms (1×) / 9,414 ms (4×); the hub un-hide measurement (8,885 rows = 4,091 ms at 4×) plus a real-phone <1 s reveal removed the static caps the same day | "(slow)" suffix past 1,500 rows, partial listings only |
@@ -135,7 +135,7 @@ would land in the 2,000-file non-page allowance. Rework before generating any hu
 | --- | --- |
 | Prefix pages | 58,694 |
 | Vendor hubs (≥ 2 blocks) | 3,469 (measured, 2026-09-16) |
-| Country hubs (all 249 countries) | 249 |
+| Country hubs (all 127 countries) | 127 |
 | Former-owner hubs (former orgs with ≥ 2 prefixes) | 345 |
 | Static page bundle (help, recent, hubs — no engine/hyparquet) | ~15 KB + shared locale chunks |
 | Non-page files (unchanged) | ~330 |
@@ -167,7 +167,7 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   org hub, block count, addresses), sorted by address space. Orgs with a single
   block have no org hub, so their name links the page of that one block instead
   (2026-09-22: every row is a link, and both targets are checked against the
-  page-budget selection). The 61 records with no country simply get no country link.
+  page-budget selection). The 352 records with no country simply get no country link.
 - **Country index** (`/country`, written as root-level `country.html` next to
   the `country/` directory, 2026-09-22): the rollup over all country pages —
   one row per country (linked name, ISO code, organizations, blocks,
@@ -175,7 +175,7 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   addresses summed; organizations counted distinct, since an org registered in
   two countries appears on both pages). It leads the `country` sitemap scope,
   is the breadcrumb parent of every country page (a `breadcrumbParent` item in
-  `renderPage`, so each of the 249 pages links it), and gets a footer
+  `renderPage`, so each of the 127 pages links it), and gets a footer
   `Countries` link site-wide. Flat `country.html` (not `country/index.html`)
   keeps the canonical extensionless at `/country`, like `/help` and `/recent`.
 - **Vendor index** (`/vendor`, written as root-level `vendor.html` next to the

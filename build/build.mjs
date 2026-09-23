@@ -305,7 +305,7 @@ if (!flags.has('--no-pages')) {
   // 62,760-URL index diluted discovery against the handful of pages we most
   // want indexed (home, help, hubs). Scopes compose:
   //   core (home/help/recent + localized homes)
-  //   country (phase 2, the default: + the 249 /country/ hubs)
+  //   country (phase 2, the default: + the 127 /country/ hubs)
   //   hubs (+ vendor and former-owner hubs) → all (everything)
   // Expand with SITEMAP_SCOPE once Search Console shows the current phase
   // indexed. Pages stay live and internally linked in every scope.
@@ -321,7 +321,7 @@ if (!flags.has('--no-pages')) {
     lastmod: refreshDate,
     extraUrls: ['/help', '/recent'],
     hubUrls: [...hubFiles.vendorUrls, ...hubFiles.formerUrls],
-    // The two rollups lead the country set: /country is the parent of the 249
+    // The two rollups lead the country set: /country is the parent of the 127
     // country pages, /vendor of the vendor pages (which join a later scope),
     // and both are the indexes the country scope should surface first.
     rollupUrls: [hubFiles.countryIndexUrl, hubFiles.vendorIndexUrl],

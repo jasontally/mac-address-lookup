@@ -29,6 +29,20 @@ test('extractCountry finds trailing two-letter codes', () => {
   assert.equal(extractCountry('Somewhere without a country'), null);
 });
 
+test('extractCountry accepts only ISO codes and prefers non-digit-preceded candidates', () => {
+  // Dutch tail: `AE` is the postcode suffix; the country is the earlier `NL`.
+  assert.equal(extractCountry('High Tech Campus 5 Eindhoven Noord Brabant NL 5656 AE'), 'NL');
+  // Subdivision codes are not countries, and no fallback candidate remains.
+  assert.equal(extractCountry('14450 John F. Kennedy Blvd Houston TX  77032'), null);
+  // A digit-preceded candidate stands when it is the only ISO code in reach.
+  assert.equal(extractCountry('2-5-12 Higashi-Kanda Chiyoda-ku Tokyo 101-0031 JP'), 'JP');
+  assert.equal(extractCountry('Laemmerweg 32   DE'), 'DE');
+  // Fall-through: `QC` is not an ISO code, so the earlier `CA` wins.
+  assert.equal(extractCountry('600 Dr.Frederik-Philips Blvd Montreal  CA QC H4M 2S9'), 'CA');
+  // The sanctioned UK alias; both codes display as United Kingdom.
+  assert.equal(extractCountry('Times House UK CB4 GB 5LH'), 'UK');
+});
+
 test('normalizeAssignment maps prefix lengths and rejects invalid input', () => {
   assert.deepEqual(normalizeAssignment('001a2b'), {
     prefix: '001A2B',
