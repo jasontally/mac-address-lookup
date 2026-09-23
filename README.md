@@ -48,7 +48,7 @@ The page consumes the value from the URL path and displays the result without an
 
 A build step pre-renders a real HTML page for every registered IEEE assignment — each OUI (MA-L), MA-M, MA-S, IAB, and CID prefix — so that people can find the tool when they look up a prefix or a vendor in their own words. No brand is promoted as part of the app (and the title is translated into local words for each language) because an English-only brand name would make it harder to find for everyone else. Every page contains the vendor record without requiring JavaScript, and the interactive tool hydrates on top to resolve everything else in the browser: full addresses, partial prefixes, batch lists, vendor names, former owners, countries, and registration years. Generated pages include canonical URLs, schema.org metadata, `sitemap.xml`, and `robots.txt`. Sitemap: `https://mac.jasontally.com/sitemap.xml`.
 
-On top of the prefix pages, the build generates **vendor pages** (`/vendor/<slug>`, every block registered to one organization — 3,469 today) and **country pages** (`/country/<code>`, every organization with blocks registered in a country — 127), each family behind a rollup index — **`/vendor`** (every organization with two or more blocks) and **`/country`** (every country), both in the sitemap. The hub pages are complete static tables with no row caps, plus an internal relational link web: related-prefix sections (same vendor, adjacent prefixes, same registration year) on every prefix page, hub links from prefix pages, and org directory links on country pages. Rationale and capacity accounting: [`docs/thin-content-mitigation.md`](docs/thin-content-mitigation.md).
+On top of the prefix pages, the build generates **vendor pages** (`/vendor/<slug>`, every block registered to one organization — 3,472 today) and **country pages** (`/country/<code>`, every organization with blocks registered in a country — 127), each family behind a rollup index — **`/vendor`** (every organization with two or more blocks) and **`/country`** (every country), both in the sitemap. The hub pages are complete static tables with no row caps, plus an internal relational link web: related-prefix sections (same vendor, adjacent prefixes, same registration year) on every prefix page, hub links from prefix pages, and org directory links on country pages. Rationale and capacity accounting: [`docs/thin-content-mitigation.md`](docs/thin-content-mitigation.md).
 
 ## Data sources
 
@@ -58,13 +58,13 @@ On top of the prefix pages, the build generates **vendor pages** (`/vendor/<slug
 ## Using the data from scripts, agents, and LLMs
 
 - `llms.txt` describes the site and data files for AI tools.
-- **Full download:** `data/registry.ndjson` (~13.5 MB, one JSON object per IEEE assignment) and `data/lineage.ndjson` (ownership-change events).
+- **Full download:** `data/registry.ndjson` (~13.6 MB, one JSON object per IEEE assignment) and `data/lineage.ndjson` (ownership-change events).
 - **Small lookups without the full registry:** the same registry rows served as small `text/plain` trie shards at `data/registry/{key}.txt` (1–30 KB each, one JSON per line), indexed with row counts at `data/registry/index.txt`. Resolve a MAC by finding the longest shard key that is a prefix of its hex, fetching that shard, then longest-prefix matching within it. Example: `8C:1F:64:AF:A4:B2` → `data/registry/8c1f64af.txt` → row `8C1F64AFA` (MA-S, DATA ELECTRONIC DEVICES, INC) instead of its parent MA-L `8C1F64`. See [help.md](public/help.html) → *Using the data programmatically*.
 
 ## Tech stack
 
 - Static HTML/CSS/JavaScript — no backend at runtime; all lookup work happens in the browser
-- Single client bundle built with esbuild (engine + Hyparquet inlined): ~88 KB JS / ~15 KB CSS, gzip-served by Cloudflare
+- Single client bundle built with esbuild (engine + Hyparquet inlined): ~91 KB JS / ~16 KB CSS, gzip-served by Cloudflare
 - IEEE dataset stored as [Apache Parquet](https://parquet.apache.org/) and read in-browser with [Hyparquet](https://github.com/hyparam/hyparquet) (pure JS, zero dependencies) — sharded by prefix so a lookup fetches a few KB instead of the full registry; no database or API
 - Pre-rendered prefix pages generated at build time so people can find the tool when they look up a prefix or a vendor
 - Deployed on Cloudflare Workers Static Assets (custom domain: `mac.jasontally.com`)

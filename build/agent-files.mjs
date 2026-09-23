@@ -191,7 +191,7 @@ line, no keys or auth required:
 
 - [registry.ndjson](${site}/data/registry.ndjson) - every IEEE assignment
   (prefix, block type, organization, address, country, first-observed date).
-  ~13.5 MB.
+  ~13.6 MB.
 - [lineage.ndjson](${site}/data/lineage.ndjson) - every ownership-change event
   with its first-observed date.
 
@@ -214,7 +214,7 @@ To resolve a MAC address or prefix:
 
 Shards are small (roughly 1–30 KB), stable in URL for a given key, and served
 as \`text/plain\`, so they can be fetched and read by tools that cannot ingest
-the 13.5 MB full registry. The most recent registrations are listed on the
+the 13.6 MB full registry. The most recent registrations are listed on the
 [Latest OUIs](${site}/recent) page, refreshed on every deploy.
 `;
 }

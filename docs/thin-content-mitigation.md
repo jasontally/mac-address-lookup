@@ -31,22 +31,22 @@ Guardrails honored throughout (from the project owner, 2026-09-16):
   `.data-table` pattern (dense reference data); the collapsing-table rule stays
   scoped to batch results.
 
-## Measured facts (2026-09-16, from the deployed source cache)
+## Measured facts (2026-09-23, from the deployed source cache)
 
 | Measurement | Value |
 | --- | --- |
-| Registry assignments (all pre-rendered today) | 58,694 |
-| Unique organizations (after `normalizeOrgName`) | 33,396 |
-| Organizations with ≥ 2 blocks | **3,470** (covering 28,534 assignments, 49% of registry) |
-| Organizations with ≥ 3 blocks | 1,411 |
-| Largest portfolios (blocks) | Apple 1,553 · Huawei Technologies 1,408 · Cisco 1,252 · Samsung 909 · Intel 667 |
+| Registry assignments (all pre-rendered today) | 58,783 |
+| Unique organizations (after `normalizeOrgName`) | 33,421 |
+| Organizations with ≥ 2 blocks | **3,473** (covering 28,835 assignments, 49% of registry); the build ships 3,472 vendor hubs — the `Private` bucket (237 records) is excluded from hubs |
+| Organizations with ≥ 3 blocks | 1,412 |
+| Largest portfolios (blocks) | Apple 1,573 · Huawei Technologies 1,418 · Cisco 1,252 · Samsung 909 · Intel 667 |
 | Org-name slug collisions | 34 total; **4 among multi-block orgs**; 7 orgs slug to empty |
 | Countries in the `country` field | **127** (`extractCountry` whitelists ISO 3166-1 alpha-2 + `UK` over the last 4 address tokens and prefers a non-digit-preceded candidate, so Dutch `… NL 5656 AE` postcode tails resolve to NL and subdivision codes like `NY` never become countries; measured 2026-09-23); 352 records have none |
-| Worst-case hub tables | Apple: 1,553 block rows (~227 KB raw, ~23 KB compressed) · US: 8,879 orgs (~1.3 MB raw, ~130 KB compressed) |
+| Worst-case hub tables | Apple: 1,573 block rows (~240 KB raw, ~23 KB compressed) · US: 8,887 orgs (~1.3 MB raw, ~156 KB compressed) |
 | Dynamic display caps (measured 2026-09-15, `e2e/measure-limits.mjs`) | 500 rows display (23 ms throttled) · 250 batch · 5,000 rows renders in 296 ms at 4× throttle |
 | "Show all" full reveal (measured 2026-09-22, `e2e/measure-showall.mjs`) | Partials: `/00`'s 17,394 rows rebuild in 2,242 ms (1×) / 9,414 ms (4×); the hub un-hide measurement (8,885 rows = 4,091 ms at 4×) plus a real-phone <1 s reveal removed the static caps the same day | "(slow)" suffix past 1,500 rows, partial listings only |
-| Current non-page files | ~316 of the 2,000 allowance |
-| Avg prefix-page size / total output | ~8 KB · ~479 MB |
+| Current non-page files | 3,247 — over the 2,000 non-page allowance (2,863 are `data/registry/*.txt` trie-key lookup shards); total 65,978 files ≤ the 92,000 budget |
+| Avg prefix-page size / total output | ~12.5 KB · ~828 MB |
 
 ## Cross-cutting design decisions
 
@@ -133,13 +133,13 @@ would land in the 2,000-file non-page allowance. Rework before generating any hu
 
 | Item | Files |
 | --- | --- |
-| Prefix pages | 58,694 |
-| Vendor hubs (≥ 2 blocks) | 3,469 (measured, 2026-09-16) |
+| Prefix pages | 58,783 |
+| Vendor hubs (≥ 2 blocks) | 3,472 (measured, 2026-09-23) |
 | Country hubs (all 127 countries) | 127 |
 | Former-owner hubs (former orgs with ≥ 2 prefixes) | 345 |
 | Static page bundle (help, recent, hubs — no engine/hyparquet) | ~15 KB + shared locale chunks |
-| Non-page files (unchanged) | ~330 |
-| **Total** | **~62,730 = 63% of the 100,000 platform cap; 70% of the 90,000 page budget** |
+| Non-page files | 3,247 |
+| **Total** | **65,978 files (62,731 pages) = 66% of the 100,000 platform cap; 70% of the 90,000 page budget** |
 
 Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9 MB raw
 (~8.9 MB across all hubs; every file far under the 20 MiB assertion). Page generation
@@ -194,8 +194,8 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   former-owner pages for their org names.
 - **No display caps on static pages.** Static HTML is the fast path — repetitive
   table rows compress ~10:1 at the edge, so the worst pages stay small on the wire
-  (Apple ~23 KB, US ~130 KB) and the complete data is crawlable in one document.
-  Totals are stated in the lede ("1,553 blocks"), not as a truncation notice. Every
+  (Apple ~23 KB, US ~156 KB) and the complete data is crawlable in one document.
+  Totals are stated in the lede ("1,573 blocks"), not as a truncation notice. Every
   row ships visible: the plan's fallback cap (shipped 2026-09-16 — rows past an
   initial 500-row batch `hidden` in the source, revealed by an inline "show more" /
   "show all" script behind a cap note, with a `<noscript>` style hiding the dead
@@ -273,7 +273,7 @@ record or in the build's in-memory registry — no new data plumbing:
 
 | Fact | Source | Example sentence |
 | --- | --- | --- |
-| Portfolio position | `vendorBlocks`, `vendorAddresses` (already on every record) | "One of Apple's 1,553 registered blocks; together they span 26.0 billion addresses." |
+| Portfolio position | `vendorBlocks`, `vendorAddresses` (already on every record) | "One of Apple's 1,573 registered blocks; together they span 26.4 billion addresses." |
 | Block-size context | `addressCount`, `blockType`, org's other blocks | "A 24-bit MA-L block — 16,777,216 addresses, the largest assignment type." |
 | Registration cohort | `firstSeen` vs the org's earliest/latest | "First observed in 1998 — among Apple's oldest registrations." |
 
@@ -318,6 +318,6 @@ existing `formatCount`), template integration.
   them. Linking to hubs before they exist would aim the graph at soft-404s — hence
   the strict order.
 - **2 → 3:** enrichment sentences reference portfolio and cohort facts that read
-  naturally once the hub link ("View all 1,553 prefixes") gives them a destination;
+  naturally once the hub link ("View all 1,573 prefixes") gives them a destination;
   and step 3 is template-only — zero routing, budget, or sitemap impact, so it can
   also ship last as a safe rollback boundary.

@@ -80,7 +80,7 @@ mac-address-lookup/
 2. **Fetch lineage** (`build/fetch-lineage.mjs`): the runZero mac-tracker history JSON (MIT, updated twice daily) — dated `add`/`change` records per prefix going back to ~1998. Uses the same retry helper as the registries.
 3. **Normalize registries**: trim and validate hex assignments; uppercase; derive `prefixLength` (24/28/36 bits), `addressCount`, and `country` (parsed from the address tail); mark `Private`/empty organizations; dedupe; sort by prefix value.
 4. **Build lineage** (`build/lineage.mjs`): normalize organization names (case, punctuation), drop `Private`/empty glitches, collapse consecutive identical organizations, and keep prefixes with at least two distinct organizations. `buildFirstSeen` also derives the earliest observed date for every tracked prefix. **Measured 2026-09-12: 5,665 changed prefixes / 14,350 events.**
-5. **Write Parquet** (`dist/data/registry.<hash>.parquet`, prefix-trie shards under `dist/data/shards/`, and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`, `firstSeen`, `lineageCount` (events for changed prefixes), `vendorBlocks`, `vendorAddresses` (global vendor totals repeated per row so a single shard reports correct portfolio stats), `vendorHub` (hub slug for orgs with ≥ 2 blocks — see [thin-content-mitigation](thin-content-mitigation.md); additive, resolved at build time so client links and static hub files always agree). Shards split any prefix group over 1,500 rows by the next hex digit, so hot ranges (IAB under `00:50:C2`, MA-S under `8C:1F:64`) get deep keys while quiet ranges stay shallow. **Measured 2026-09-16: registry 3.11 MB / 58,694 records; lineage 232 KB; search index 1.22 MB; 293 shards totaling 4.58 MB.**
+5. **Write Parquet** (`dist/data/registry.<hash>.parquet`, prefix-trie shards under `dist/data/shards/`, and `lineage.<hash>.parquet`) with `hyparquet-writer`, snappy compression. Registry columns: `prefix`, `prefixLen` (bits), `blockType`, `addressCount`, `orgName`, `orgAddress`, `country`, `isPrivate`, `firstSeen`, `lineageCount` (events for changed prefixes), `vendorBlocks`, `vendorAddresses` (global vendor totals repeated per row so a single shard reports correct portfolio stats), `vendorHub` (hub slug for orgs with ≥ 2 blocks — see [thin-content-mitigation](thin-content-mitigation.md); additive, resolved at build time so client links and static hub files always agree). Shards split any prefix group over 1,500 rows by the next hex digit, so hot ranges (IAB under `00:50:C2`, MA-S under `8C:1F:64`) get deep keys while quiet ranges stay shallow. **Measured 2026-09-23: registry 3.11 MB / 58,783 records; lineage 232 KB; search index 1.22 MB; 293 shards totaling 4.59 MB.**
 6. **Emit manifest** (`dist/data/manifest.json`): content-hashed filenames, `generatedAt`, counts by block type, schema version, and lineage source attribution (name, homepage, license, retrieval time).
 7. **Budget checks** (`build/budget.mjs`): file-count and file-size assertions — see [Capacity & page budget](#capacity--page-budget).
 
@@ -137,7 +137,7 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - `src/ui/theme.mjs` — system-aware dark mode with explicit override
 - `src/ui/clipboard.mjs` — copy buttons with insecure-context fallback
 - `public/index.html` — indexable shell (search + FAQ); the app hydrates results on top
-- esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.<hash>.js` (~86 KB); CSS is bundled into one hashed ~14 KB file
+- esbuild bundles `app.mjs` + engine + Hyparquet into `dist/assets/app.<hash>.js` (~91 KB); CSS is bundled into one hashed ~16 KB file
 
 ## Platform constraints
 
@@ -168,16 +168,16 @@ Behavior notes:
 
 | Registry | Prefix length | Assignments |
 | --- | --- | --- |
-| MA-L (OUI) | 24-bit (6 hex) | 40,130 |
-| MA-M | 28-bit (7 hex) | 6,584 |
-| MA-S | 36-bit (9 hex) | 7,186 |
+| MA-L (OUI) | 24-bit (6 hex) | 40,199 |
+| MA-M | 28-bit (7 hex) | 6,595 |
+| MA-S | 36-bit (9 hex) | 7,195 |
 | IAB | 36-bit (9 hex) | 4,575 |
 | CID | 24-bit (6 hex) | 219 |
-| **Total** | | **58,694** |
+| **Total** | | **58,783** |
 
-Measured from a live build on 2026-09-12 (3 cross-registry duplicates skipped).
+Measured from a live build on 2026-09-23 (3 cross-registry duplicates skipped).
 
-- One pre-rendered page per assignment = **58,694 files today**: 64% of the paid file budget, but 293% of the free budget.
+- One pre-rendered page per assignment = **58,783 files today**: 64% of the paid file budget, but 294% of the free budget.
 - Build output: **~753 MB across 62,763 files** (including the ~22 MB raw source cache); hub generation 2.1s, page generation 4.7s; sitemaps 62,415 URLs (50,000 + 12,415; ~6 MB total). 2026-09-16 measurements; hub counting follows the thin-content plan's budget policy.
 - The paid plan is required to pre-render the full registry; the free plan can only pre-render a subset (dev/preview budget: 15,000 pages).
 - Growth assumption: MA-L grows ~2,000/year and MA-M/MA-S are growing faster. The registry is on a path to 100,000 assignments; device-level data (future feature) would add many more potential pages. The page budget policy below is designed for that.
@@ -202,7 +202,7 @@ Page priority (highest first):
 2. **MA-M** — 7-hex lookups; 1.0M addresses each.
 3. **CID** — only 219 files; 24-bit company IDs (not NIC hardware, but cheap to include).
 4. **IAB** — 4,575 files; 36-bit reserved-range blocks (4,096 addresses each).
-5. **MA-S** — 7,186 files; 36-bit niche blocks (4,096 addresses each), least likely to be searched directly.
+5. **MA-S** — 7,195 files; 36-bit niche blocks (4,096 addresses each), least likely to be searched directly.
 
 Priority adjustments:
 
@@ -220,7 +220,7 @@ Dropped prefixes still work: the client-side engine resolves every assignment, a
 
 ### 25 MiB file-size strategy
 
-- Full-registry Parquet measured at 2.82 MB + 232 KB, well under 25 MiB. Measure at build time.
+- Full-registry Parquet measured at 3.11 MB + 232 KB, well under 25 MiB. Measure at build time.
 - **Build-time assertion**: any single asset > 20 MiB (5 MiB safety margin) fails the build and triggers sharding instead of shipping.
 - **Sharding plan** (implemented): records are partitioned into a prefix trie where any group over 1,500 rows splits by the next hex digit, producing variable-length keys. The client selects shards by prefix relationship (ancestors for full addresses, descendants for partials) and falls back to the full registry beyond 24 shards. Each shard file is content-hashed and cached immutably.
 - **Sitemaps** chunk at 50,000 URLs (Google limit), targeting < 10 MiB per file.
@@ -248,7 +248,7 @@ a second block), so the portal/prefix split inside the 90,000 cap self-balances.
 - Page content: unique vendor record (name, block type, range, address count, country), lineage timeline when present, all format conversions, randomization/VM notes, canonical link, JSON-LD (`WebPage`, vendor `Organization`, `BreadcrumbList`).
 - **Related-prefix links** (`build/related.mjs`): same-org siblings (≤ 6), adjacent prefixes (2), same-year cohort (≤ 4), deduped and capped at 12 links per page, targets limited to pre-rendered pages. Sections live inside `#result`, so a follow-up lookup clears them with the card ([thin-content-mitigation](thin-content-mitigation.md)).
 - **Per-page context** (`build/enrich.mjs`): at most three computed sentences — portfolio position (`vendorBlocks`/`vendorAddresses`), block-type note for non-MA-L assignments, and a "org's oldest registration" note. English rendered statically; raw params ride in `data-enrich` for the client locale swap. Omitted, never padded, when data is missing.
-- **Hub pages** (`build/hubs.mjs`): `/vendor/<slug>` for every org with ≥ 2 blocks (3,472; grouping uses the same `normalizeOrgName` key as the portfolio stats, slugs resolve collisions by sorted org key) and `/country/<code>` for every country (127). Complete static tables (no row caps — the plan's sizing holds: Apple 227 KB, US 1.05 MB raw; ~10:1 compression at the edge), lookup form wired via the static-page path, `CollectionPage` + `BreadcrumbList` JSON-LD, canonical URLs, `data-static-page` hydration. Every country-table row is a link: multi-block orgs go to their org hub, single-block orgs (29,905 of the 33,581 rows) to the pre-rendered page of their only block, and both are checked against the page-budget selection so a row never targets the SPA shell.
+- **Hub pages** (`build/hubs.mjs`): `/vendor/<slug>` for every org with ≥ 2 blocks (3,472; grouping uses the same `normalizeOrgName` key as the portfolio stats, slugs resolve collisions by sorted org key) and `/country/<code>` for every country (127). Complete static tables (no row caps — the plan's sizing holds: Apple 240 KB, US 1.3 MB raw; ~10:1 compression at the edge), lookup form wired via the static-page path, `CollectionPage` + `BreadcrumbList` JSON-LD, canonical URLs, `data-static-page` hydration. Every country-table row is a link: multi-block orgs go to their org hub, single-block orgs (29,897 of the 33,567 rows) to the pre-rendered page of their only block, and both are checked against the page-budget selection so a row never targets the SPA shell.
 - **Country rollup index** (`/country`, 2026-09-22): the page over the 127 country pages — one row per country (linked name, ISO code, organizations, blocks, addresses) sorted by address space, with the totals in the lede (blocks and addresses summed; organizations counted **distinct**, since one org can register in several countries). Written as root-level `country.html` beside the `country/` directory so the canonical is extensionless `/country` like `/help` and `/recent`; it leads the `country` sitemap scope, is the breadcrumb parent of every country page (`renderPage`'s `breadcrumbParent`), and is linked from every footer except its own (`footer.countries`), plus `/help` and the agent files (`llms.txt`, `help.md`).
 - **Vendor rollup index** (`/vendor`, 2026-09-23): the page over the 3,472 vendor pages — one row per organization with two or more blocks (linked name, blocks, addresses) sorted by address space, with the totals in the lede (blocks and addresses summed; one row per organization). Written as root-level `vendor.html` beside the `vendor/` directory so the canonical is extensionless `/vendor`; it leads the `country` sitemap scope alongside `/country` (build.mjs), is the breadcrumb parent of every vendor page (`renderPage`'s `breadcrumbParent`), and is linked from every footer except its own (`footer.vendors`), plus `/help` and the agent files (`llms.txt`, `help.md`).
 - **Canonical & alternate URLs (audited 2026-09-22):** every static page is self-referential and points at the exact URL that serves it — `/`, `/help`, `/recent`, the 30 `/lang/{locale}/` homes, prefix pages (uppercase, extensionless), and all hubs; Cloudflare `html_handling` 307s `.html`, trailing-slash and case variants onto those URLs (verified live). The home set carries one identical hreflang cluster (en + 30 locales + `x-default`) in the HTML of all 31 pages and on the sitemap's home entry. The only URLs without a self-canonical are dynamic paths: `not_found_handling: single-page-application` returns the shell at `200` with the shell's own `canonical → /`, and `noindex, follow` is added client-side (`src/ui/app.mjs`). Google reports those as **"Alternate page with proper canonical tag"** — expected for internal search results, which is what the ~22 excluded URLs are (the only non-static internal links are the 3,472 vendor-hub "Free-text search" links to `/<org name>`; every other internal link resolves to a real file). Nothing to fix: canonical-to-`/` + `noindex` is the sanctioned treatment for internal search results.
@@ -268,7 +268,7 @@ a second block), so the portal/prefix split inside the 90,000 cap self-balances.
 - Dynamic routes start the manifest and Parquet fetches from an inline head script, in parallel with the app bundle download.
 - Content below the result is hidden until a dynamic lookup renders (removing the layout shift from inserting the result card; desktop CLS was 0.296 before this change).
 - Asset filenames are content-hashed and cached immutably; the manifest is always revalidated.
-- Prefix-trie sharding cuts a dynamic deep link from the 3.0 MB full registry to one small shard (the `001B` example is 30 KB), and lazy lineage keeps the 232 KB lineage file out of lookups entirely unless the matched prefix changed hands. Measured payload for `/001B21AABBCC` is ~150 KB including JS, CSS, manifest, and shard (vs ~3.35 MB before sharding); changed prefixes add the lineage file.
+- Prefix-trie sharding cuts a dynamic deep link from the 3.1 MB full registry to one small shard (the `001B` example is 30 KB), and lazy lineage keeps the 232 KB lineage file out of lookups entirely unless the matched prefix changed hands. Measured payload for `/001B21AABBCC` is ~150 KB including JS, CSS, manifest, and shard (vs ~3.35 MB before sharding); changed prefixes add the lineage file.
 
 ### Measured limits (2026-09-15, `e2e/measure-limits.mjs` / `e2e/measure-engine.mjs`)
 
@@ -289,7 +289,7 @@ production edge.
 
 ### Agent-facing text shards
 
-For AI agents and scripts that cannot reasonably ingest the 13.5 MB
+For AI agents and scripts that cannot reasonably ingest the 13.6 MB
 `registry.ndjson` (verified live: a ChatGPT web tool refuses it at its content-size
 limit, and binary Parquet is refused as `application/octet-stream`), the build
 also emits the same registry rows as plain-text trie shards:
@@ -303,7 +303,7 @@ also emits the same registry rows as plain-text trie shards:
   can pick the longest key that is a prefix of its MAC's hex in two small
   fetches (index, then shard).
 - Served as `text/plain` (`.txt` extension is enough on Workers assets);
-  `public/_headers` adds the 1-day cache rule. +2,864 files against the
+  `public/_headers` adds the 1-day cache rule. +2,863 files against the
   100,000-file Worker limit.
 - Documented in `llms.txt`, `help.md`/`help.txt` (section *Using the data
   programmatically*), and the README. The worked example is
@@ -438,7 +438,7 @@ other languages. The former `src/i18n/seo.mjs` / `seoFor` are now
 
 - **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy && node build/indexnow.mjs` (deploy, then the post-deploy IndexNow ping — see below; the deploy command is configured in the Cloudflare dashboard, Workers & Pages → project → Settings → Build). No GitHub Actions required for deploys; the daily data-refresh workflow only commits the refresh bump, and Cloudflare's build does the rest.
 - **Node version:** build image defaults to Node 24.18.0; pin with `.nvmrc` (`24`).
-- **Deterministic builds & per-URL lastmod:** every data-without-code-change build renders byte-identical HTML. Two ties were cut for this: all build-time "now" stamps (`generatedAt`, `retrievedAt`, sitemap lastmod) come from `data/refresh.txt` instead of the wall clock, and per-page content hashes live in `dist/data/page-hashes.json` (`build/page-hashes.mjs`). Each build hashes every pre-rendered page; the **next** build fetches that manifest from production, so a URL keeps its previous `<lastmod>` when its bytes are unchanged and only re-dates (to the current refresh date) when its content actually changed. The sitemap resolves per-URL lastmod through this map (`writeSitemaps({ ..., lastmodFor })`) — for the entire core scope today and ready to cover every page when the sitemap expands. Byte-stable output also means Cloudflare's content-hash dedupe uploads only files that really changed on data-refresh deploys, keeping edge caches warm for unchanged pages. `data/page-hashes.json` currently tracks ~4,100 URLs at ~500 KB; if that grows unwieldy as the sitemap expands, the manifest can move behind a build env fallback without changing the contract.
+- **Deterministic builds & per-URL lastmod:** every data-without-code-change build renders byte-identical HTML. Two ties were cut for this: all build-time "now" stamps (`generatedAt`, `retrievedAt`, sitemap lastmod) come from `data/refresh.txt` instead of the wall clock, and per-page content hashes live in `dist/data/page-hashes.json` (`build/page-hashes.mjs`). Each build hashes every pre-rendered page; the **next** build fetches that manifest from production, so a URL keeps its previous `<lastmod>` when its bytes are unchanged and only re-dates (to the current refresh date) when its content actually changed. The sitemap resolves per-URL lastmod through this map (`writeSitemaps({ ..., lastmodFor })`) — for the entire core scope today and ready to cover every page when the sitemap expands. Byte-stable output also means Cloudflare's content-hash dedupe uploads only files that really changed on data-refresh deploys, keeping edge caches warm for unchanged pages. `data/page-hashes.json` currently tracks 62,762 URLs at ~6.2 MB; if that grows unwieldy as the sitemap expands, the manifest can move behind a build env fallback without changing the contract.
 - **Per-page change dates (2026-09-21):** the same hash manifest is the single source of truth for page freshness off the sitemap too. Prefix pages, hubs, and `/recent` embed each page's own last-change date twice — a footer `<time>` line ("Data refreshed <date>") and JSON-LD `dateModified` (prefix pages as `Dataset`, hubs as `CollectionPage`) — and always the same date as that URL's sitemap `<lastmod>`. Renderers use a two-pass contract (`render → record → re-render with the refresh date only if the bytes differ from the deployed page`), so an unchanged page keeps byte-identical output (and its old date), while a changed page converges to `dateModified = lastmod = refreshDate`. No wall-clock stamps, no per-refresh footers (a changed footer date on an otherwise unchanged page would re-date everything and teach Google the dates are meaningless), and the IEEE registration dates on a page are never reused as `dateModified` or `datePublished` (they describe the data, not the page). The home/help shells carry no static dates; their client-filled date (`manifest.refreshDate`) describes the dataset refresh, not the page.
 - **IndexNow (post-deploy, Cloudflare-side):** `build/indexnow.mjs` runs after `wrangler deploy` (much of the deployed set is chunked ≤10,000 URLs per POST to `api.indexnow.org`; the key/ownership file lives at `/{key}.txt` from `public/`). The build emits `dist/data/indexnow.json` = the URLs whose bytes changed this build, intersected with the current sitemap scope (finalizePageHashes) — so the ping covers exactly changed pages the sitemap already promotes, and sends an empty manifest when nothing changed (Bing, Yandex, Seznam, Yep consume IndexNow; Google does not). Ping failures never fail the deploy. Regenerate the og-card (og:image/twitter:card on every page) with `node build/make-og-card.mjs` when the site copy changes.
 - **Manual data refresh:** bump the date in `data/refresh.txt` and push; the commit triggers a rebuild that re-fetches the registries. The **daily** GitHub Action does this automatically when sources change (see [Source resilience & data refresh](#source-resilience--data-refresh)), and forces a monthly refresh so indexed pages stay current.
