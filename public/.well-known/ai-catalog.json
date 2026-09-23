@@ -1,0 +1,8 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "MAC Address Lookup",
+    "documentationUrl": "https://mac.jasontally.com/help"
+  },
+  "entries": []
+}

@@ -58,6 +58,7 @@ On top of the prefix pages, the build generates **vendor pages** (`/vendor/<slug
 ## Using the data from scripts, agents, and LLMs
 
 - `llms.txt` describes the site and data files for AI tools.
+- `/.well-known/ai-catalog.json` and `/.well-known/ard.json` are valid, empty ARD catalogs: the site publishes static data files rather than MCP servers or agents, and real JSON at those paths prevents the SPA fallback from serving HTML there.
 - **Full download:** `data/registry.ndjson` (~13.6 MB, one JSON object per IEEE assignment) and `data/lineage.ndjson` (ownership-change events).
 - **Small lookups without the full registry:** the same registry rows served as small `text/plain` trie shards at `data/registry/{key}.txt` (1–30 KB each, one JSON per line), indexed with row counts at `data/registry/index.txt`. Resolve a MAC by finding the longest shard key that is a prefix of its hex, fetching that shard, then longest-prefix matching within it. Example: `8C:1F:64:AF:A4:B2` → `data/registry/8c1f64af.txt` → row `8C1F64AFA` (MA-S, DATA ELECTRONIC DEVICES, INC) instead of its parent MA-L `8C1F64`. See [help.md](public/help.html) → *Using the data programmatically*.
 

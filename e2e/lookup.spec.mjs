@@ -62,6 +62,16 @@ test.describe('Static pre-rendered pages', () => {
     expect(lineage.status()).toBe(200);
     expect(JSON.parse((await lineage.text()).split('\n')[0])).toHaveProperty('prefix');
 
+    // ARD well-known paths must be real JSON, not the SPA fallback's HTML.
+    for (const catalogPath of ['/.well-known/ai-catalog.json', '/.well-known/ard.json']) {
+      const catalog = await request.get(catalogPath);
+      expect(catalog.status()).toBe(200);
+      expect(catalog.headers()['content-type']).toContain('json');
+      const body = await catalog.json();
+      expect(body.specVersion).toBe('1.0');
+      expect(body.entries).toEqual([]);
+    }
+
     const robots = await request.get('/robots.txt');
     expect(await robots.text()).toContain('User-agent: GPTBot');
   });

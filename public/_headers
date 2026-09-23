@@ -32,6 +32,17 @@
 /llms.txt
   Cache-Control: public, max-age=86400
 
+# ARD catalogs are deliberately empty: the site publishes data files, not
+# MCP servers or agents. Real JSON files here prevent the SPA fallback from
+# turning these well-known paths into HTML.
+/.well-known/ai-catalog.json
+  Content-Type: application/ai-catalog+json
+  Cache-Control: public, max-age=86400
+
+/.well-known/ard.json
+  Content-Type: application/ai-catalog+json
+  Cache-Control: public, max-age=86400
+
 # help.md carries Markdown source; some tools refuse the text/markdown media
 # type, so present it as plain text (the content reads fine either way).
 /help.md

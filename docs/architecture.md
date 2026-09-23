@@ -321,6 +321,23 @@ also emits the same registry rows as plain-text trie shards:
   checks (row count, first row); Gemini cannot follow arbitrary raw-file
   links.
 
+### ARD well-known catalogs
+
+`public/.well-known/ai-catalog.json` and `public/.well-known/ard.json` are
+copied into `dist/` as valid ARD 1.0 manifests with an empty `entries` array.
+The site currently publishes static data and documentation, not MCP servers,
+A2A agents, or skills, so an empty catalog is the accurate advertisement.
+
+The files exist primarily because the assets-only SPA fallback would otherwise
+serve `index.html` with `200` at every missing path. Lighthouse 13.5's
+experimental Agentic Resource Discovery audit requests
+`/.well-known/ai-catalog.json`, treats a `200` response as a catalog, and
+reports invalid schema when it receives HTML. Publishing real static JSON
+fixes that without adding a Worker or changing the fallback for lookup paths.
+`public/_headers` serves both as `application/ai-catalog+json` with a one-day
+cache. If agent-callable resources are added later, populate `entries` and keep
+the two paths byte-identical until the predecessor path is retired.
+
 ## Sitemap indexing plan (phased, 2026-09-17)
 
 **Observed** (Search Console, 2026-09-17): Google indexed only a subset of the
