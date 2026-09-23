@@ -238,6 +238,7 @@ export const en = {
   'title.formerHub': 'Former {org} MAC address blocks | MAC Address Lookup',
   'title.countryHub': '{country} MAC address blocks | MAC Address Lookup',
   'title.countries': 'MAC address blocks by country | MAC Address Lookup',
+  'title.vendors': 'MAC address blocks by vendor | MAC Address Lookup',
   'title.recent': 'Latest OUIs | MAC Address Lookup',
 
   // Hub headings (visible h1s; org and country names stay language-neutral)
@@ -245,6 +246,7 @@ export const en = {
   'hub.h1.former': 'Former {org} MAC address blocks',
   'hub.h1.country': '{country} MAC address blocks',
   'hub.h1.countries': 'MAC address blocks by country',
+  'hub.h1.vendors': 'MAC address blocks by vendor',
 
   // Skip link
   'a11y.skip': 'Skip to content',
@@ -283,6 +285,11 @@ export const en = {
   'hub.countries.caption':
     'Every country with at least one registered MAC address block, with organization, block, and address totals, sorted by total address space.',
   'hub.countries.all': 'All countries',
+  'hub.vendors.lede':
+    'The IEEE registry carries {blocks} blocks registered to {orgs} organizations with two or more blocks, together {addresses} addresses.',
+  'hub.vendors.caption':
+    'Every organization with two or more registered MAC address blocks, with block and address totals, sorted by total address space.',
+  'hub.vendors.all': 'All vendors',
   'hub.completeNote':
     'Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.',
 
@@ -292,6 +299,7 @@ export const en = {
   'footer.refreshed': 'Data refreshed',
   'footer.refreshPlaceholder': 'on the latest deploy',
   'footer.countries': 'Countries',
+  'footer.vendors': 'Vendors',
 
   // Detail labels
   'detail.match': 'Match',

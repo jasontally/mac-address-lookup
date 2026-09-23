@@ -147,6 +147,7 @@ export const ko = {
   "footer.recent": "최신 OUI",
   "recent.title": "최신 OUI",
   "hub.h1.countries": "국가별 MAC 주소 블록",
+  "hub.h1.vendors": "공급업체별 MAC 주소 블록",
   "a11y.skip": "본문으로 건너뛰기",
   "a11y.language": "언어",
   "a11y.breadcrumb": "탐색 경로",
@@ -158,6 +159,7 @@ export const ko = {
   "footer.refreshed": "데이터 업데이트",
   "footer.refreshPlaceholder": "최신 배포 기준",
   "footer.countries": "국가",
+  "footer.vendors": "공급업체",
   "detail.match": "일치",
   "detail.matchedPrefix": "일치한 접두사",
   "detail.addressRange": "주소 범위",
@@ -195,6 +197,9 @@ export const ko = {
   "hub.countries.lede": "IEEE 레지스트리에는 {countries}개국에 등록 주소가 있는 {blocks}개의 블록이 있으며, {orgs}개 조직에 걸쳐 총 {addresses}개의 주소가 있습니다.",
   "hub.countries.caption": "최소 하나 이상의 등록된 MAC 주소 블록이 있는 모든 국가에 대해 조직, 블록 및 주소 합계와 함께 전체 주소 공간을 기준으로 정렬된 목록입니다.",
   "hub.countries.all": "모든 국가",
+  "hub.vendors.lede": "IEEE 레지스트리에는 2개 이상의 블록을 가진 {orgs}개 조직에 등록된 {blocks}개의 블록이 있으며, 총 {addresses}개의 주소가 있습니다.",
+  "hub.vendors.caption": "2개 이상의 등록된 MAC 주소 블록이 있는 모든 조직에 대해 블록 및 주소 합계와 함께 전체 주소 공간을 기준으로 정렬된 목록입니다.",
+  "hub.vendors.all": "모든 공급업체",
   "hub.completeNote": "현재 IEEE 레지스트리 배포 기준의 전체 데이터입니다. 날짜는 각 등록이 공개 데이터에서 처음 관찰된 시점이며 법적 할당 날짜가 아닙니다.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const ko = {
   "title.formerHub": "이전 {org}의 MAC 주소 블록 | MAC 주소 조회",
   "title.countryHub": "{country}의 MAC 주소 블록 | MAC 주소 조회",
   "title.countries": "국가별 MAC 주소 블록 | MAC 주소 조회",
+  "title.vendors": "공급업체별 MAC 주소 블록 | MAC 주소 조회",
   "title.recent": "최신 OUI | MAC 주소 조회",
   "hub.h1.vendor": "{org}의 MAC 주소 블록",
   "hub.h1.former": "이전 {org}의 MAC 주소 블록",

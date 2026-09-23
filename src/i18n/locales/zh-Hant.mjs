@@ -147,6 +147,7 @@ export const zhHant = {
   "footer.recent": "最新 OUI",
   "recent.title": "最新 OUI",
   "hub.h1.countries": "按國家/地區劃分的 MAC 位址區塊",
+  "hub.h1.vendors": "按供應商劃分的 MAC 位址區塊",
   "a11y.skip": "跳至主要內容",
   "a11y.language": "語言",
   "a11y.breadcrumb": "麵包屑導覽",
@@ -158,6 +159,7 @@ export const zhHant = {
   "footer.refreshed": "資料更新於",
   "footer.refreshPlaceholder": "最近一次部署",
   "footer.countries": "國家/地區",
+  "footer.vendors": "供應商",
   "detail.match": "比對",
   "detail.matchedPrefix": "相符的前綴",
   "detail.addressRange": "位址範圍",
@@ -195,6 +197,9 @@ export const zhHant = {
   "hub.countries.lede": "IEEE 註冊表包含 {blocks} 個區塊，註冊位址分佈在 {countries} 個國家/地區，總計 {addresses} 個位址，涉及 {orgs} 個組織。",
   "hub.countries.caption": "至少註冊了一個 MAC 位址區塊的每個國家/地區，包含組織、區塊和位址總數，按總位址空間排序。",
   "hub.countries.all": "所有國家/地區",
+  "hub.vendors.lede": "IEEE 註冊表包含 {blocks} 個區塊，註冊給擁有兩個或更多區塊的 {orgs} 個組織，總計 {addresses} 個位址。",
+  "hub.vendors.caption": "至少註冊了兩個 MAC 位址區塊的每個組織，包含區塊和位址總數，按總位址空間排序。",
+  "hub.vendors.all": "所有供應商",
   "hub.completeNote": "基於當前IEEE註冊表的部署，數據完整。日期為每次註冊在公開資料中首次被發現的時間，而非合法分配的日期。",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const zhHant = {
   "title.formerHub": "原 {org} 的 MAC 位址區塊 | MAC 位址查詢",
   "title.countryHub": "{country} 的 MAC 位址區塊 | MAC 位址查詢",
   "title.countries": "按國家/地區劃分的 MAC 位址區塊 | MAC 位址查詢",
+  "title.vendors": "按供應商劃分的 MAC 位址區塊 | MAC 位址查詢",
   "title.recent": "最新 OUI | MAC 位址查詢",
   "hub.h1.vendor": "{org} 的 MAC 位址區塊",
   "hub.h1.former": "原 {org} 的 MAC 位址區塊",

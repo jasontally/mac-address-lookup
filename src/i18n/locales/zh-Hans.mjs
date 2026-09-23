@@ -147,6 +147,7 @@ export const zhHans = {
   "footer.recent": "最新 OUI",
   "recent.title": "最新 OUI",
   "hub.h1.countries": "按国家/地区划分的 MAC 地址块",
+  "hub.h1.vendors": "按供应商划分的 MAC 地址块",
   "a11y.skip": "跳到内容",
   "a11y.language": "语言",
   "a11y.breadcrumb": "面包屑导航",
@@ -158,6 +159,7 @@ export const zhHans = {
   "footer.refreshed": "数据更新于",
   "footer.refreshPlaceholder": "最近一次部署",
   "footer.countries": "国家/地区",
+  "footer.vendors": "供应商",
   "detail.match": "匹配",
   "detail.matchedPrefix": "匹配的前缀",
   "detail.addressRange": "地址范围",
@@ -195,6 +197,9 @@ export const zhHans = {
   "hub.countries.lede": "IEEE 注册表包含 {blocks} 个区块，注册地址分布在 {countries} 个国家/地区，总计 {addresses} 个地址，涉及 {orgs} 个组织。",
   "hub.countries.caption": "至少注册了一个 MAC 地址块的每个国家/地区，包含组织、区块和地址总数，按总地址空间排序。",
   "hub.countries.all": "所有国家/地区",
+  "hub.vendors.lede": "IEEE 注册表包含 {blocks} 个区块，注册给拥有两个或更多区块的 {orgs} 个组织，总计 {addresses} 个地址。",
+  "hub.vendors.caption": "至少注册了两个 MAC 地址块的每个组织，包含区块和地址总数，按总地址空间排序。",
+  "hub.vendors.all": "所有供应商",
   "hub.completeNote": "基于当前IEEE注册表的部署，数据完整。日期是每次注册在公开数据中首次被发现的时间，而非合法分配的日期。",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const zhHans = {
   "title.formerHub": "原 {org} 的 MAC 地址块 | MAC 地址查询",
   "title.countryHub": "{country} 的 MAC 地址块 | MAC 地址查询",
   "title.countries": "按国家/地区划分的 MAC 地址块 | MAC 地址查询",
+  "title.vendors": "按供应商划分的 MAC 地址块 | MAC 地址查询",
   "title.recent": "最新 OUI | MAC 地址查询",
   "hub.h1.vendor": "{org} 的 MAC 地址块",
   "hub.h1.former": "原 {org} 的 MAC 地址块",

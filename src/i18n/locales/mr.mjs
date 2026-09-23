@@ -147,6 +147,7 @@ export const mr = {
   "footer.recent": "अलीकडील OUI",
   "recent.title": "अलीकडील OUI",
   "hub.h1.countries": "देशानुसार MAC पत्ता ब्लॉक्स",
+  "hub.h1.vendors": "विक्रेत्यानुसार MAC पत्ता ब्लॉक्स",
   "a11y.skip": "मुख्य मजकुराकडे जा",
   "a11y.language": "भाषा",
   "a11y.breadcrumb": "ब्रेडक्रम्ब",
@@ -158,6 +159,7 @@ export const mr = {
   "footer.refreshed": "डेटा अद्ययावत",
   "footer.refreshPlaceholder": "शेवटच्या डिप्लॉयवर",
   "footer.countries": "देश",
+  "footer.vendors": "विक्रेते",
   "detail.match": "जुळणी",
   "detail.matchedPrefix": "जुळलेला प्रीफिक्स",
   "detail.addressRange": "पत्ता श्रेणी",
@@ -195,6 +197,9 @@ export const mr = {
   "hub.countries.lede": "IEEE रजिस्ट्रीमध्ये {countries} देशांमध्ये नोंदणी पत्ते असलेले {blocks} ब्लॉक्स आहेत, ज्यामध्ये {orgs} संस्थांमधील एकूण {addresses} पत्ते एकत्र आहेत.",
   "hub.countries.caption": "किमान एक नोंदणीकृत MAC पत्ता ब्लॉक असलेला प्रत्येक देश, ज्यामध्ये संस्था, ब्लॉक आणि पत्त्यांची एकूण संख्या आहे, आणि ते एकूण पत्त्याच्या स्पेस नुसार क्रमवारी केलेले आहेत.",
   "hub.countries.all": "सर्व देश",
+  "hub.vendors.lede": "IEEE रजिस्ट्रीमध्ये दोन किंवा अधिक ब्लॉक्स असलेल्या {orgs} संस्थांच्या नावावर नोंदणीकृत {blocks} ब्लॉक्स आहेत, ज्यामध्ये एकूण {addresses} पत्ते एकत्र आहेत.",
+  "hub.vendors.caption": "दोन किंवा अधिक नोंदणीकृत MAC पत्ता ब्लॉक्स असलेली प्रत्येक संस्था, ज्यामध्ये ब्लॉक आणि पत्त्यांची एकूण संख्या आहे, आणि ते एकूण पत्त्याच्या स्पेस नुसार क्रमवारी केलेले आहेत.",
+  "hub.vendors.all": "सर्व विक्रेते",
   "hub.completeNote": "सद्य IEEE नोंदणी उपयोजनानुसार संपूर्ण. तारखा अशा आहेत जेव्हा प्रत्येक नोंदणी सार्वजनिक डेटामध्ये प्रथम पाहिली गेली होती, कायदेशीर वाटप तारखा नाही.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const mr = {
   "title.formerHub": "{org} चे जुणे MAC पत्ता ब्लॉक | MAC पत्ता लुकअप",
   "title.countryHub": "{country} मधील MAC पत्ता ब्लॉक | MAC पत्ता लुकअप",
   "title.countries": "देशानुसार MAC पत्ता ब्लॉक्स | MAC पत्ता लुकअप",
+  "title.vendors": "विक्रेत्यानुसार MAC पत्ता ब्लॉक्स | MAC पत्ता लुकअप",
   "title.recent": "नवीनतम OUI | MAC पत्ता लुकअप",
   "hub.h1.vendor": "{org} चे MAC पत्ता ब्लॉक",
   "hub.h1.former": "{org} चे जुणे MAC पत्ता ब्लॉक",

@@ -147,6 +147,7 @@ export const uk = {
   "footer.recent": "Найновіші OUI",
   "recent.title": "Найновіші OUI",
   "hub.h1.countries": "Блоки MAC-адресів по країнах",
+  "hub.h1.vendors": "Блоки MAC-адресів за постачальниками",
   "a11y.skip": "Перейти до вмісту",
   "a11y.language": "Мова",
   "a11y.breadcrumb": "Навігаційний ланцюжок",
@@ -158,6 +159,7 @@ export const uk = {
   "footer.refreshed": "Дані оновлено",
   "footer.refreshPlaceholder": "під час останнього розгортання",
   "footer.countries": "Країни",
+  "footer.vendors": "Постачальники",
   "detail.match": "Збіг",
   "detail.matchedPrefix": "Збіг префікса",
   "detail.addressRange": "Діапазон адрес",
@@ -195,6 +197,9 @@ export const uk = {
   "hub.countries.lede": "Реєстр IEEE містить {blocks} блоків з адресами реєстрації в {countries} країнах, що разом складають {addresses} адрес у {orgs} організаціях.",
   "hub.countries.caption": "Кожна країна, що має хоча б один зареєстрований блок MAC-адресів, із загальною кількістю організацій, блоків та адрес, відсортована за загальним адресним простором.",
   "hub.countries.all": "Всі країни",
+  "hub.vendors.lede": "Реєстр IEEE містить {blocks} блоків, зареєстрованих на {orgs} організацій з двома або більше блоками, що разом складають {addresses} адрес.",
+  "hub.vendors.caption": "Кожна організація, що має два або більше зареєстрованих блоки MAC-адресів, із загальною кількістю блоків та адрес, відсортована за загальним адресним простором.",
+  "hub.vendors.all": "Всі постачальники",
   "hub.completeNote": "Повністю станом на поточне розгортання реєстру IEEE. Дати вказують, коли кожну реєстрацію було вперше виявлено у відкритих даних, а не дати юридичного призначення.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const uk = {
   "title.formerHub": "Колишні блоки MAC-адресів ({org}) | Пошук MAC-адрес",
   "title.countryHub": "Блоки MAC-адресів у {country} | Пошук MAC-адрес",
   "title.countries": "Блоки MAC-адресів по країнах | Пошук MAC-адрес",
+  "title.vendors": "Блоки MAC-адресів за постачальниками | Пошук MAC-адрес",
   "title.recent": "Найновіші OUI | Пошук MAC-адрес",
   "hub.h1.vendor": "Блоки MAC-адресів організації {org}",
   "hub.h1.former": "Колишні блоки MAC-адресів ({org})",

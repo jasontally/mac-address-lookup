@@ -147,6 +147,7 @@ export const hi = {
   "footer.recent": "नवीनतम OUI",
   "recent.title": "नवीनतम OUI",
   "hub.h1.countries": "देश के अनुसार MAC एड्रेस ब्लॉक",
+  "hub.h1.vendors": "विक्रेता के अनुसार MAC एड्रेस ब्लॉक",
   "a11y.skip": "सामग्री पर जाएँ",
   "a11y.language": "भाषा",
   "a11y.breadcrumb": "ब्रेडक्रंब",
@@ -158,6 +159,7 @@ export const hi = {
   "footer.refreshed": "डेटा अपडेट",
   "footer.refreshPlaceholder": "नवीनतम डिप्लॉय पर",
   "footer.countries": "देश",
+  "footer.vendors": "विक्रेता",
   "detail.match": "मिलान",
   "detail.matchedPrefix": "मिला हुआ उपसर्ग",
   "detail.addressRange": "पता श्रेणी",
@@ -195,6 +197,9 @@ export const hi = {
   "hub.countries.lede": "IEEE रजिस्ट्री में {countries} देशों में पंजीकरण पतों के साथ {blocks} ब्लॉक हैं, जो {orgs} संगठनों में कुल {addresses} पतों को एक साथ लाते हैं।",
   "hub.countries.caption": "कम से कम एक पंजीकृत MAC एड्रेस ब्लॉक वाला प्रत्येक देश, जिसमें संगठन, ब्लॉक और पते की कुल संख्या है, जो कुल एड्रेस स्पेस द्वारा क्रमबद्ध है।",
   "hub.countries.all": "सभी देश",
+  "hub.vendors.lede": "IEEE रजिस्ट्री में दो या अधिक ब्लॉक वाले {orgs} संगठनों के नाम पर पंजीकृत {blocks} ब्लॉक हैं, जो कुल {addresses} पतों को एक साथ लाते हैं।",
+  "hub.vendors.caption": "दो या दो से अधिक पंजीकृत MAC एड्रेस ब्लॉक वाला प्रत्येक संगठन, जिसमें ब्लॉक और पते की कुल संख्या है, जो कुल एड्रेस स्पेस द्वारा क्रमबद्ध है।",
+  "hub.vendors.all": "सभी विक्रेता",
   "hub.completeNote": "वर्तमान IEEE रजिस्ट्री परिनियोजन के अनुसार संपूर्ण। तिथियाँ वह हैं जब प्रत्येक पंजीकरण को पहली बार सार्वजनिक डेटा में देखा गया था, कानूनी असाइनमेंट की तिथियाँ नहीं।",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const hi = {
   "title.formerHub": "{org} के पुराने MAC एड्रेस ब्लॉक | MAC एड्रेस लुकअप",
   "title.countryHub": "{country} के MAC एड्रेस ब्लॉक | MAC एड्रेस लुकअप",
   "title.countries": "देश के अनुसार MAC एड्रेस ब्लॉक | MAC एड्रेस लुकअप",
+  "title.vendors": "विक्रेता के अनुसार MAC एड्रेस ब्लॉक | MAC एड्रेस लुकअप",
   "title.recent": "नवीनतम OUI | MAC एड्रेस लुकअप",
   "hub.h1.vendor": "{org} के MAC एड्रेस ब्लॉक",
   "hub.h1.former": "{org} के पुराने MAC एड्रेस ब्लॉक",

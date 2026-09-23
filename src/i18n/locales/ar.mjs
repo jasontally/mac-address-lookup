@@ -147,6 +147,7 @@ export const ar = {
   "footer.recent": "أحدث OUI",
   "recent.title": "أحدث OUI",
   "hub.h1.countries": "كتل عناوين MAC حسب البلد",
+  "hub.h1.vendors": "كتل عناوين MAC حسب المورّد",
   "a11y.skip": "الانتقال إلى المحتوى",
   "a11y.language": "اللغة",
   "a11y.breadcrumb": "مسار التنقل",
@@ -158,6 +159,7 @@ export const ar = {
   "footer.refreshed": "تم تحديث البيانات",
   "footer.refreshPlaceholder": "في آخر نشر",
   "footer.countries": "البلدان",
+  "footer.vendors": "المورّدون",
   "detail.match": "التطابق",
   "detail.matchedPrefix": "البادئة المتطابقة",
   "detail.addressRange": "نطاق العناوين",
@@ -195,6 +197,9 @@ export const ar = {
   "hub.countries.lede": "يحتوي سجل IEEE على {blocks} من الكتل مع عناوين تسجيل في {countries} من البلدان، وتضم معًا {addresses} من العناوين عبر {orgs} من المؤسسات.",
   "hub.countries.caption": "كل بلد لديه كتلة عنوان MAC واحدة مسجلة على الأقل، مع إجماليات المؤسسات والكتل والعناوين، مرتبة حسب إجمالي مساحة العناوين.",
   "hub.countries.all": "جميع البلدان",
+  "hub.vendors.lede": "يحتوي سجل IEEE على {blocks} من الكتل مسجلة لـ {orgs} من المؤسسات التي تمتلك كتلتين أو أكثر، وتضم معًا {addresses} من العناوين.",
+  "hub.vendors.caption": "كل مؤسسة لديها كتلتان أو أكثر من كتل عناوين MAC المسجلة، مع إجماليات الكتل والعناوين، مرتبة حسب إجمالي مساحة العناوين.",
+  "hub.vendors.all": "جميع المورّدين",
   "hub.completeNote": "مكتملة اعتبارًا من النشر الحالي لسجل IEEE. التواريخ هي وقت ملاحظة كل تسجيل لأول مرة في البيانات العامة، وليس تواريخ التخصيص القانونية.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const ar = {
   "title.formerHub": "كتل عناوين MAC السابقة لـ {org} | البحث عن عناوين MAC",
   "title.countryHub": "كتل عناوين MAC في {country} | البحث عن عناوين MAC",
   "title.countries": "كتل عناوين MAC حسب البلد | البحث عن عناوين MAC",
+  "title.vendors": "كتل عناوين MAC حسب المورّد | البحث عن عناوين MAC",
   "title.recent": "أحدث OUI | البحث عن عناوين MAC",
   "hub.h1.vendor": "كتل عناوين MAC الخاصة بـ {org}",
   "hub.h1.former": "كتل عناوين MAC السابقة لـ {org}",

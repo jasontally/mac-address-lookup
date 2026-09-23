@@ -147,6 +147,7 @@ export const de = {
   "footer.recent": "Neueste OUIs",
   "recent.title": "Neueste OUIs",
   "hub.h1.countries": "MAC-Adressblöcke nach Land",
+  "hub.h1.vendors": "MAC-Adressblöcke nach Hersteller",
   "a11y.skip": "Zum Inhalt springen",
   "a11y.language": "Sprache",
   "a11y.breadcrumb": "Brotkrumen",
@@ -158,6 +159,7 @@ export const de = {
   "footer.refreshed": "Daten aktualisiert",
   "footer.refreshPlaceholder": "mit dem letzten Deploy",
   "footer.countries": "Länder",
+  "footer.vendors": "Hersteller",
   "detail.match": "Treffer",
   "detail.matchedPrefix": "Gefundenes Präfix",
   "detail.addressRange": "Adressbereich",
@@ -195,6 +197,9 @@ export const de = {
   "hub.countries.lede": "Die IEEE-Registrierungsstelle führt {blocks} Blöcke mit Registrierungsadressen in {countries} Ländern, was zusammen {addresses} Adressen in {orgs} Organisationen ausmacht.",
   "hub.countries.caption": "Jedes Land mit mindestens einem registrierten MAC-Adressblock, mit Gesamtangaben zu Organisationen, Blöcken und Adressen, sortiert nach gesamtem Adressraum.",
   "hub.countries.all": "Alle Länder",
+  "hub.vendors.lede": "Die IEEE-Registrierungsstelle führt {blocks} Blöcke, die auf {orgs} Organisationen mit zwei oder mehr Blöcken registriert sind, was zusammen {addresses} Adressen ausmacht.",
+  "hub.vendors.caption": "Jede Organisation mit zwei oder mehr registrierten MAC-Adressblöcken, mit Gesamtangaben zu Blöcken und Adressen, sortiert nach gesamtem Adressraum.",
+  "hub.vendors.all": "Alle Hersteller",
   "hub.completeNote": "Vollständig mit Stand des aktuellen IEEE-Register-Deployments. Die Daten beziehen sich darauf, wann jede Registrierung erstmals in öffentlichen Daten beobachtet wurde, nicht auf rechtliche Zuteilungsdaten.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const de = {
   "title.formerHub": "Ehemalige {org} MAC-Adressblöcke | MAC-Adressen-Suche",
   "title.countryHub": "{country} MAC-Adressblöcke | MAC-Adressen-Suche",
   "title.countries": "MAC-Adressblöcke nach Land | MAC-Adressen-Suche",
+  "title.vendors": "MAC-Adressblöcke nach Hersteller | MAC-Adressen-Suche",
   "title.recent": "Neueste OUIs | MAC-Adressen-Suche",
   "hub.h1.vendor": "{org} MAC-Adressblöcke",
   "hub.h1.former": "Ehemalige {org} MAC-Adressblöcke",

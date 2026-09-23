@@ -147,6 +147,7 @@ export const nl = {
   "footer.recent": "Nieuwste OUI’s",
   "recent.title": "Nieuwste OUI’s",
   "hub.h1.countries": "MAC-adresblokken per land",
+  "hub.h1.vendors": "MAC-adresblokken per leverancier",
   "a11y.skip": "Naar inhoud",
   "a11y.language": "Taal",
   "a11y.breadcrumb": "Kruimelpad",
@@ -158,6 +159,7 @@ export const nl = {
   "footer.refreshed": "Gegevens bijgewerkt",
   "footer.refreshPlaceholder": "bij de laatste uitrol",
   "footer.countries": "Landen",
+  "footer.vendors": "Leveranciers",
   "detail.match": "Overeenkomst",
   "detail.matchedPrefix": "Overeenkomend voorvoegsel",
   "detail.addressRange": "Adresbereik",
@@ -195,6 +197,9 @@ export const nl = {
   "hub.countries.lede": "Het IEEE-register bevat {blocks} blokken met registratieadressen in {countries} landen, in totaal {addresses} adressen verspreid over {orgs} organisaties.",
   "hub.countries.caption": "Elk land met minstens één geregistreerd MAC-adresblok, met totalen voor organisaties, blokken en adressen, gesorteerd op totale adresruimte.",
   "hub.countries.all": "Alle landen",
+  "hub.vendors.lede": "Het IEEE-register bevat {blocks} blokken die zijn geregistreerd bij {orgs} organisaties met twee of meer blokken, in totaal {addresses} adressen.",
+  "hub.vendors.caption": "Elke organisatie met twee of meer geregistreerde MAC-adresblokken, met totalen voor blokken en adressen, gesorteerd op totale adresruimte.",
+  "hub.vendors.all": "Alle leveranciers",
   "hub.completeNote": "Compleet op basis van de huidige implementatie van het IEEE-register. Datums geven aan wanneer elke registratie voor het eerst werd waargenomen in openbare gegevens, niet de wettelijke toewijzingsdatums.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const nl = {
   "title.formerHub": "Voormalige MAC-adresblokken van {org} | MAC-adres zoeken",
   "title.countryHub": "MAC-adresblokken van {country} | MAC-adres zoeken",
   "title.countries": "MAC-adresblokken per land | MAC-adres zoeken",
+  "title.vendors": "MAC-adresblokken per leverancier | MAC-adres zoeken",
   "title.recent": "Nieuwste OUI’s | MAC-adres zoeken",
   "hub.h1.vendor": "MAC-adresblokken van {org}",
   "hub.h1.former": "Voormalige MAC-adresblokken van {org}",

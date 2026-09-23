@@ -147,6 +147,7 @@ export const vi = {
   "footer.recent": "OUI mới nhất",
   "recent.title": "OUI mới nhất",
   "hub.h1.countries": "Các khối địa chỉ MAC theo quốc gia",
+  "hub.h1.vendors": "Các khối địa chỉ MAC theo nhà cung cấp",
   "a11y.skip": "Tới nội dung",
   "a11y.language": "Ngôn ngữ",
   "a11y.breadcrumb": "Đường dẫn trang",
@@ -158,6 +159,7 @@ export const vi = {
   "footer.refreshed": "Dữ liệu cập nhật",
   "footer.refreshPlaceholder": "tại lần triển khai gần nhất",
   "footer.countries": "Các quốc gia",
+  "footer.vendors": "Nhà cung cấp",
   "detail.match": "Khớp",
   "detail.matchedPrefix": "Tiền tố khớp",
   "detail.addressRange": "Dải địa chỉ",
@@ -195,6 +197,9 @@ export const vi = {
   "hub.countries.lede": "Sổ đăng ký IEEE chứa {blocks} khối với địa chỉ đăng ký ở {countries} quốc gia, với tổng số {addresses} địa chỉ trên {orgs} tổ chức.",
   "hub.countries.caption": "Mỗi quốc gia có ít nhất một khối địa chỉ MAC đã đăng ký, với tổng số tổ chức, khối và địa chỉ, được sắp xếp theo tổng không gian địa chỉ.",
   "hub.countries.all": "Tất cả các quốc gia",
+  "hub.vendors.lede": "Sổ đăng ký IEEE chứa {blocks} khối được đăng ký cho {orgs} tổ chức có hai khối trở lên, với tổng số {addresses} địa chỉ.",
+  "hub.vendors.caption": "Mỗi tổ chức có từ hai khối địa chỉ MAC đã đăng ký trở lên, với tổng số khối và địa chỉ, được sắp xếp theo tổng không gian địa chỉ.",
+  "hub.vendors.all": "Tất cả các nhà cung cấp",
   "hub.completeNote": "Hoàn chỉnh tính đến đợt triển khai sổ đăng ký IEEE hiện tại. Các ngày là thời điểm mỗi đăng ký được quan sát lần đầu trong dữ liệu công khai, không phải ngày cấp phép pháp lý.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const vi = {
   "title.formerHub": "Các khối địa chỉ MAC cũ của {org} | Tra cứu địa chỉ MAC",
   "title.countryHub": "Các khối địa chỉ MAC tại {country} | Tra cứu địa chỉ MAC",
   "title.countries": "Các khối địa chỉ MAC theo quốc gia | Tra cứu địa chỉ MAC",
+  "title.vendors": "Các khối địa chỉ MAC theo nhà cung cấp | Tra cứu địa chỉ MAC",
   "title.recent": "OUI mới nhất | Tra cứu địa chỉ MAC",
   "hub.h1.vendor": "Các khối địa chỉ MAC của {org}",
   "hub.h1.former": "Các khối địa chỉ MAC cũ của {org}",

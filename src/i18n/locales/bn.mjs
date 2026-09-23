@@ -147,6 +147,7 @@ export const bn = {
   "footer.recent": "সাম্প্রতিক OUI",
   "recent.title": "সাম্প্রতিক OUI",
   "hub.h1.countries": "দেশ অনুযায়ী MAC ঠিকানা ব্লক",
+  "hub.h1.vendors": "বিক্রেতা অনুযায়ী MAC ঠিকানা ব্লক",
   "a11y.skip": "মূল বিষয়বস্তুতে যান",
   "a11y.language": "ভাষা",
   "a11y.breadcrumb": "ব্রেডক্রাম্ব",
@@ -158,6 +159,7 @@ export const bn = {
   "footer.refreshed": "ডেটা আপডেট",
   "footer.refreshPlaceholder": "সর্বশেষ ডিপ্লয়ে",
   "footer.countries": "দেশগুলি",
+  "footer.vendors": "বিক্রেতা",
   "detail.match": "মিল",
   "detail.matchedPrefix": "মিলে যাওয়া প্রিফিক্স",
   "detail.addressRange": "ঠিকানা পরিসর",
@@ -195,6 +197,9 @@ export const bn = {
   "hub.countries.lede": "IEEE রেজিস্ট্রিতে {countries}টি দেশে নিবন্ধনের ঠিকানা সহ {blocks}টি ব্লক রয়েছে, যা {orgs}টি সংস্থা জুড়ে মোট {addresses}টি ঠিকানা বহন করে।",
   "hub.countries.caption": "অন্তত একটি নিবন্ধিত MAC ঠিকানা ব্লক সহ প্রতিটি দেশ, যেখানে সংস্থা, ব্লক এবং ঠিকানার মোট সংখ্যা রয়েছে এবং মোট ঠিকানার স্থান অনুযায়ী সাজানো হয়েছে।",
   "hub.countries.all": "সব দেশ",
+  "hub.vendors.lede": "IEEE রেজিস্ট্রিতে {orgs}টি সংস্থার নামে দুটি বা তার বেশি ব্লক সহ {blocks}টি ব্লক নিবন্ধিত আছে, যা মোট {addresses}টি ঠিকানা বহন করে।",
+  "hub.vendors.caption": "দুটি বা তার বেশি নিবন্ধিত MAC ঠিকানা ব্লক সহ প্রতিটি সংস্থা, যেখানে ব্লক এবং ঠিকানার মোট সংখ্যা রয়েছে এবং মোট ঠিকানার স্থান অনুযায়ী সাজানো হয়েছে।",
+  "hub.vendors.all": "সব বিক্রেতা",
   "hub.completeNote": "বর্তমান IEEE রেজিস্ট্রি স্থাপন অনুযায়ী সম্পূর্ণ। তারিখগুলি হলো যখন প্রতিটি নিবন্ধন প্রথম পাবলিক ডেটাতে দেখা গিয়েছিল, আইনি বরাদ্দের তারিখ নয়।",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const bn = {
   "title.formerHub": "{org}-এর পুরনো MAC ঠিকানা ব্লক | MAC ঠিকানা লুকআপ",
   "title.countryHub": "{country}-এর MAC ঠিকানা ব্লক | MAC ঠিকানা লুকআপ",
   "title.countries": "দেশ অনুযায়ী MAC ঠিকানা ব্লক | MAC ঠিকানা লুকআপ",
+  "title.vendors": "বিক্রেতা অনুযায়ী MAC ঠিকানা ব্লক | MAC ঠিকানা লুকআপ",
   "title.recent": "সাম্প্রতিক OUI | MAC ঠিকানা লুকআপ",
   "hub.h1.vendor": "{org}-এর MAC ঠিকানা ব্লক",
   "hub.h1.former": "{org}-এর পুরনো MAC ঠিকানা ব্লক",

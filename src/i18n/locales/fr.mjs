@@ -147,6 +147,7 @@ export const fr = {
   "footer.recent": "Derniers OUI",
   "recent.title": "Derniers OUI",
   "hub.h1.countries": "Blocs d’adresses MAC par pays",
+  "hub.h1.vendors": "Blocs d’adresses MAC par fournisseur",
   "a11y.skip": "Aller au contenu",
   "a11y.language": "Langue",
   "a11y.breadcrumb": "Fil d’Ariane",
@@ -158,6 +159,7 @@ export const fr = {
   "footer.refreshed": "Données actualisées",
   "footer.refreshPlaceholder": "lors du dernier déploiement",
   "footer.countries": "Pays",
+  "footer.vendors": "Fournisseurs",
   "detail.match": "Correspondance",
   "detail.matchedPrefix": "Préfixe correspondant",
   "detail.addressRange": "Plage d'adresses",
@@ -195,6 +197,9 @@ export const fr = {
   "hub.countries.lede": "Le registre IEEE contient {blocks} blocs avec des adresses d'enregistrement dans {countries} pays, totalisant {addresses} adresses réparties sur {orgs} organisations.",
   "hub.countries.caption": "Chaque pays possédant au moins un bloc d'adresses MAC enregistré, avec les totaux par organisation, bloc et adresse, triés par espace d'adressage total.",
   "hub.countries.all": "Tous les pays",
+  "hub.vendors.lede": "Le registre IEEE contient {blocks} blocs enregistrés au nom de {orgs} organisations possédant deux blocs ou plus, totalisant {addresses} adresses.",
+  "hub.vendors.caption": "Chaque organisation possédant deux blocs d'adresses MAC enregistrés ou plus, avec les totaux par bloc et adresse, triés par espace d'adressage total.",
+  "hub.vendors.all": "Tous les fournisseurs",
   "hub.completeNote": "Complet au moment du déploiement actuel du registre IEEE. Les dates correspondent au moment où chaque enregistrement a été observé pour la première fois dans les données publiques, et non aux dates d'attribution légales.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const fr = {
   "title.formerHub": "Anciens blocs d’adresses MAC de {org} | Recherche d’adresse MAC",
   "title.countryHub": "Blocs d’adresses MAC de {country} | Recherche d’adresse MAC",
   "title.countries": "Blocs d’adresses MAC par pays | Recherche d’adresse MAC",
+  "title.vendors": "Blocs d’adresses MAC par fournisseur | Recherche d’adresse MAC",
   "title.recent": "Derniers OUI | Recherche d’adresse MAC",
   "hub.h1.vendor": "Blocs d’adresses MAC de {org}",
   "hub.h1.former": "Anciens blocs d’adresses MAC de {org}",

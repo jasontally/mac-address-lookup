@@ -126,3 +126,31 @@ test.describe('Dynamic hub affordances', () => {
     await expect(page.locator('.result-card .section-note')).not.toContainText('showing the first');
   });
 });
+
+test.describe('Vendor index', () => {
+  test('/vendor ships every organization row and leads the sitemap', async ({ page, request }) => {
+    await page.goto('/vendor');
+    await expect(page.locator('h1')).toContainText('MAC address blocks by vendor');
+    expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe('https://mac.jasontally.com/vendor');
+    // The lede states the organization total; the same count renders the rows.
+    const total = await totalFromLede(page, /registered to ([\d,]+) organizations/);
+    expect(total).toBeGreaterThan(3000);
+    await expect(page.locator('.data-table tbody tr')).toHaveCount(total, { timeout: 20_000 });
+    await expect(page.locator('.data-table tbody tr[hidden]')).toHaveCount(0);
+    await expect(page.locator('.data-table tfoot')).toHaveCount(0);
+    // The first row links a real vendor page.
+    const firstHref = await page.locator('.data-table tbody tr td.org a').first().getAttribute('href');
+    expect(firstHref.startsWith('/vendor/')).toBe(true);
+    // The index is in the sitemap now; vendor hub detail pages stay out of it
+    // until the `hubs` scope ships.
+    const sitemap = await request.get('/sitemap.xml');
+    expect(sitemap.status()).toBe(200);
+    const xml = await sitemap.text();
+    expect(xml).toContain('<loc>https://mac.jasontally.com/vendor</loc>');
+    expect(xml).not.toContain('/vendor/apple-inc');
+    // The index footer hides its own link; every other footer carries it.
+    expect(await page.locator('footer a[href="/vendor"]').count(), 'index hides its self-link').toBe(0);
+    await page.goto('/');
+    await expect(page.locator('footer a[href="/vendor"]')).toHaveCount(1);
+  });
+});

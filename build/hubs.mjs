@@ -1,7 +1,8 @@
 /**
  * Pre-rendered hub pages (step 2 of docs/thin-content-mitigation.md): one
  * page per multi-block organization (/vendor/<slug>), one per country
- * (/country/<code>), and the /country rollup index over them, all carrying
+ * (/country/<code>), and the /country and /vendor rollup indexes over them, all
+ * carrying
  * their complete data as static tables - no row caps; the whole table ships
  * (static HTML compresses ~10:1 at the edge; sizing in the plan).
  *
@@ -292,9 +293,9 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], dataUpdated = null, site = SITE, countriesLink = true }) {
-  // Breadcrumbs are Home / [index /] this page: country pages sit under the
-  // /country rollup, which gives that index its internal links.
+function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], dataUpdated = null, site = SITE, countriesLink = true, vendorsLink = true }) {
+  // Breadcrumbs are Home / [index /] this page: country and vendor pages sit
+  // under their rollup indexes, which gives those indexes their internal links.
   const breadcrumb = breadcrumbLd([
     { name: 'MAC Address Lookup', url: `${SITE}/` },
     ...(breadcrumbParent ? [{ name: breadcrumbParent.name, url: breadcrumbParent.url }] : []),
@@ -389,7 +390,7 @@ ${body}
               ? `<time class="footer-date" datetime="${escapeHtml(dataUpdated)}">${escapeHtml(dataUpdated)}</time>`
               : ''
           }
-          ${countriesLink ? `<a href="/country" data-i18n="footer.countries">Countries</a> ·\n          ` : ''}<a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
+          ${countriesLink ? `<a href="/country" data-i18n="footer.countries">Countries</a> ·\n          ` : ''}${vendorsLink ? `<a href="/vendor" data-i18n="footer.vendors">Vendors</a> ·\n          ` : ''}<a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>
@@ -587,6 +588,7 @@ ${rows}
     description,
     canonical,
     breadcrumbLabel: hub.displayName,
+    breadcrumbParent: { name: 'All vendors', url: `${site}/vendor`, key: 'hub.vendors.all' },
     heading,
     ledeHtml,
     body: `${body}\n`,
@@ -766,6 +768,91 @@ ${rows}
 }
 
 /**
+ * Vendor index (`/vendor`): the rollup over every vendor page - one row per
+ * organization with two or more blocks (linked name, block and address
+ * totals), sorted by address space, with the totals in the lede. Written as
+ * root-level `vendor.html` beside the `vendor/` directory so the canonical is
+ * extensionless `/vendor` like `/help`; it leads the `country` sitemap scope
+ * alongside `/country` (build.mjs), is the breadcrumb parent of every vendor
+ * page, and is linked from every footer except its own (`footer.vendors`).
+ */
+export function renderVendorIndexPage({ hubData, assets, site = SITE, dataUpdated = null }) {
+  const canonical = `${site}/vendor`;
+  const vendors = [...hubData.orgs].sort(
+    (a, b) => b.addresses - a.addresses || (a.key < b.key ? -1 : 1),
+  );
+  const blocks = vendors.reduce((sum, hub) => sum + hub.blocks, 0);
+  const addresses = vendors.reduce((sum, hub) => sum + hub.addresses, 0);
+
+  const title = 'MAC address blocks by vendor | MAC Address Lookup';
+  const description =
+    `${vendors.length} organizations hold two or more IEEE-registered MAC address blocks: ` +
+    `${formatCount(blocks, 'en')} blocks covering ${formatAddresses(addresses, 'en')} addresses. ` +
+    `Totals per organization, each linking its full page.`;
+  const titleTag = `<title data-i18n="title.vendors">${escapeHtml(title)}</title>`;
+  const heading =
+    `<span data-i18n="hub.h1.vendors">MAC address blocks by vendor</span>`;
+  const ledeHtml =
+    `          <p class="lede" data-i18n="hub.vendors.lede" ${paramsAttr({ blocks, orgs: vendors.length, addresses })}>` +
+    `The IEEE registry carries ${escapeHtml(formatCount(blocks, 'en'))} blocks registered to ` +
+    `${escapeHtml(formatCount(vendors.length, 'en'))} organizations with two or more blocks, together ` +
+    `${escapeHtml(formatAddresses(addresses, 'en'))} addresses.</p>`;
+
+  const rows = vendors
+    .map(
+      (hub) =>
+        `            <tr>` +
+        `<td class="org"><a href="/vendor/${escapeHtml(hub.slug)}">${escapeHtml(hub.displayName)}</a></td>` +
+        `<td>${escapeHtml(formatCount(hub.blocks, 'en'))}</td>` +
+        `<td class="num">${escapeHtml(formatAddresses(hub.addresses, 'en'))}</td>` +
+        `</tr>`,
+    )
+    .join('\n');
+
+  const body = `        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="table.org">Organization</th>
+                <th scope="col" data-i18n="table.blocks">Blocks</th>
+                <th scope="col" data-i18n="table.addresses">Addresses</th>
+              </tr>
+            </thead>
+            <tbody>
+${rows}
+            </tbody>
+          </table>
+        </div>
+      <p class="section-note"><span data-i18n="hub.vendors.caption">Every organization with two or more registered MAC address blocks, with block and address totals, sorted by total address space.</span></p>`;
+
+  const collectionLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    url: canonical,
+    ...(dataUpdated ? { dateModified: dataUpdated } : {}),
+    isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${SITE}/` },
+  }).replace(/</g, '\\u003c');
+
+  return renderPage({
+    title,
+    titleTag,
+    description,
+    canonical,
+    breadcrumbLabel: 'All vendors',
+    breadcrumbKey: 'hub.vendors.all',
+    heading,
+    ledeHtml,
+    body: `${body}\n`,
+    assets,
+    jsonLdNodes: [collectionLd],
+    dataUpdated,
+    site,
+    vendorsLink: false, // no self-link in the footer
+  });
+}
+
+/**
  * Org display name rendered as a link to that org's page: the org hub when
  * the org has one (≥ 2 blocks), otherwise the pre-rendered page of its only
  * block - so every row on a country page is a link, and every target is a
@@ -869,12 +956,17 @@ export async function writeHubPages({
     countryUrls.push(`/country/${hub.code.toLowerCase()}`);
   }
 
-  // The rollup index over those pages: the country scope of the sitemap leads
-  // with it (build.mjs), and it gets the same last-change bookkeeping.
+  // The two rollup indexes: the country scope of the sitemap leads with them
+  // (build.mjs), and each gets the same last-change bookkeeping.
   await renderTracked(
     path.join(outDir, 'country.html'),
     `${site}/country`,
     (dataUpdated) => renderCountryIndexPage({ hubData, assets, site, dataUpdated }),
+  );
+  await renderTracked(
+    path.join(outDir, 'vendor.html'),
+    `${site}/vendor`,
+    (dataUpdated) => renderVendorIndexPage({ hubData, assets, site, dataUpdated }),
   );
 
   const formerUrls = [];
@@ -892,5 +984,11 @@ export async function writeHubPages({
     }
   }
 
-  return { vendorUrls, countryUrls, formerUrls, countryIndexUrl: '/country' };
+  return {
+    vendorUrls,
+    countryUrls,
+    formerUrls,
+    countryIndexUrl: '/country',
+    vendorIndexUrl: '/vendor',
+  };
 }

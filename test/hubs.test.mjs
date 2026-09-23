@@ -9,6 +9,7 @@ import {
   renderCountryIndexPage,
   renderFormerHubPage,
   renderOrgHubPage,
+  renderVendorIndexPage,
   writeHubPages,
 } from '../build/hubs.mjs';
 import { slugifyOrg } from '../src/engine/slugs.mjs';
@@ -257,7 +258,11 @@ test('country rows honour the page budget: dropped single-block pages stay plain
 });
 
 const indexHubData = {
-  orgs: [],
+  orgs: [
+    { key: 'BIG CO', slug: 'big-co', displayName: 'Big Co', blocks: 4, addresses: 33_554_432 },
+    { key: 'HUGE CO', slug: 'huge-co', displayName: 'Huge Co', blocks: 5, addresses: 50_331_648 },
+    { key: 'MID CO', slug: 'mid-co', displayName: 'Mid Co', blocks: 3, addresses: 16_777_216 },
+  ],
   countries: [
     { code: 'US', blocks: 3, addresses: 50_331_648, orgs: new Map([['US ORP', {}], ['SHARED', {}]]) },
     { code: 'HK', blocks: 2, addresses: 1_000_000, orgs: new Map([['SHARED', {}]]) },
@@ -299,7 +304,44 @@ test('renderCountryIndexPage rolls up organizations, blocks, and addresses per c
   assert.ok(!html.includes('href="/country" data-i18n="footer.countries"'));
 });
 
-test('country pages breadcrumb through the /country index; hubs keep the flat footer', () => {
+test('renderVendorIndexPage rolls up blocks and addresses per organization', () => {
+  const html = renderVendorIndexPage({ hubData: indexHubData, assets: ASSETS, site: 'https://example.test' });
+
+  assert.match(html, /rel="canonical" href="https:\/\/example\.test\/vendor"/);
+  assert.match(
+    html,
+    /<title data-i18n="title\.vendors">MAC address blocks by vendor \| MAC Address Lookup<\/title>/,
+  );
+  assert.match(html, /data-static-page="true"/);
+  assert.match(html, /CollectionPage/);
+
+  // One row per vendor hub, linked to that organization's page, sorted by
+  // address space (ties by key).
+  const order = [...html.matchAll(/<a href="\/vendor\/([a-z-]+)">/g)].map((match) => match[1]);
+  assert.deepEqual(order, ['huge-co', 'big-co', 'mid-co']);
+  assert.match(
+    html,
+    /<td class="org"><a href="\/vendor\/big-co">Big Co<\/a><\/td><td>4<\/td><td class="num">33.6 million<\/td>/,
+  );
+  assert.match(html, /<th scope="col" data-i18n="table\.org">Organization<\/th>/);
+  assert.match(html, /<th scope="col" data-i18n="table\.blocks">Blocks<\/th>/);
+
+  // Rollups: blocks and addresses are sums; one row per organization.
+  assert.match(html, /data-i18n-params='\{"blocks":12,"orgs":3,"addresses":100663296\}'/);
+  assert.match(
+    html,
+    /carries 12 blocks registered to 3 organizations with two or more blocks, together 101 million addresses/,
+  );
+
+  // Every row ships visible; the index hides its own footer link but keeps
+  // the sibling index's.
+  assert.equal((html.match(/<tr hidden>/g) ?? []).length, 0, 'every row ships visible');
+  assert.ok(!html.includes('<tfoot>'), 'no expand row on index tables');
+  assert.ok(!html.includes('href="/vendor" data-i18n="footer.vendors"'));
+  assert.match(html, /href="\/country" data-i18n="footer\.countries"/);
+});
+
+test('country pages and vendor pages breadcrumb through their rollup indexes', () => {
   const hub = {
     code: 'HK',
     blocks: 1,
@@ -331,8 +373,14 @@ test('country pages breadcrumb through the /country index; hubs keep the flat fo
   assert.match(html, /href="\/country" data-i18n="footer\.countries"/, 'country pages link the index in the footer too');
 
   const vendor = renderOrgHubPage({ hub: orgHub, assets: ASSETS, site: 'https://example.test' });
-  assert.ok(!vendor.includes('hub.countries.all'), 'vendor breadcrumbs stay flat (Home / Org)');
+  assert.match(
+    vendor,
+    /<a href="https:\/\/example\.test\/vendor" data-i18n="hub\.vendors\.all">All vendors<\/a> <span aria-hidden="true">\/<\/span> <span>Apple Inc\.<\/span>/,
+    'the visible breadcrumb carries an index link above the vendor',
+  );
+  assert.match(vendor, /"position":3,"name":"Apple Inc\."/, 'the JSON-LD breadcrumb has three items');
   assert.match(vendor, /href="\/country" data-i18n="footer\.countries"/);
+  assert.match(vendor, /href="\/vendor" data-i18n="footer\.vendors"/, 'non-index pages keep the Vendors footer link');
 });
 
 test('computeFormerHubs rolls up takeovers and skips single-prefix former orgs', () => {
@@ -537,9 +585,12 @@ test('writeHubPages writes nested files and reports relative URLs', async () => 
   assert.deepEqual(result.vendorUrls, ['/vendor/apple-inc']);
   assert.deepEqual(result.countryUrls, ['/country/us']);
   assert.equal(result.countryIndexUrl, '/country');
+  assert.equal(result.vendorIndexUrl, '/vendor');
   const { readFile } = await import('node:fs/promises');
   const vendorHtml = await readFile(join(dir, 'vendor', 'apple-inc.html'), 'utf8');
   assert.match(vendorHtml, /MAC Address Lookup/);
   const indexHtml = await readFile(join(dir, 'country.html'), 'utf8');
   assert.match(indexHtml, /rel="canonical" href="https:\/\/mac\.jasontally\.com\/country"/, 'the rollup index is written beside the country pages');
+  const vendorIndexHtml = await readFile(join(dir, 'vendor.html'), 'utf8');
+  assert.match(vendorIndexHtml, /rel="canonical" href="https:\/\/mac\.jasontally\.com\/vendor"/, 'the vendor rollup is written beside the vendor pages');
 });

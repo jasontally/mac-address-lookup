@@ -147,6 +147,7 @@ export const es = {
   "footer.recent": "OUI más recientes",
   "recent.title": "OUI más recientes",
   "hub.h1.countries": "Bloques de direcciones MAC por país",
+  "hub.h1.vendors": "Bloques de direcciones MAC por proveedor",
   "a11y.skip": "Saltar al contenido",
   "a11y.language": "Idioma",
   "a11y.breadcrumb": "Miga de pan",
@@ -158,6 +159,7 @@ export const es = {
   "footer.refreshed": "Datos actualizados",
   "footer.refreshPlaceholder": "en el último despliegue",
   "footer.countries": "Países",
+  "footer.vendors": "Proveedores",
   "detail.match": "Coincidencia",
   "detail.matchedPrefix": "Prefijo coincidente",
   "detail.addressRange": "Rango de direcciones",
@@ -195,6 +197,9 @@ export const es = {
   "hub.countries.lede": "El registro IEEE contiene {blocks} bloques con direcciones de registro en {countries} países, sumando {addresses} direcciones en {orgs} organizaciones.",
   "hub.countries.caption": "Todos los países con al menos un bloque de direcciones MAC registrado, con totales de organizaciones, bloques y direcciones, ordenados por espacio de direcciones total.",
   "hub.countries.all": "Todos los países",
+  "hub.vendors.lede": "El registro IEEE contiene {blocks} bloques registrados a nombre de {orgs} organizaciones con dos o más bloques, sumando {addresses} direcciones.",
+  "hub.vendors.caption": "Todas las organizaciones con dos o más bloques de direcciones MAC registrados, con totales de bloques y direcciones, ordenadas por espacio de direcciones total.",
+  "hub.vendors.all": "Todos los proveedores",
   "hub.completeNote": "Completo a partir de la implementación actual del registro de IEEE. Las fechas indican cuándo se observó por primera vez cada registro en los datos públicos, no las fechas de asignación legal.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const es = {
   "title.formerHub": "Antiguos bloques de direcciones MAC de {org} | Buscador de direcciones MAC",
   "title.countryHub": "Bloques de direcciones MAC de {country} | Buscador de direcciones MAC",
   "title.countries": "Bloques de direcciones MAC por país | Buscador de direcciones MAC",
+  "title.vendors": "Bloques de direcciones MAC por proveedor | Buscador de direcciones MAC",
   "title.recent": "Últimos OUI | Buscador de direcciones MAC",
   "hub.h1.vendor": "Bloques de direcciones MAC de {org}",
   "hub.h1.former": "Antiguos bloques de direcciones MAC de {org}",

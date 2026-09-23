@@ -122,8 +122,9 @@ build/budget.mjs currently counts only root-level `.html` files, so `vendor/*.ht
 would land in the 2,000-file non-page allowance. Rework before generating any hubs:
 
 - `countPages` = root-level prefix pages + `vendor/*.html` + `country/*.html`
-  (excluding shells `index.html` / `404.html` as today). The `/country` rollup
-  index is root-level `country.html` and counts as a country page, not a prefix.
+  (excluding shells `index.html` / `404.html` as today). The `/country` and
+  `/vendor` rollup indexes are root-level `country.html` / `vendor.html` and
+  count with their hub family, not as prefixes.
 - Report the three page classes separately in the build log and in
   `checkBudget` stats; the 90,000 page budget covers their sum.
 - Update docs/architecture.md capacity tables (below).
@@ -177,6 +178,13 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
   `renderPage`, so each of the 249 pages links it), and gets a footer
   `Countries` link site-wide. Flat `country.html` (not `country/index.html`)
   keeps the canonical extensionless at `/country`, like `/help` and `/recent`.
+- **Vendor index** (`/vendor`, written as root-level `vendor.html` next to the
+  `vendor/` directory, 2026-09-23): the rollup over all vendor pages — one row
+  per organization with two or more blocks (linked name, blocks, addresses),
+  sorted by address space, totals in the lede. It leads the `country` sitemap
+  scope alongside `/country`, is the breadcrumb parent of every vendor page,
+  and gets a footer `Vendors` link site-wide (hidden only on the index itself).
+  Flat `vendor.html` keeps the canonical extensionless at `/vendor`.
 - **Former-owner hubs** (`/former/<slug>`): one per organization that no longer
   holds any of its once-registered prefixes (≥ 2 of them; 345 today). The lede
   states the takeaway for each portfolio — e.g. Apple Computer: "Apple, Inc. took
@@ -199,11 +207,12 @@ Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9
 - Excluded from hubs: `Private` and empty-org records (consistent with page
   selection). Former-owner pages were out of scope for v1 and shipped on
   2026-09-16 (see above).
-- **JSON-LD:** `CollectionPage` + `BreadcrumbList` (Home / Vendors / Org) for org
-  hubs, with an `about` `Organization` node (name, address, country) reusing the
-  prefix-page pattern; `CollectionPage` + `BreadcrumbList` for country hubs,
+- **JSON-LD:** `CollectionPage` + `BreadcrumbList` (Home / All vendors / Org) for
+  org hubs, with an `about` `Organization` node (name, address, country) reusing
+  the prefix-page pattern; `CollectionPage` + `BreadcrumbList` for country hubs,
   whose breadcrumb gained a middle item (Home / All countries / country) when
-  the index shipped; the index page itself is Home / All countries.
+  the index shipped; the index pages themselves are Home / All countries and
+  Home / All vendors.
   Canonical `https://mac.jasontally.com/vendor/<slug>`.
 
 **Prefix-page updates** (small template diff): the step-1 same-org group gains

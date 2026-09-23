@@ -147,6 +147,7 @@ export const sw = {
   "footer.recent": "OUI mpya zaidi",
   "recent.title": "OUI mpya zaidi",
   "hub.h1.countries": "Vikundi vya anwani za MAC kulingana na nchi",
+  "hub.h1.vendors": "Vikundi vya anwani za MAC kulingana na muuzaji",
   "a11y.skip": "Nenda kwenye maudhui",
   "a11y.language": "Lugha",
   "a11y.breadcrumb": "Njia ya urambazaji",
@@ -158,6 +159,7 @@ export const sw = {
   "footer.refreshed": "Data imesasishwa",
   "footer.refreshPlaceholder": "katika uwekaji wa hivi punde",
   "footer.countries": "Nchi",
+  "footer.vendors": "Wauzaji",
   "detail.match": "Ulinganifu",
   "detail.matchedPrefix": "Kiambishi kilicholingana",
   "detail.addressRange": "Kundi la anwani",
@@ -195,6 +197,9 @@ export const sw = {
   "hub.countries.lede": "Rejesta ya IEEE ina vikundi {blocks} vilivyo na anwani za usajili katika nchi {countries}, vikiwa na jumla ya anwani {addresses} katika mashirika {orgs}.",
   "hub.countries.caption": "Kila nchi iliyo na angalau kikundi kimoja cha anwani za MAC kilichosajiliwa, ikiwa na jumla ya mashirika, vikundi na anwani, zilizopangwa kwa kulingana na nafasi ya jumla ya anwani.",
   "hub.countries.all": "Nchi zote",
+  "hub.vendors.lede": "Rejesta ya IEEE ina vikundi {blocks} vilivyosajiliwa kwa mashirika {orgs} yaliyo na vikundi viwili au zaidi, vikiwa na jumla ya anwani {addresses}.",
+  "hub.vendors.caption": "Kila shirika lililo na angalau vikundi viwili vya anwani za MAC vilivyosajiliwa, ikiwa na jumla ya vikundi na anwani, zilizopangwa kwa kulingana na nafasi ya jumla ya anwani.",
+  "hub.vendors.all": "Wauzaji wote",
   "hub.completeNote": "Kamilifu kulingana na usambazaji wa sasa wa rejista ya IEEE. Tarehe ni wakati kila usajili ulipoonwa kwa mara ya kwanza kwenye data ya umma, si tarehe za kisheria za ugawaji.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const sw = {
   "title.formerHub": "Bululi za MAC za zamani za {org} | Utafutaji wa Anwani za MAC",
   "title.countryHub": "Bululi za MAC za {country} | Utafutaji wa Anwani za MAC",
   "title.countries": "Vikundi vya anwani za MAC kulingana na nchi | Utafutaji wa Anwani za MAC",
+  "title.vendors": "Vikundi vya anwani za MAC kulingana na muuzaji | Utafutaji wa Anwani za MAC",
   "title.recent": "OUI mpya zaidi | Utafutaji wa Anwani za MAC",
   "hub.h1.vendor": "Bululi za MAC za {org}",
   "hub.h1.former": "Bululi za MAC za zamani za {org}",

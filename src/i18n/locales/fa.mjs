@@ -147,6 +147,7 @@ export const fa = {
   "footer.recent": "جدیدترین OUI",
   "recent.title": "جدیدترین OUI",
   "hub.h1.countries": "بلاک‌های آدرس MAC بر اساس کشور",
+  "hub.h1.vendors": "بلاک‌های آدرس MAC بر اساس تأمین‌کننده",
   "a11y.skip": "پرش به محتوا",
   "a11y.language": "زبان",
   "a11y.breadcrumb": "مسیر ناوبری",
@@ -158,6 +159,7 @@ export const fa = {
   "footer.refreshed": "داده به‌روزرسانی شد",
   "footer.refreshPlaceholder": "در آخرین استقرار",
   "footer.countries": "کشورها",
+  "footer.vendors": "تأمین‌کنندگان",
   "detail.match": "تطبیق",
   "detail.matchedPrefix": "پیشوند منطبق",
   "detail.addressRange": "بازه آدرس‌ها",
@@ -195,6 +197,9 @@ export const fa = {
   "hub.countries.lede": "ثبت IEEE شامل {blocks} بلوک با آدرس‌های ثبت در {countries} کشور است که مجموعاً {addresses} آدرس در {orgs} سازمان را در بر می‌گیرد.",
   "hub.countries.caption": "هر کشور با حداقل یک بلوک آدرس MAC ثبت شده، به همراه مجموع سازمان‌ها، بلوک‌ها و آدرس‌ها، که بر اساس فضای کل آدرس‌ها مرتب شده‌اند.",
   "hub.countries.all": "همه کشورها",
+  "hub.vendors.lede": "ثبت IEEE شامل {blocks} بلوک ثبت‌شده به نام {orgs} سازمان با دو یا چند بلوک است که مجموعاً {addresses} آدرس را در بر می‌گیرد.",
+  "hub.vendors.caption": "هر سازمان با دو یا چند بلوک آدرس MAC ثبت شده، به همراه مجموع بلوک‌ها و آدرس‌ها، که بر اساس فضای کل آدرس‌ها مرتب شده‌اند.",
+  "hub.vendors.all": "همه تأمین‌کنندگان",
   "hub.completeNote": "کامل بر اساس استقرار فعلی رجیستری IEEE. تاریخ‌ها نشان‌دهنده زمان اولین مشاهده هر ثبت در داده‌های عمومی است و تاریخ‌های تخصیص قانونی نیستند.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const fa = {
   "title.formerHub": "بلاک‌های پیشین آدرس MAC {org} | جستجوی آدرس MAC",
   "title.countryHub": "بلاک‌های آدرس MAC در {country} | جستجوی آدرس MAC",
   "title.countries": "بلاک‌های آدرس MAC بر اساس کشور | جستجوی آدرس MAC",
+  "title.vendors": "بلاک‌های آدرس MAC بر اساس تأمین‌کننده | جستجوی آدرس MAC",
   "title.recent": "جدیدترین OUI | جستجوی آدرس MAC",
   "hub.h1.vendor": "بلاک‌های آدرس MAC {org}",
   "hub.h1.former": "بلاک‌های پیشین آدرس MAC {org}",

@@ -147,6 +147,7 @@ export const id = {
   "footer.recent": "OUI terbaru",
   "recent.title": "OUI terbaru",
   "hub.h1.countries": "Blok alamat MAC berdasarkan negara",
+  "hub.h1.vendors": "Blok alamat MAC berdasarkan pemasok",
   "a11y.skip": "Ke konten",
   "a11y.language": "Bahasa",
   "a11y.breadcrumb": "Jejak navigasi",
@@ -158,6 +159,7 @@ export const id = {
   "footer.refreshed": "Data diperbarui",
   "footer.refreshPlaceholder": "pada penerapan terakhir",
   "footer.countries": "Negara",
+  "footer.vendors": "Pemasok",
   "detail.match": "Cocok",
   "detail.matchedPrefix": "Prefiks yang cocok",
   "detail.addressRange": "Rentang alamat",
@@ -195,6 +197,9 @@ export const id = {
   "hub.countries.lede": "Registri IEEE memuat {blocks} blok dengan alamat pendaftaran di {countries} negara, bersama-sama {addresses} alamat di {orgs} organisasi.",
   "hub.countries.caption": "Setiap negara dengan setidaknya satu blok alamat MAC terdaftar, beserta total organisasi, blok, dan alamat, diurutkan berdasarkan total ruang alamat.",
   "hub.countries.all": "Semua negara",
+  "hub.vendors.lede": "Registri IEEE memuat {blocks} blok yang terdaftar atas nama {orgs} organisasi dengan dua blok atau lebih, bersama-sama {addresses} alamat.",
+  "hub.vendors.caption": "Setiap organisasi dengan dua atau lebih blok alamat MAC terdaftar, beserta total blok dan alamat, diurutkan berdasarkan total ruang alamat.",
+  "hub.vendors.all": "Semua pemasok",
   "hub.completeNote": "Lengkap per penerapan registri IEEE saat ini. Tanggal yang tertera adalah saat setiap pendaftaran pertama kali diobservasi di data publik, bukan tanggal penugasan yang sah.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const id = {
   "title.formerHub": "Blok alamat MAC mantan milik {org} | Pencarian Alamat MAC",
   "title.countryHub": "Blok alamat MAC di {country} | Pencarian Alamat MAC",
   "title.countries": "Blok alamat MAC berdasarkan negara | Pencarian Alamat MAC",
+  "title.vendors": "Blok alamat MAC berdasarkan pemasok | Pencarian Alamat MAC",
   "title.recent": "OUI terbaru | Pencarian Alamat MAC",
   "hub.h1.vendor": "Blok alamat MAC milik {org}",
   "hub.h1.former": "Blok alamat MAC mantan milik {org}",

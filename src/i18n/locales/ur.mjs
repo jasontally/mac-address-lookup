@@ -147,6 +147,7 @@ export const ur = {
   "footer.recent": "تازہ ترین OUI",
   "recent.title": "تازہ ترین OUI",
   "hub.h1.countries": "ملک کے لحاظ سے MAC ایڈریس بلاک",
+  "hub.h1.vendors": "فروخت کنندہ کے لحاظ سے MAC ایڈریس بلاک",
   "a11y.skip": "مواد پر جائیں",
   "a11y.language": "زبان",
   "a11y.breadcrumb": "بریڈ کرمب",
@@ -158,6 +159,7 @@ export const ur = {
   "footer.refreshed": "ڈیٹا اپڈیٹ",
   "footer.refreshPlaceholder": "آخری ڈیپلائے پر",
   "footer.countries": "ممالک",
+  "footer.vendors": "فروخت کنندگان",
   "detail.match": "مماثلت",
   "detail.matchedPrefix": "مماثل سابقہ",
   "detail.addressRange": "پتوں کی حد",
@@ -195,6 +197,9 @@ export const ur = {
   "hub.countries.lede": "IEEE رجسٹری میں {countries} ممالک میں رجسٹریشن پتوں کے ساتھ {blocks} بلاک شامل ہیں، جو {orgs} تنظیموں میں کل {addresses} پتوں پر مشتمل ہیں۔",
   "hub.countries.caption": "ہر ملک جس میں کم از کم ایک رجسٹرڈ MAC ایڈریس بلاک ہے، تنظیمی، بلاک، اور پتوں کی کل تعداد کے ساتھ، اور کل ایڈریس کی جگہ کے لحاظ سے ترتیب دیا گیا ہے۔",
   "hub.countries.all": "تمام ممالک",
+  "hub.vendors.lede": "IEEE رجسٹری میں دو یا اس سے زیادہ بلاکس والی {orgs} تنظیموں کے نام پر رجسٹرڈ {blocks} بلاک شامل ہیں، جو کل {addresses} پتوں پر مشتمل ہیں۔",
+  "hub.vendors.caption": "ہر تنظیم جس میں کم از کم دو رجسٹرڈ MAC ایڈریس بلاک ہیں، بلاک اور پتوں کی کل تعداد کے ساتھ، اور کل ایڈریس کی جگہ کے لحاظ سے ترتیب دیا گیا ہے۔",
+  "hub.vendors.all": "تمام فروخت کنندگان",
   "hub.completeNote": "موجودہ IEEE رجسٹری کی تعیناتی کے مطابق مکمل۔ تاریخیں وہ ہیں جب ہر رجسٹریشن کو پہلی بار عوامی ڈیٹا میں دیکھا گیا تھا، قانونی تفویض کی تاریخیں نہیں۔",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const ur = {
   "title.formerHub": "{org} کے سابق MAC ایڈریس بلاک | MAC ایڈریس لوک اپ",
   "title.countryHub": "{country} کے MAC ایڈریس بلاک | MAC ایڈریس لوک اپ",
   "title.countries": "ملک کے لحاظ سے MAC ایڈریس بلاک | MAC ایڈریس لوک اپ",
+  "title.vendors": "فروخت کنندہ کے لحاظ سے MAC ایڈریس بلاک | MAC ایڈریس لوک اپ",
   "title.recent": "تازہ ترین OUI | MAC ایڈریس لوک اپ",
   "hub.h1.vendor": "{org} کے MAC ایڈریس بلاک",
   "hub.h1.former": "{org} کے سابق MAC ایڈریس بلاک",

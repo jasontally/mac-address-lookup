@@ -147,6 +147,7 @@ export const pa = {
   "footer.recent": "ਨਵੇਂ OUI",
   "recent.title": "ਨਵੇਂ OUI",
   "hub.h1.countries": "ਦੇਸ਼ ਅਨੁਸਾਰ MAC ਪਤਾ ਬਲਾਕ",
+  "hub.h1.vendors": "ਵਿਕਰੇਤਾ ਅਨੁਸਾਰ MAC ਪਤਾ ਬਲਾਕ",
   "a11y.skip": "ਸਮੱਗਰੀ ਉੱਤੇ ਜਾਓ",
   "a11y.language": "ਭਾਸ਼ਾ",
   "a11y.breadcrumb": "ਬਰੈੱਡਕਰੰਬ",
@@ -158,6 +159,7 @@ export const pa = {
   "footer.refreshed": "ਡਾਟਾ ਅੱਪਡੇਟ",
   "footer.refreshPlaceholder": "ਪਿਛਲੀ ਡਿਪਲੌਇ ਤੇ",
   "footer.countries": "ਦੇਸ਼",
+  "footer.vendors": "ਵਿਕਰੇਤਾ",
   "detail.match": "ਮੇਲ",
   "detail.matchedPrefix": "ਮੇਲ ਖਾਂਦਾ ਪ੍ਰੀਫਿਕਸ",
   "detail.addressRange": "ਪਤਾ ਰੇਂਜ",
@@ -195,6 +197,9 @@ export const pa = {
   "hub.countries.lede": "IEEE ਰਜਿਸਟਰੀ ਵਿੱਚ {countries} ਦੇਸ਼ਾਂ ਵਿੱਚ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਪਤਿਆਂ ਵਾਲੇ {blocks} ਬਲਾਕ ਹਨ, ਜੋ {orgs} ਸੰਸਥਾਵਾਂ ਵਿੱਚ ਕੁੱਲ {addresses} ਪਤਿਆਂ ਨੂੰ ਇਕੱਠਾ ਕਰਦੇ ਹਨ।",
   "hub.countries.caption": "ਘੱਟੋ-ਘੱਟ ਇੱਕ ਰਜਿਸਟਰਡ MAC ਪਤਾ ਬਲਾਕ ਵਾਲਾ ਹਰੇਕ ਦੇਸ਼, ਸੰਸਥਾ, ਬਲਾਕ, ਅਤੇ ਪਤੇ ਦੇ ਕੁੱਲ ਜੋੜਾਂ ਦੇ ਨਾਲ, ਕੁੱਲ ਪਤਾ ਸਪੇਸ ਦੁਆਰਾ ਕ੍ਰਮਬੱਧ ਕੀਤਾ ਗਿਆ ਹੈ।",
   "hub.countries.all": "ਸਾਰੇ ਦੇਸ਼",
+  "hub.vendors.lede": "IEEE ਰਜਿਸਟਰੀ ਵਿੱਚ ਦੋ ਜਾਂ ਵੱਧ ਬਲਾਕਾਂ ਵਾਲੀਆਂ {orgs} ਸੰਸਥਾਵਾਂ ਦੇ ਨਾਮ 'ਤੇ ਰਜਿਸਟਰਡ {blocks} ਬਲਾਕ ਹਨ, ਜੋ ਕੁੱਲ {addresses} ਪਤਿਆਂ ਨੂੰ ਇਕੱਠਾ ਕਰਦੇ ਹਨ।",
+  "hub.vendors.caption": "ਦੋ ਜਾਂ ਵੱਧ ਰਜਿਸਟਰਡ MAC ਪਤਾ ਬਲਾਕਾਂ ਵਾਲੀ ਹਰੇਕ ਸੰਸਥਾ, ਬਲਾਕ ਅਤੇ ਪਤੇ ਦੇ ਕੁੱਲ ਜੋੜਾਂ ਦੇ ਨਾਲ, ਕੁੱਲ ਪਤਾ ਸਪੇਸ ਦੁਆਰਾ ਕ੍ਰਮਬੱਧ ਕੀਤੀ ਗਈ ਹੈ।",
+  "hub.vendors.all": "ਸਾਰੇ ਵਿਕਰੇਤਾ",
   "hub.completeNote": "ਮੌਜੂਦਾ IEEE ਰਜਿਸਟਰੀ ਡਿਪਲਾਇਮੈਂਟ ਦੇ ਅਨੁਸਾਰ ਸੰਪੂਰਨ। ਤਾਰੀਖਾਂ ਉਹ ਹਨ ਜਦੋਂ ਹਰੇਕ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਪਹਿਲੀ ਵਾਰ ਜਨਤਕ ਡੇਟਾ ਵਿੱਚ ਦੇਖੀ ਗਈ ਸੀ, ਕਾਨੂੰਨੀ ਅਸਾਈਨਮੈਂਟ ਤਾਰੀਖਾਂ ਨਹੀਂ।",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const pa = {
   "title.formerHub": "{org} ਦੇ ਪੁਰਾਣੇ MAC ਪਤਾ ਬਲਾਕ | MAC ਪਤਾ ਲੁੱਕਅੱਪ",
   "title.countryHub": "{country} ਦੇ MAC ਪਤਾ ਬਲਾਕ | MAC ਪਤਾ ਲੁੱਕਅੱਪ",
   "title.countries": "ਦੇਸ਼ ਅਨੁਸਾਰ MAC ਪਤਾ ਬਲਾਕ | MAC ਪਤਾ ਲੁੱਕਅੱਪ",
+  "title.vendors": "ਵਿਕਰੇਤਾ ਅਨੁਸਾਰ MAC ਪਤਾ ਬਲਾਕ | MAC ਪਤਾ ਲੁੱਕਅੱਪ",
   "title.recent": "ਨਵੇਂ OUI | MAC ਪਤਾ ਲੁੱਕਅੱਪ",
   "hub.h1.vendor": "{org} ਦੇ MAC ਪਤਾ ਬਲਾਕ",
   "hub.h1.former": "{org} ਦੇ ਪੁਰਾਣੇ MAC ਪਤਾ ਬਲਾਕ",

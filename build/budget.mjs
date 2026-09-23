@@ -31,15 +31,15 @@ export async function walkDir(dir, base = dir, files = []) {
 /**
  * Count pre-rendered pages by class: root-level prefix `<PREFIX>.html` files
  * plus hub pages under `vendor/` and `country/` (and the root-level `country`
- * rollup index). Shell files (`index.html`) are not pages. The Workers limit
- * is on all files; directory pages count as pages against the page budget,
- * not the non-page allowance.
+ * and `vendor` rollup indexes). Shell files (`index.html`) are not pages. The
+ * Workers limit is on all files; directory pages count as pages against the
+ * page budget, not the non-page allowance.
  */
 export function countPages(files) {
   const counts = { prefixes: 0, vendor: 0, country: 0, former: 0 };
   for (const { path } of files) {
     if (!path.endsWith('.html')) continue;
-    if (path.startsWith('vendor/')) counts.vendor += 1;
+    if (path === 'vendor.html' || path.startsWith('vendor/')) counts.vendor += 1;
     else if (path === 'country.html' || path.startsWith('country/')) counts.country += 1;
     else if (path.startsWith('former/')) counts.former += 1;
     else if (!path.includes('/') && path !== 'index.html' && path !== '404.html') {

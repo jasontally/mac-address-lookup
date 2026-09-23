@@ -24,8 +24,8 @@ async function mapConcurrent(items, limit, fn) {
  * Sitemap scoping for the phased index plan (docs/architecture.md →
  * "Sitemap indexing plan"). Scopes compose cumulatively:
  *   `core`    → home, /help, /recent + the localized homes
- *   `country` → `core` + the /country rollup index and the 249 /country/<code>
- *               hubs (the index leads the set)
+ *   `country` → `core` + the /country and /vendor rollup indexes and the 249
+ *               /country/<code> hubs (the indexes lead the set)
  *   `hubs`    → `core` + every hub (vendor + country + former-owner)
  *   `all`     → everything, including the ~58,700 prefix pages
  * Pages remain live and internally linked in every scope - the sitemap is a
@@ -35,15 +35,17 @@ export function sitemapUrlSelection({
   scope = 'all',
   coreUrls = [],
   langUrls = [],
+  rollupUrls = [],
   hubUrls = [],
   countryUrls = [],
   prefixUrls = [],
 } = {}) {
   const base = [...coreUrls, ...langUrls];
   if (scope === 'core') return base;
-  if (scope === 'country') return [...base, ...countryUrls]; // /country index first, then hubs
-  if (scope === 'hubs') return [...base, ...hubUrls, ...countryUrls];
-  if (scope === 'all') return [...base, ...hubUrls, ...countryUrls, ...prefixUrls];
+  // The /country and /vendor rollup indexes lead every hub-carrying scope.
+  if (scope === 'country') return [...base, ...rollupUrls, ...countryUrls];
+  if (scope === 'hubs') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls];
+  if (scope === 'all') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...prefixUrls];
   throw new Error(`Unknown sitemap scope: ${scope}`);
 }
 
@@ -61,6 +63,7 @@ export async function generatePages({
   lastmod,
   extraUrls = [],
   hubUrls = [],
+  rollupUrls = [],
   countryUrls = [],
   langUrls = [],
   sitemapScope = 'all',
@@ -126,6 +129,7 @@ export async function generatePages({
     ],
     langUrls,
     hubUrls: hubUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
+    rollupUrls: rollupUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     countryUrls: countryUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     prefixUrls: selected.map((record) => `${site}/${record.prefix}`),
   });

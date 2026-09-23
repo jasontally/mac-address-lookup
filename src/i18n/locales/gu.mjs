@@ -147,6 +147,7 @@ export const gu = {
   "footer.recent": "તાજા OUI",
   "recent.title": "તાજા OUI",
   "hub.h1.countries": "દેશ મુજબ MAC સરનામાં બ્લોક",
+  "hub.h1.vendors": "વિક્રેતા મુજબ MAC સરનામાં બ્લોક",
   "a11y.skip": "મુખ્ય સામગ્રી પર જાઓ",
   "a11y.language": "ભાષા",
   "a11y.breadcrumb": "બ્રેડક્રમ્બ",
@@ -158,6 +159,7 @@ export const gu = {
   "footer.refreshed": "ડેટા અપડેટ",
   "footer.refreshPlaceholder": "છેલ્લા ડિપ્લોય પર",
   "footer.countries": "દેશો",
+  "footer.vendors": "વિક્રેતાઓ",
   "detail.match": "મેળ",
   "detail.matchedPrefix": "મેળ ખાતો પ્રીફિક્સ",
   "detail.addressRange": "સરનામાં શ્રેણી",
@@ -195,6 +197,9 @@ export const gu = {
   "hub.countries.lede": "IEEE રજિસ્ટ્રીમાં {countries} દેશોમાં નોંધણી સરનામાં સાથે {blocks} બ્લોક્સ છે, જે એકસાથે {orgs} સંસ્થાઓમાં {addresses} સરનામાંઓ ધરાવે છે.",
   "hub.countries.caption": "ઓછામાં ઓછા એક નોંધાયેલ MAC સરનામાં બ્લોક સાથેનો દરેક દેશ, સંસ્થા, બ્લોક અને સરનામાંના કુલ સાથે, કુલ સરનામાંની જગ્યા દ્વારા સૉર્ટ કરેલ છે.",
   "hub.countries.all": "બધા દેશો",
+  "hub.vendors.lede": "IEEE રજિસ્ટ્રીમાં બે કે તેથી વધુ બ્લોક ધરાવતી {orgs} સંસ્થાઓના નામે નોંધાયેલા {blocks} બ્લોક્સ છે, જે એકસાથે {addresses} સરનામાંઓ ધરાવે છે.",
+  "hub.vendors.caption": "બે કે તેથી વધુ નોંધાયેલ MAC સરનામાં બ્લોક ધરાવતી દરેક સંસ્થા, બ્લોક અને સરનામાંના કુલ સાથે, કુલ સરનામાંની જગ્યા દ્વારા સૉર્ટ કરેલ છે.",
+  "hub.vendors.all": "બધા વિક્રેતાઓ",
   "hub.completeNote": "વર્તમાન IEEE રજિસ્ટ્રી જમાવટ મુજબ સંપૂર્ણ. તારીખો તે છે જ્યારે દરેક નોંધણી પ્રથમ વખત સાર્વજનિક ડેટામાં જોવા મળી હતી, કાનૂની ફાળવણીની તારીખો નહીં.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const gu = {
   "title.formerHub": "{org} ના અગાઉના MAC સરનામાં બ્લોક | MAC સરનામું લુકઅપ",
   "title.countryHub": "{country} ના MAC સરનામાં બ્લોક | MAC સરનામું લુકઅપ",
   "title.countries": "દેશ મુજબ MAC સરનામાં બ્લોક | MAC સરનામું લુકઅપ",
+  "title.vendors": "વિક્રેતા મુજબ MAC સરનામાં બ્લોક | MAC સરનામું લુકઅપ",
   "title.recent": "તાજેતરના OUI | MAC સરનામું લુકઅપ",
   "hub.h1.vendor": "{org} ના MAC સરનામાં બ્લોક",
   "hub.h1.former": "{org} ના અગાઉના MAC સરનામાં બ્લોક",

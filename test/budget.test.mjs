@@ -9,6 +9,7 @@ test('countPages counts prefix and hub pages by class, excluding shells', () => 
     file('001A2B.html'),
     file('index.html'),
     file('404.html'),
+    file('vendor.html'),
     file('vendor/apple-inc.html'),
     file('country.html'),
     file('country/us.html'),
@@ -18,10 +19,10 @@ test('countPages counts prefix and hub pages by class, excluding shells', () => 
   ]);
   assert.deepEqual(counts, {
     prefixes: 1,
-    vendor: 1,
+    vendor: 2,
     country: 2,
     former: 1,
-    total: 5,
+    total: 6,
   });
 });
 

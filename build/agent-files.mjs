@@ -57,6 +57,9 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 - \`/{hex}\` - lookup a MAC address or prefix. 6+ hex characters resolve via
   longest-prefix match across MA-L, MA-M, MA-S, IAB, and CID; a full 12-hex
   address resolves to its vendor. Pages are pre-rendered HTML.
+- \`/vendor\` - pre-rendered vendor index: every organization with two or more
+  registered blocks, with block and address-space totals, each row linking
+  the organization's page.
 - \`/vendor/{slug}\` - pre-rendered provider page: every MAC block registered
   to one organization (vendors with two or more blocks), as a complete table.
 - \`/country\` - pre-rendered country index: every country with at least one
@@ -151,6 +154,9 @@ and virtual machines.
 Besides prefix pages, the site pre-renders reference pages organized by the
 registration itself, each with its complete table:
 
+- **Vendor index** (\`${site}/vendor\`): every organization with two or more
+  registered blocks, with block and address-space totals per organization,
+  sorted by address space; each row links that organization's page.
 - **Vendor pages** (\`${site}/vendor/{slug}\`): every MAC block registered to one
   organization, with block types, address space, countries, and registration dates.
 - **Country index** (\`${site}/country\`): every country with at least one

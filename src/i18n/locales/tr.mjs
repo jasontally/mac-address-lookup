@@ -147,6 +147,7 @@ export const tr = {
   "footer.recent": "Son OUI",
   "recent.title": "Son OUI",
   "hub.h1.countries": "Ülkelere göre MAC adres blokları",
+  "hub.h1.vendors": "Satıcılara göre MAC adres blokları",
   "a11y.skip": "İçeriğe git",
   "a11y.language": "Dil",
   "a11y.breadcrumb": "Sayfa yolu",
@@ -158,6 +159,7 @@ export const tr = {
   "footer.refreshed": "Veri güncellendi",
   "footer.refreshPlaceholder": "son dağıtımda",
   "footer.countries": "Ülkeler",
+  "footer.vendors": "Satıcılar",
   "detail.match": "Eşleşme",
   "detail.matchedPrefix": "Eşleşen önek",
   "detail.addressRange": "Adres aralığı",
@@ -195,6 +197,9 @@ export const tr = {
   "hub.countries.lede": "IEEE kayıt defteri, {countries} ülkede kayıt adreslerine sahip {blocks} bloğu taşır; bunlar {orgs} kuruluşta toplam {addresses} adres barındırır.",
   "hub.countries.caption": "En az bir kayıtlı MAC adres bloğuna sahip her ülke; kuruluş, blok ve adres toplamlarıyla, toplam adres alanına göre sıralanmıştır.",
   "hub.countries.all": "Tüm ülkeler",
+  "hub.vendors.lede": "IEEE kayıt defteri, iki veya daha fazla bloğa sahip {orgs} kuruluşa kayıtlı {blocks} bloğu taşır; bunlar toplamda {addresses} adres barındırır.",
+  "hub.vendors.caption": "İki veya daha fazla kayıtlı MAC adres bloğuna sahip her kuruluş; blok ve adres toplamlarıyla, toplam adres alanına göre sıralanmıştır.",
+  "hub.vendors.all": "Tüm satıcılar",
   "hub.completeNote": "Mevcut IEEE kayıt defteri dağıtımı itibarıyla eksiksizdir. Tarihler, yasal atama tarihleri değil, her bir kaydın açık verilerde ilk gözlemlendiği zamanı belirtir.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const tr = {
   "title.formerHub": "Eski {org} MAC adres blokları | MAC Adresi Sorgulama",
   "title.countryHub": "{country} MAC adres blokları | MAC Adresi Sorgulama",
   "title.countries": "Ülkelere göre MAC adres blokları | MAC Adresi Sorgulama",
+  "title.vendors": "Satıcılara göre MAC adres blokları | MAC Adresi Sorgulama",
   "title.recent": "En yeni OUI’ler | MAC Adresi Sorgulama",
   "hub.h1.vendor": "{org} MAC adres blokları",
   "hub.h1.former": "Eski {org} MAC adres blokları",

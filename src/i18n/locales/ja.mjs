@@ -147,6 +147,7 @@ export const ja = {
   "footer.recent": "最新のOUI",
   "recent.title": "最新のOUI",
   "hub.h1.countries": "国別のMACアドレスブロック",
+  "hub.h1.vendors": "ベンダー別のMACアドレスブロック",
   "a11y.skip": "コンテンツへスキップ",
   "a11y.language": "言語",
   "a11y.breadcrumb": "パンくずリスト",
@@ -158,6 +159,7 @@ export const ja = {
   "footer.refreshed": "データ更新",
   "footer.refreshPlaceholder": "最新のデプロイ時点",
   "footer.countries": "国",
+  "footer.vendors": "ベンダー",
   "detail.match": "一致",
   "detail.matchedPrefix": "一致したプレフィックス",
   "detail.addressRange": "アドレス範囲",
@@ -195,6 +197,9 @@ export const ja = {
   "hub.countries.lede": "IEEEレジストリには、{countries}か国に登録アドレスを持つ{blocks}のブロックがあり、{orgs}の組織で合計{addresses}のアドレスがあります。",
   "hub.countries.caption": "少なくとも1つの登録済みMACアドレスブロックを持つすべての国について、組織、ブロック、およびアドレスの合計を、合計アドレス空間順に並べたものです。",
   "hub.countries.all": "すべての国",
+  "hub.vendors.lede": "IEEEレジストリには、2つ以上のブロックを持つ{orgs}の組織に登録された{blocks}のブロックがあり、合計{addresses}のアドレスがあります。",
+  "hub.vendors.caption": "2つ以上の登録済みMACアドレスブロックを持つすべての組織について、ブロックおよびアドレスの合計を、合計アドレス空間順に並べたものです。",
+  "hub.vendors.all": "すべてのベンダー",
   "hub.completeNote": "現在のIEEEレジストリ展開時点での完全なデータです。日付は、各登録が公開データで初めて観測された日時であり、法的な割り当て日ではありません。",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const ja = {
   "title.formerHub": "旧 {org} のMACアドレスブロック | MACアドレス検索",
   "title.countryHub": "{country} のMACアドレスブロック | MACアドレス検索",
   "title.countries": "国別のMACアドレスブロック | MACアドレス検索",
+  "title.vendors": "ベンダー別のMACアドレスブロック | MACアドレス検索",
   "title.recent": "最新のOUI | MACアドレス検索",
   "hub.h1.vendor": "{org} のMACアドレスブロック",
   "hub.h1.former": "旧 {org} のMACアドレスブロック",

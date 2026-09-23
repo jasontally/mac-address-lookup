@@ -147,6 +147,7 @@ export const ha = {
   "footer.recent": "Sabbin OUI",
   "recent.title": "Sabbin OUI",
   "hub.h1.countries": "Bulullukan adireshin MAC ta ƙasa",
+  "hub.h1.vendors": "Bulullukan adireshin MAC ta mai sayarwa",
   "a11y.skip": "Tafi zuwa abun ciki",
   "a11y.language": "Harshe",
   "a11y.breadcrumb": "Hanyar shiga",
@@ -158,6 +159,7 @@ export const ha = {
   "footer.refreshed": "An sabunta bayanai",
   "footer.refreshPlaceholder": "a rikon bayanai na karshe",
   "footer.countries": "Ƙasashe",
+  "footer.vendors": "Masu sayarwa",
   "detail.match": "Daidaituwa",
   "detail.matchedPrefix": "Prefix mai daidaituwa",
   "detail.addressRange": "Kewayon adireshi",
@@ -195,6 +197,9 @@ export const ha = {
   "hub.countries.lede": "Rijistar IEEE tana ɗauke da bululluka {blocks} tare da adiresoshin rajista a cikin ƙasashe {countries}, gaba ɗaya adireshi {addresses} a cikin ƙungiyoyi {orgs}.",
   "hub.countries.caption": "Kowace ƙasa mai aƙalla toshe adireshin MAC ɗaya da aka yi rajista, tare da ƙungiya, toshe, da jimlar adireshi, an jera su ta jimillar sararin adireshi.",
   "hub.countries.all": "Duk ƙasashe",
+  "hub.vendors.lede": "Rijistar IEEE tana ɗauke da bululluka {blocks} waɗanda aka yiwa rajista ga ƙungiyoyi {orgs} masu bululluka biyu ko fiye, gaba ɗaya adireshi {addresses}.",
+  "hub.vendors.caption": "Kowace ƙungiya mai aƙalla bulullukan adireshin MAC biyu da aka yi rajista, tare da toshe, da jimlar adireshi, an jera su ta jimillar sararin adireshi.",
+  "hub.vendors.all": "Duk masu sayarwa",
   "hub.completeNote": "Cikakke kamar yadda ake amfani da rajistar IEEE a yanzu. Kwanakin su ne lokacin da aka fara ganin kowane rajista a cikin bayanan jama'a, ba kwanakin rarrabawa na doka ba.",
 
   // Page titles and hub headings
@@ -203,6 +208,7 @@ export const ha = {
   "title.formerHub": "Tsoffin bulullukan adireshin MAC na {org} | Binciken Adiresoshin MAC",
   "title.countryHub": "Bulullukan adireshin MAC a {country} | Binciken Adiresoshin MAC",
   "title.countries": "Bulullukan adireshin MAC ta ƙasa | Binciken Adiresoshin MAC",
+  "title.vendors": "Bulullukan adireshin MAC ta mai sayarwa | Binciken Adiresoshin MAC",
   "title.recent": "Sabbin OUI | Binciken Adiresoshin MAC",
   "hub.h1.vendor": "Bulullukan adireshin MAC na {org}",
   "hub.h1.former": "Tsoffin bulullukan adireshin MAC na {org}",
