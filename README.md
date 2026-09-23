@@ -1,10 +1,10 @@
 # MAC Address Lookup
 
-Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial MAC address (OUI prefix, MA-M, MA-S, IAB, or CID block) and instantly identify the organization behind it — everything runs in your browser with no backend, and the addresses you look up never leave it.
+Free, fast, **client-side MAC address vendor lookup**. Paste a full or partial MAC address (OUI prefix, MA-M, MA-S, IAB, or CID block) and instantly identify the organization behind it — everything runs in your browser with no backend, and the addresses you look up are never processed by a server.
 
 **[mac.jasontally.com](https://mac.jasontally.com)**
 
-The app does no tracking: there are no ads, no cookies, and every lookup runs in your browser, so the addresses you look up never leave it. The site is hosted on Cloudflare, which collects privacy-first, aggregate web analytics (Cloudflare Web Analytics) that use no cookies or client-side state and do not fingerprint individuals. Similar lookup pages are often wrapped in intrusive advertising, which is what prompted this project: identifying a MAC vendor is a small utility, and it should be possible to build and host it for close to nothing.
+The app does no tracking: there are no ads, no cookies, and every lookup runs in your browser, where the addresses you look up are never processed by a server. Normal requests still reach the host as with any website — a direct link such as `/apple` carries the term in its URL path, and the app fetches its public data files by URL — but the host only serves static files and runs no search code. The site is hosted on Cloudflare, which collects privacy-first, aggregate web analytics (Cloudflare Web Analytics) that use no cookies or client-side state and do not fingerprint individuals. Similar lookup pages are often wrapped in intrusive advertising, which is what prompted this project: identifying a MAC vendor is a small utility, and it should be possible to build and host it for close to nothing.
 
 ## Features
 
@@ -21,7 +21,7 @@ The app does no tracking: there are no ads, no cookies, and every lookup runs in
 - **Registration dates and portfolios** — first-registered dates for every prefix, and per-vendor block/address-space totals
 - **Format conversions** — see the address in every common notation
 - **URL-driven lookups** — no pasting required: `mac.jasontally.com/001A2B` renders the result directly. Batch lookups and vendor searches work the same way.
-- **Static & private** — the IEEE dataset loads in the browser; all searching, processing, and presentation happen locally. The addresses you look up are never sent to a server, and the app sets no cookies. The host (Cloudflare) collects privacy-first, cookieless, aggregate web analytics (Cloudflare Web Analytics).
+- **Static & private** — the IEEE dataset loads in the browser; all searching, processing, and presentation happen locally, and the addresses you look up are never processed by a server. The app sets no cookies. The host (Cloudflare) collects privacy-first, cookieless, aggregate web analytics (Cloudflare Web Analytics).
 - **Dark mode** — follows your system preference by default, with a manual toggle
 - **History, copy & share** — recent lookups are stored locally; results are copyable and permalinked
 

@@ -37,8 +37,10 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 > Free, private MAC address and OUI vendor lookup. Every prefix page is
 > pre-rendered static HTML that reads cleanly without JavaScript. No API
 > keys, no auth. The app itself does no tracking: lookups run client-side
-> and never leave the browser, and the app sets no cookies. The host
-> (Cloudflare) collects privacy-first, cookieless, aggregate web analytics.
+> and the addresses you enter are never processed by a server (normal
+> requests still reach the host — a direct link like /apple carries its
+> URL path). The app sets no cookies. The host (Cloudflare) collects
+> privacy-first, cookieless, aggregate web analytics.
 > Run by Jason Tally.
 
 - [Help & documentation](${SITE}/help): how lookup works, block types, finding your own MAC, FAQ

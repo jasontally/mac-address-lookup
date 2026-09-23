@@ -219,7 +219,7 @@ export const en = {
 
   // Footer
   'footer.dataNote':
-    'All lookups run in your browser, and the addresses you look up are never sent to a server.',
+    'All lookups run in your browser, and the addresses you look up are never processed by a server.',
   'footer.help': 'Help & documentation',
   'footer.source': 'Source on GitHub',
   'footer.recent': 'Latest OUIs',
