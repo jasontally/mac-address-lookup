@@ -140,8 +140,8 @@ async function handleInput(text, options = {}) {
   } else if (decision.mode === 'batch') {
     await runBatch(text, options);
   } else if (decision.mode === 'invalid') {
-    clearPendingLookup();
     renderInvalid(ui.result, { error: decision.error });
+    clearPendingLookup();
   } else {
     await runSearch(decision.value, options);
   }
@@ -151,6 +151,7 @@ async function runSingle(raw, { push = true } = {}) {
   const normalized = normalizeInput(raw);
   if (!normalized.ok) {
     renderInvalid(ui.result, { error: normalized.error });
+    clearPendingLookup();
     return;
   }
 
@@ -365,12 +366,16 @@ function setCanonical(href) {
   link.setAttribute('href', href);
 }
 
-/** Freeze the current result height, then reveal the pending state. */
+/** Clear the pending reservation without retaining its temporary 56rem height. */
 function clearPendingLookup() {
   const node = ui.result;
+  // Remove both sources of the reservation before measuring the final result.
+  // Otherwise the pending CSS min-height (or a previous route's inline value)
+  // is captured and leaves a large empty gap below short results.
+  node.style.minHeight = '';
+  document.documentElement.removeAttribute('data-pending-lookup');
   const height = node.getBoundingClientRect().height;
   if (height > 0) node.style.minHeight = `${Math.ceil(height)}px`;
-  document.documentElement.removeAttribute('data-pending-lookup');
 }
 
 function runRoute(route) {

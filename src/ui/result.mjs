@@ -202,9 +202,11 @@ function resultsTable(headerKeys, rows, footer = null) {
   return el('div', { class: 'table-wrap' }, [
     el('table', { class: 'data-table stack-table' }, [
       el('thead', {}, [
-        el('tr', {}, [
+        el(
+          'tr',
+          {},
           headerKeys.map((key) => el('th', { scope: 'col', text: t(key) })),
-        ]),
+        ),
       ]),
       el('tbody', {}, rows),
       footer

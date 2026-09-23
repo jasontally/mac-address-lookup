@@ -133,6 +133,21 @@ test.describe('Path-based routing', () => {
     await expect(page.locator('.data-table tbody tr')).toHaveCount(2);
   });
 
+  test('batch table renders semantic headers without retaining the pending height', async ({ page }) => {
+    await page.goto('/FACADE000001%2C000000000000');
+    await expect(page.locator('.result-card h2')).toContainText('2');
+
+    const headers = page.locator('#result thead th');
+    await expect(headers).toHaveCount(3);
+    await expect(headers).toHaveText(['Input', 'Result', 'Flags']);
+    await expect(page.locator('#result')).not.toContainText('[object HTMLTableCellElement]');
+
+    // Desktop reserves 56rem while loading; a short batch result should not
+    // retain that temporary reservation after it has rendered.
+    const resultHeight = await page.locator('#result').evaluate((node) => node.getBoundingClientRect().height);
+    expect(resultHeight).toBeLessThan(600);
+  });
+
   test('batch export buttons produce CSV and copy JSON', async ({ page }) => {
     await page.goto('/');
     await page.click('#batch summary');
