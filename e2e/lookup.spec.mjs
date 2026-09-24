@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Static pre-rendered pages', () => {
-  test('home has one visible page heading', async ({ page }) => {
+  test('home uses the existing wordmark as its single page heading', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('h1')).toHaveCount(1);
-    await expect(page.locator('h1')).toHaveText('MAC Address Lookup');
+    await expect(page.locator('.site-header h1')).toHaveText('MAC Address Lookup');
+    await expect(page.locator('main h1')).toHaveCount(0);
   });
 
   test('/001B21 shows vendor without fetching Parquet', async ({ page }) => {
