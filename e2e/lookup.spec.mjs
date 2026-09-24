@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Static pre-rendered pages', () => {
+  test('home has one visible page heading', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('h1')).toHaveText('MAC Address Lookup');
+  });
+
   test('/001B21 shows vendor without fetching Parquet', async ({ page }) => {
     await page.goto('/001B21');
     await expect(page.locator('.vendor')).toHaveText('Intel Corporate');

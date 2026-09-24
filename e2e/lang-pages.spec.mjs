@@ -4,6 +4,7 @@ test.describe('Localized home pages (/lang/{locale}/)', () => {
   test('Spanish variant: lang attr, authored title, canonical, hreflang cluster', async ({ page }) => {
     await page.goto('/lang/es/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+    await expect(page.locator('h1')).toHaveText('Buscador de direcciones MAC');
     await expect(page).toHaveTitle(/Buscador de direcciones MAC y OUI/);
     expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toBe(
       'https://mac.jasontally.com/lang/es/',
@@ -30,6 +31,7 @@ test.describe('Localized home pages (/lang/{locale}/)', () => {
   test('RTL locales render dir="rtl"', async ({ page }) => {
     await page.goto('/lang/ar/');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expect(page.locator('h1')).toHaveText('البحث عن عناوين MAC');
   });
 
   test('resolved locale: page default beats browser language, stored choice wins', async ({ browser, baseURL }) => {
