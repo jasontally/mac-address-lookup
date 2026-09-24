@@ -42,6 +42,13 @@ test('renderPrefixPage contains escaped vendor data, canonical URL, and valid JS
   const jsonLd = JSON.parse(jsonMatch[1]);
   assert.equal(jsonLd['@type'], 'Dataset');
   assert.equal(jsonLd.url, 'https://example.test/001A2B');
+  assert.equal(jsonLd.isPartOf, 'https://example.test/');
+  assert.deepEqual(jsonLd.creator, {
+    '@type': 'Person',
+    name: 'Jason Tally',
+    url: 'https://github.com/jasontally',
+  });
+  assert.equal(jsonLd.license, 'https://spdx.org/licenses/MIT.html');
   assert.equal(jsonLd.about.name, 'Intel Corporate');
   assert.ok(jsonLd.distribution.some((entry) => entry.contentUrl.endsWith('/data/registry.ndjson')));
   assert.equal(jsonLd.dateModified, undefined, 'dateless renders omit dateModified');

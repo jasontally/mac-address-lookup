@@ -371,7 +371,15 @@ export function renderPrefixPage({
     url: canonical,
     description,
     ...(dataUpdated ? { dateModified: dataUpdated } : {}),
-    isPartOf: { '@type': 'WebSite', name: 'MAC Address Lookup', url: `${site}/` },
+    // Google Dataset documentation accepts isPartOf as a URL or Dataset;
+    // a WebSite object is not a valid Dataset value for this field.
+    isPartOf: `${site}/`,
+    creator: {
+      '@type': 'Person',
+      name: 'Jason Tally',
+      url: 'https://github.com/jasontally',
+    },
+    license: 'https://spdx.org/licenses/MIT.html',
     ...(record.orgName
       ? {
           about: {
