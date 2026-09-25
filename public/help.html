@@ -140,7 +140,7 @@
             <li><strong>iPhone / Android:</strong> open the Wi-Fi network details. The "private Wi-Fi address" shown there is randomized and will not resolve to a vendor.</li>
           </ul>
 
-          <h2>Vendors, countries, and former owners</h2>
+          <h2>Browse by registration dimension</h2>
           <p>
             Besides prefix pages, the site pre-renders reference pages organized by the
             registration itself, each with its complete table:
@@ -148,9 +148,15 @@
           <ul>
             <li><a href="/country">Country index</a> - <code>/country</code>: every country with at least one registered MAC address block, with organization, block, and address totals, each row linking the country's full page.</li>
             <li><a href="/vendor">Vendor index</a> - <code>/vendor</code>: every organization with two or more registered MAC address blocks, with block and address totals, each row linking the organization's full page.</li>
-            <li><a href="/vendor/apple-inc">Vendor pages</a> - <code>/vendor/&lt;name&gt;</code>: every MAC block registered to one organization, with block types, address space, countries, and registration dates.</li>
-            <li><a href="/country/us">Country pages</a> - <code>/country/&lt;code&gt;</code>: every organization with blocks registered in that country, sorted by address space.</li>
+            <li><a href="/vendor/apple-inc">Vendor pages</a> - <code>/vendor/&lt;name&gt;</code>: every MAC block registered to one organization, with block types, address space, countries, registration dates, and an allocation timeline.</li>
+            <li><a href="/country/us">Country pages</a> - <code>/country/&lt;code&gt;</code>: every organization with blocks registered in that country, sorted by address space, with an allocation timeline.</li>
             <li>Former-owner pages - <code>/former/&lt;name&gt;</code>: organizations that no longer hold any of the prefixes once registered to them, showing what happened to each block, including acquisitions where a single new owner took over all of them (for example <a href="/former/apple-computer">Apple Computer</a>, whose blocks are now registered to Apple, Inc.).</li>
+            <li><a href="/registry">Registry index</a> - <code>/registry</code>: MA-L, MA-M, MA-S, IAB, and CID totals and per-type pages.</li>
+            <li><a href="/year">Year index</a> - <code>/year</code>: blocks grouped by the year they were first observed in public data.</li>
+            <li><a href="/region">Region index</a> - <code>/region</code>: registration countries grouped into continents.</li>
+            <li><a href="/history">History index</a> - <code>/history</code>: observed ownership changes by year, plus <code>/history/country/&lt;code&gt;</code> historical-country views.</li>
+            <li><a href="/successor">Successor index</a> - <code>/successor</code>: current owners of blocks that changed hands and the former portfolios they absorbed.</li>
+            <li><a href="/coverage">Coverage index</a> - <code>/coverage</code>: parent ranges with the smaller MA-M, MA-S, and IAB blocks that refine them.</li>
           </ul>
 
           <h2 data-i18n="help.faq">Frequently asked questions</h2>
@@ -170,7 +176,8 @@
           <p>
             Both datasets are downloadable as machine-readable files: one JSON object per line, no keys:
             <a href="/data/registry.ndjson">registry.ndjson</a> for every assignment and
-            <a href="/data/lineage.ndjson">lineage.ndjson</a> for every ownership change.
+            <a href="/data/lineage.ndjson">lineage.ndjson</a> for every ownership change
+            and its historical registration country.
             The most recent registrations are listed on the <a href="/recent">Latest OUIs</a> page,
             refreshed on every deploy.
           </p>

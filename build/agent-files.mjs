@@ -70,6 +70,18 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 - \`/former/{name}\` - pre-rendered former-owner page: organizations that no
   longer hold any of their once-registered prefixes, with what happened to
   each block (transfers, renames, full acquisitions).
+- \`/registry\` and \`/registry/{type}\` - pre-rendered registry-type pages for
+  MA-L, MA-M, MA-S, IAB, and CID.
+- \`/year\` and \`/year/{year}\` - pre-rendered cohorts by first-observed year.
+- \`/region\` and \`/region/{region}\` - pre-rendered continental rollups of
+  current registration countries.
+- \`/history\` and \`/history/{year}\` - observed ownership changes by year.
+- \`/history/country\` and \`/history/country/{code}\` - historical country
+  views of ownership-change records.
+- \`/successor\` and \`/successor/{slug}\` - current owners of transferred
+  prefixes and the former owners they absorbed.
+- \`/coverage\` and \`/coverage/{parent}\` - parent ranges with smaller
+  registered child blocks.
 - \`/{vendor-name}\` - free-text search over vendors, former owners, countries,
   block types, prefixes, and registration years. Results are an HTML table.
 - \`/{a},{b}\` - batch lookup of comma-separated addresses (up to 250).
@@ -169,6 +181,10 @@ registration itself, each with its complete table:
   block, including acquisitions where one new owner took over all of them
   (for example [Apple Computer](${site}/former/apple-computer), whose blocks are
   now registered to Apple, Inc.).
+- **Registry, year, region, history, successor, and coverage pages**: additional
+  dimensions with complete tables at \`${site}/registry\`, \`${site}/year\`,
+  \`${site}/region\`, \`${site}/history\`, \`${site}/successor\`, and
+  \`${site}/coverage\`; each index links its own detail pages.
 
 ## Frequently asked questions
 
@@ -193,7 +209,7 @@ line, no keys or auth required:
   (prefix, block type, organization, address, country, first-observed date).
   ~13.6 MB.
 - [lineage.ndjson](${site}/data/lineage.ndjson) - every ownership-change event
-  with its first-observed date.
+  with its first-observed date and historical registration country.
 
 For a single lookup you do not need the full registry. The registry is also
 split into small \`text/plain\` shards at
@@ -276,6 +292,7 @@ ${[...shardKeyToCount.entries()]
       prefix: event.prefix,
       date: event.date ?? null,
       orgName: event.orgName ?? null,
+      country: event.country ?? null,
       seq: event.seq ?? null,
     })),
   );

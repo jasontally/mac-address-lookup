@@ -137,8 +137,8 @@ test('writeLineageParquet round-trips events through hyparquet', async () => {
       firstSeen: '2000-09-08',
       lastSeen: '2014-01-17',
       events: [
-        { date: '2000-09-08', orgName: 'TEKELEC', source: null },
-        { date: '2014-01-17', orgName: 'Oracle', source: 'ieee-oui.csv' },
+        { date: '2000-09-08', orgName: 'TEKELEC', country: 'US', source: null },
+        { date: '2014-01-17', orgName: 'Oracle', country: 'US', source: 'ieee-oui.csv' },
       ],
     },
   ];
@@ -156,6 +156,7 @@ test('writeLineageParquet round-trips events through hyparquet', async () => {
   const entry = createLineageIndex(rows).forPrefix('000017');
   assert.equal(entry.events.length, 2);
   assert.equal(entry.events[0].orgName, 'TEKELEC');
+  assert.equal(entry.events[0].country, 'US');
   assert.equal(entry.events[1].source, 'ieee-oui.csv');
   assert.equal(entry.firstSeen, '2000-09-08');
   assert.equal(entry.lastSeen, '2014-01-17');

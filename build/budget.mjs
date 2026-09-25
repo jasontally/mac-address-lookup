@@ -36,19 +36,36 @@ export async function walkDir(dir, base = dir, files = []) {
  * page budget, not the non-page allowance.
  */
 export function countPages(files) {
-  const counts = { prefixes: 0, vendor: 0, country: 0, former: 0 };
+  const counts = {
+    prefixes: 0,
+    vendor: 0,
+    country: 0,
+    former: 0,
+    registry: 0,
+    year: 0,
+    region: 0,
+    history: 0,
+    successor: 0,
+    coverage: 0,
+  };
   for (const { path } of files) {
     if (!path.endsWith('.html')) continue;
     if (path === 'vendor.html' || path.startsWith('vendor/')) counts.vendor += 1;
     else if (path === 'country.html' || path.startsWith('country/')) counts.country += 1;
     else if (path.startsWith('former/')) counts.former += 1;
+    else if (path === 'registry.html' || path.startsWith('registry/')) counts.registry += 1;
+    else if (path === 'year.html' || path.startsWith('year/')) counts.year += 1;
+    else if (path === 'region.html' || path.startsWith('region/')) counts.region += 1;
+    else if (path === 'history.html' || path.startsWith('history/')) counts.history += 1;
+    else if (path === 'successor.html' || path.startsWith('successor/')) counts.successor += 1;
+    else if (path === 'coverage.html' || path.startsWith('coverage/')) counts.coverage += 1;
     else if (!path.includes('/') && path !== 'index.html' && path !== '404.html') {
       counts.prefixes += 1;
     }
   }
   return {
     ...counts,
-    total: counts.prefixes + counts.vendor + counts.country + counts.former,
+    total: Object.values(counts).reduce((sum, count) => sum + count, 0),
   };
 }
 
@@ -94,6 +111,12 @@ export function checkBudget({ files, limits = {} }) {
         vendor: pageCounts.vendor,
         country: pageCounts.country,
         former: pageCounts.former,
+        registry: pageCounts.registry,
+        year: pageCounts.year,
+        region: pageCounts.region,
+        history: pageCounts.history,
+        successor: pageCounts.successor,
+        coverage: pageCounts.coverage,
       },
       nonPage,
       totalBytes,

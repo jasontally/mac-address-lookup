@@ -7,7 +7,24 @@
  * a prefix is considered to have changed hands.
  */
 
+import { COUNTRY_NAMES } from '../src/engine/countries.mjs';
+
 const IGNORED_ORGS = new Set(['', 'PRIVATE', 'IEEE REGISTRATION AUTHORITY']);
+
+/** Normalize a historical country value (`US`, `UNITED STATES`, `UK`) to ISO. */
+function eventCountry(value) {
+  const token = String(value ?? '').trim().toUpperCase();
+  if (!token) return null;
+  if (token === 'UK') return 'GB';
+  if (/^[A-Z]{2}$/.test(token) && Object.hasOwn(COUNTRY_NAMES, token)) return token;
+  const name = token.replace(/\s+/g, ' ');
+  const match = Object.entries(COUNTRY_NAMES).find(
+    ([code, label]) =>
+      label.toUpperCase() === name ||
+      label.toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ') === name,
+  );
+  return match?.[0] ?? null;
+}
 
 /** Fold case, punctuation, and whitespace for organization-name comparison. */
 export function normalizeOrgName(name) {
@@ -74,7 +91,7 @@ export function buildLineage(history) {
 
       const previous = events[events.length - 1];
       if (previous && normalizeOrgName(previous.orgName) === normalized) continue;
-      events.push({ date, orgName, source: record.s || null });
+      events.push({ date, orgName, country: eventCountry(record.c), source: record.s || null });
     }
 
     if (events.length < 2) continue;

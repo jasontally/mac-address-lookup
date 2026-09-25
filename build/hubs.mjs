@@ -18,6 +18,7 @@ import { escapeHtml, SITE } from './page-template.mjs';
 import { slugifyOrg } from '../src/engine/slugs.mjs';
 import { countryName } from '../src/engine/countries.mjs';
 import { colonize, formatAddresses, formatDate, formatCount } from '../src/ui/format.mjs';
+import { renderAllocationTimeline } from './timeline.mjs';
 
 const BOOT = `(function () {
         try {
@@ -33,7 +34,7 @@ const BOOT = `(function () {
  * the active locale table. Values are engine-derived (counts, org names),
  * so JSON needs only entity escaping for the attribute literally.
  */
-function paramsAttr(params) {
+export function paramsAttr(params) {
   const json = JSON.stringify(params)
     .replace(/&/g, '&amp;')
     .replace(/'/g, '&#39;')
@@ -260,6 +261,7 @@ export function computeHubs(records) {
         entry.records.reduce((acc, record) => acc + (record.addressCount ?? 0), 0),
       0,
     );
+    hub.records = [...hub.orgs.values()].flatMap((entry) => entry.records);
     for (const entry of hub.orgs.values()) {
       entry.blocks = entry.records.length;
       entry.addresses = entry.records.reduce((s, record) => s + (record.addressCount ?? 0), 0);
@@ -293,7 +295,7 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], dataUpdated = null, site = SITE, countriesLink = true, vendorsLink = true }) {
+export function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], dataUpdated = null, site = SITE, countriesLink = true, vendorsLink = true }) {
   // Breadcrumbs are Home / [index /] this page: country and vendor pages sit
   // under their rollup indexes, which gives those indexes their internal links.
   const breadcrumb = breadcrumbLd([
@@ -510,7 +512,7 @@ ${rows}
 function ownerWeight(owner) {
   return [...owner.nameCounts.values()].reduce((sum, count) => sum + count, 0);
 }
-export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], dataUpdated = null }) {
+export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], dataUpdated = null, timelineRange = null }) {
   const canonical = `${site}${hub.url}`;
   const title = `${hub.displayName} MAC address blocks | MAC Address Lookup`;
   const suffix =
@@ -554,7 +556,12 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], data
     .join('\n');
 
   const searchHref = `/${encodeURIComponent(hub.displayName)}`;
-  const body = `        <div class="table-wrap">
+  const timeline = renderAllocationTimeline(hub.records, {
+    label: `${hub.displayName} allocations`,
+    ...(timelineRange ?? {}),
+  });
+  const body = `        ${timeline}
+        <div class="table-wrap">
           <table class="data-table">
             <thead>
               <tr>
@@ -599,7 +606,7 @@ ${rows}
   });
 }
 
-export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = null, selectedPrefixes = null }) {
+export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = null, selectedPrefixes = null, timelineRange = null }) {
   const canonical = `${site}/country/${hub.code.toLowerCase()}`;
   const name = displayNameForCountry(hub.code);
   const title = `${name} MAC address blocks | MAC Address Lookup`;
@@ -632,7 +639,12 @@ export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = n
     )
     .join('\n');
 
-  const body = `        <div class="table-wrap">
+  const timeline = renderAllocationTimeline(hub.records ?? [], {
+    label: `${name} allocations`,
+    ...(timelineRange ?? {}),
+  });
+  const body = `        ${timeline}
+        <div class="table-wrap">
           <table class="data-table">
             <thead>
               <tr>
@@ -911,6 +923,7 @@ export async function writeHubPages({
   site = SITE,
   refreshDate = null,
   selectedPrefixes = null,
+  timelineRange = null,
 }) {
   const renderTracked = async (file, url, render) => {
     const priorDate = pageTracker?.priorLastmod(url) ?? refreshDate;
@@ -938,7 +951,7 @@ export async function writeHubPages({
     await renderTracked(
       path.join(vendorDir, `${hub.slug}.html`),
       url,
-      (dataUpdated) => renderOrgHubPage({ hub, assets, site, absorbed, dataUpdated }),
+      (dataUpdated) => renderOrgHubPage({ hub, assets, site, absorbed, dataUpdated, timelineRange }),
     );
     vendorUrls.push(hub.url);
   }
@@ -951,7 +964,7 @@ export async function writeHubPages({
       path.join(countryDir, file),
       url,
       (dataUpdated) =>
-        renderCountryHubPage({ hub, assets, site, dataUpdated, selectedPrefixes }),
+        renderCountryHubPage({ hub, assets, site, dataUpdated, selectedPrefixes, timelineRange }),
     );
     countryUrls.push(`/country/${hub.code.toLowerCase()}`);
   }

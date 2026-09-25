@@ -225,6 +225,94 @@ main {
   font-size: var(--text-sm);
 }
 
+.hub-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-3);
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.hub-nav a {
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.hub-nav a:hover {
+  color: var(--text-default);
+}
+
+/* Static allocation timeline */
+.allocation-timeline {
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.allocation-timeline svg {
+  width: 100%;
+  height: auto;
+}
+
+.allocation-axis {
+  stroke: var(--color-hairline);
+  stroke-width: 1;
+}
+
+.allocation-bar {
+  fill: var(--color-accent);
+}
+
+.allocation-dot {
+  fill: var(--text-strong);
+}
+
+.allocation-year {
+  fill: var(--text-subtle);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.allocation-timeline figcaption {
+  margin: var(--space-2) 0 0;
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.dimension-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+}
+
+.dimension-stats div {
+  min-width: 0;
+}
+
+.dimension-stats dt {
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.dimension-stats dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .dimension-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
 .example-chip {
   font-family: var(--font-mono);
   font-size: var(--text-sm);

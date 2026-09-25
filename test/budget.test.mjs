@@ -22,6 +22,12 @@ test('countPages counts prefix and hub pages by class, excluding shells', () => 
     vendor: 2,
     country: 2,
     former: 1,
+    registry: 0,
+    year: 0,
+    region: 0,
+    history: 0,
+    successor: 0,
+    coverage: 0,
     total: 6,
   });
 });
@@ -29,7 +35,18 @@ test('countPages counts prefix and hub pages by class, excluding shells', () => 
 test('checkBudget passes small outputs', () => {
   const result = checkBudget({ files: [file('index.html'), file('vendor/apple-inc.html'), file('001A2B.html'), file('data/registry.parquet')] });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.stats.pagesByType, { prefixes: 1, vendor: 1, country: 0, former: 0 });
+  assert.deepEqual(result.stats.pagesByType, {
+    prefixes: 1,
+    vendor: 1,
+    country: 0,
+    former: 0,
+    registry: 0,
+    year: 0,
+    region: 0,
+    history: 0,
+    successor: 0,
+    coverage: 0,
+  });
   assert.equal(result.stats.pages, 2);
   assert.equal(result.stats.files, 4);
 });

@@ -16,6 +16,8 @@ import { selectPages } from './select-pages.mjs';
 import { writeAgentFiles } from './agent-files.mjs';
 import { writeLangPages } from './lang-pages.mjs';
 import { writeRecentPage } from './recent.mjs';
+import { writeDimensionPages } from './dimensions.mjs';
+import { datasetYearRange } from './timeline.mjs';
 import { createPageTracker, finalizePageHashes, loadPreviousPageHashes, recordDistFile, urlToDistPath } from './page-hashes.mjs';
 import { REGISTRIES } from './registries.mjs';
 
@@ -140,6 +142,7 @@ for (const record of records) {
 // once registered to (docs/thin-content-mitigation.md; requests 2026-09-16).
 const formerHubData = computeFormerHubs(lineageEntries, { vendors: hubByKey });
 const recordsByPrefix = new Map(records.map((record) => [record.prefix, record]));
+const timelineRange = datasetYearRange(records);
 
 const hubIndex = {
   vendorHub: (record) => {
@@ -269,7 +272,40 @@ if (!flags.has('--no-pages')) {
     site: SITE,
     refreshDate,
     selectedPrefixes,
+    timelineRange,
   });
+
+  console.log('Generating registry, year, region, history, successor, and coverage pages...');
+  const dimensions = await writeDimensionPages({
+    records,
+    lineageEntries,
+    formerData: { ...formerHubData, vendors: hubData.orgs },
+    timelineRange,
+    outDir: distDir,
+    assets: staticAssets,
+    pageTracker,
+    site: SITE,
+    refreshDate,
+    selectedPrefixes,
+  });
+  const dimensionIndexUrls = [
+    ...dimensions.registryIndexUrls,
+    ...dimensions.yearIndexUrls,
+    ...dimensions.regionIndexUrls,
+    ...dimensions.historyIndexUrls,
+    ...dimensions.historyCountryIndexUrls,
+    ...dimensions.successorIndexUrls,
+    ...dimensions.coverageIndexUrls,
+  ];
+  const dimensionUrls = [
+    ...dimensions.registryUrls,
+    ...dimensions.yearUrls,
+    ...dimensions.regionUrls,
+    ...dimensions.historyUrls,
+    ...dimensions.historyCountryUrls,
+    ...dimensions.successorUrls,
+    ...dimensions.coverageUrls,
+  ];
 
   // /recent before the sitemap: it reports its own lastmod inside
   const recentUrl = `${SITE}/recent`;
@@ -320,11 +356,15 @@ if (!flags.has('--no-pages')) {
     vendorPriority,
     lastmod: refreshDate,
     extraUrls: ['/help', '/recent'],
-    hubUrls: [...hubFiles.vendorUrls, ...hubFiles.formerUrls],
+    hubUrls: [...hubFiles.vendorUrls, ...hubFiles.formerUrls, ...dimensionUrls],
     // The two rollups lead the country set: /country is the parent of the 127
     // country pages, /vendor of the vendor pages (which join a later scope),
     // and both are the indexes the country scope should surface first.
-    rollupUrls: [hubFiles.countryIndexUrl, hubFiles.vendorIndexUrl],
+    rollupUrls: [
+      hubFiles.countryIndexUrl,
+      hubFiles.vendorIndexUrl,
+      ...dimensionIndexUrls,
+    ],
     countryUrls: hubFiles.countryUrls,
     sitemapScope,
     homeUrl: langPages.sitemapEntry,
@@ -383,7 +423,10 @@ if (budget.errors.length > 0) {
   console.log(
     `Budget OK: ${budget.stats.files} files, ${budget.stats.pages} pages ` +
       `(prefixes ${budget.stats.pagesByType.prefixes} · vendor ${budget.stats.pagesByType.vendor} · ` +
-      `country ${budget.stats.pagesByType.country} · former ${budget.stats.pagesByType.former}), ` +
+      `country ${budget.stats.pagesByType.country} · former ${budget.stats.pagesByType.former} · ` +
+      `registry ${budget.stats.pagesByType.registry} · year ${budget.stats.pagesByType.year} · ` +
+      `region ${budget.stats.pagesByType.region} · history ${budget.stats.pagesByType.history} · ` +
+      `successor ${budget.stats.pagesByType.successor} · coverage ${budget.stats.pagesByType.coverage}), ` +
       `${formatBytes(budget.stats.totalBytes)} total`,
   );
 }

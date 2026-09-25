@@ -21,6 +21,7 @@ export function createLineageIndex(rows) {
     entry.events.push({
       date: row.date ?? null,
       orgName: row.org_name ?? '',
+      country: row.country ?? null,
       source: row.source ?? null,
     });
   }

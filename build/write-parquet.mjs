@@ -128,6 +128,7 @@ export async function writeLineageParquet(entries, { outDir }) {
         lastSeen: entry.lastSeen,
         date: event.date,
         orgName: event.orgName,
+        country: event.country ?? null,
         source: event.source,
       });
     });
@@ -141,6 +142,7 @@ export async function writeLineageParquet(entries, { outDir }) {
     { name: 'last_seen', data: rows.map((row) => row.lastSeen), type: 'STRING' },
     { name: 'date', data: rows.map((row) => row.date), type: 'STRING' },
     { name: 'org_name', data: rows.map((row) => row.orgName), type: 'STRING' },
+    { name: 'country', data: rows.map((row) => row.country ?? null), type: 'STRING' },
     { name: 'source', data: rows.map((row) => row.source), type: 'STRING' },
   ];
 
