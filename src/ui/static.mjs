@@ -41,22 +41,17 @@ function wireAllocationTimelines() {
       return ((event.clientX - rect.left) / rect.width) * width;
     };
     const valueAt = (x) => {
-      if (points.length === 1) return points[0][1] ?? 0;
+      // Step-after interpolation over raw [x, cumulativeValue] pairs: the
+      // cumulative total holds steady until the next allocation's x position.
       let low = 0;
       let high = points.length - 1;
+      if (x <= points[0][0]) return 0;
       while (high - low > 1) {
         const mid = (low + high) >> 1;
         if (points[mid][0] <= x) low = mid;
         else high = mid;
       }
-      const [x1, value1] = points[low];
-      const [x2, value2] = points[high];
-      if (x2 === x1) return value1;
-      const t = (x - x1) / (x2 - x1);
-      const normalized1 = value1 / maxAddresses;
-      const normalized2 = value2 / maxAddresses;
-      const normalized = normalized1 + (normalized2 - normalized1) * t;
-      return Math.max(0, Math.round(normalized * maxAddresses));
+      return points[low][1];
     };
 
     const show = (event) => {
@@ -67,7 +62,6 @@ function wireAllocationTimelines() {
       const value = valueAt(x);
       const formattedValue =
         value > 0 ? `${formatCount(value, getLocale())} addresses` : 'No allocations';
-
       if (crosshair) {
         const lineX = left + ratio * plotWidth;
         crosshair.setAttribute('x1', String(lineX));
@@ -75,7 +69,7 @@ function wireAllocationTimelines() {
         crosshair.setAttribute('visibility', 'visible');
       }
 
-      tooltip.textContent = `${formatDate(date, getLocale())} · ${formattedValue}`;
+      tooltip.textContent = `${formatDate(date, getLocale())} · ${formattedValue} total`;
       tooltip.hidden = false;
       const rect = figure.getBoundingClientRect();
       const pointerX = event.clientX - rect.left;

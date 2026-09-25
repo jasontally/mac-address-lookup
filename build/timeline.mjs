@@ -29,6 +29,8 @@ function isoDateFromTimestamp(timestamp) {
 /** Group dated records by exact first-observed date. */
 export function allocationDates(records, { startDate = null, endDate = null } = {}) {
   const byDate = new Map();
+  let cumulative = 0;
+  const byDateEntries = [];
   for (const record of records ?? []) {
     const timestamp = parseIsoDate(record?.firstSeen);
     if (timestamp === null) continue;
@@ -41,6 +43,11 @@ export function allocationDates(records, { startDate = null, endDate = null } = 
 
   const dated = [...byDate.values()].sort((a, b) => a.timestamp - b.timestamp);
   if (dated.length === 0) return { points: [], startDate: null, endDate: null };
+
+  for (const entry of dated) {
+    cumulative += entry.addresses;
+    entry.cumulative = cumulative;
+  }
 
   const startTime = startDate ? parseIsoDate(startDate) : dated[0].timestamp;
   const endTime = endDate ? parseIsoDate(endDate) : dated[dated.length - 1].timestamp;
@@ -59,8 +66,9 @@ export function allocationDates(records, { startDate = null, endDate = null } = 
 }
 
 /**
- * Build the visible line plus its hover points. A large gap gets a zero
- * midpoint; a small gap connects directly from one allocation to the next.
+ * Build the visible step line plus its hover points for cumulative totals.
+ * Value holds steady between allocations (step-after), so hovering reflects
+ * the total through that date.
  */
 function buildPathPoints(entries, {
   startTime,
@@ -70,7 +78,6 @@ function buildPathPoints(entries, {
   top,
   plotHeight,
   maxAddresses,
-  directGapPx = 16,
 }) {
   const plotWidth = right - left;
   const xFor = (timestamp) =>
@@ -86,17 +93,14 @@ function buildPathPoints(entries, {
   const points = [];
   if (entries[0].timestamp > startTime) points.push(point(startTime, 0));
   for (const [index, entry] of entries.entries()) {
-    points.push(point(entry.timestamp, entry.addresses));
     const next = entries[index + 1];
+    points.push(point(entry.timestamp, entry.cumulative));
     if (!next) continue;
-    const gapPx = xFor(next.timestamp) - xFor(entry.timestamp);
-    if (gapPx > directGapPx) {
-      const midpoint = entry.timestamp + (next.timestamp - entry.timestamp) / 2;
-      points.push(point(midpoint, 0));
-    }
+    // Step: hold the total until the next allocation, never dip.
+    points.push(point(next.timestamp, entry.cumulative));
   }
   if (entries[entries.length - 1].timestamp < endTime) {
-    points.push(point(endTime, 0));
+    points.push(point(endTime, entries[entries.length - 1].cumulative));
   }
 
   return points;
@@ -175,7 +179,7 @@ export function renderAllocationTimeline(records, {
   label = 'MAC address allocations',
   startDate = null,
   endDate = null,
-  note = 'Line height shows address space on a linear scale sized to this chart; hover for date and value.',
+  note = 'Cumulative address space by first-observed date on a linear scale sized to this chart; hover for date and total.',
 } = {}) {
   const { points: dated, startDate: resolvedStart, endDate: resolvedEnd } =
     allocationDates(records, { startDate, endDate });
@@ -185,13 +189,13 @@ export function renderAllocationTimeline(records, {
   const height = 160;
   // Left margin scales with the longest y-tick label so nothing clips at the
   // viewBox edge: measure the max tick, add a 6px gap from the plot.
-  const maxTickLabel = tickLabel(Math.max(...dated.map((entry) => entry.addresses), 1));
+  const maxTickLabel = tickLabel(Math.max(...dated.map((entry) => entry.cumulative), 1));
   const left = 6 + Math.min(84, Math.ceil(maxTickLabel.length * 6.2));
   const right = width - 8;
   const top = 18;
   const bottom = 30;
   const baseline = top + (height - top - bottom);
-  const maxAddresses = Math.max(...dated.map((entry) => entry.addresses), 1);
+  const maxAddresses = Math.max(...dated.map((entry) => entry.cumulative), 1);
   const plotHeight = baseline - top;
   const startTime = Date.parse(`${resolvedStart}T00:00:00Z`);
   const endTime = Date.parse(`${resolvedEnd}T00:00:00Z`);
@@ -281,7 +285,6 @@ export function renderAllocationTimeline(records, {
           <desc>${escapeSvg(note)}</desc>
 ${yGrid}
           <line class="allocation-axis" x1="${left}" y1="${baseline}" x2="${right}" y2="${baseline}" />
-          <line class="allocation-crosshair" x1="${left}" y1="${top}" x2="${left}" y2="${baseline}" visibility="hidden" vector-effect="non-scaling-stroke" />
           <path class="allocation-area" d="${area}" />
           <path class="allocation-line" d="${line}" vector-effect="non-scaling-stroke" />
           <text class="allocation-year allocation-year--start" x="${left}" y="${height - 6}">${escapeSvg(startLabel)}</text>

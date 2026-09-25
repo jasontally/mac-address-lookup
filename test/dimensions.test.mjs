@@ -59,8 +59,9 @@ test('timeline chart is a continuous date line with hover data', () => {
   assert.match(html, /allocation-line/);
   assert.match(html, /data-start-date="1998-01-01"/);
   assert.match(html, /data-end-date="2026-12-31"/);
-  assert.match(html, /Line height shows address space/);
-  assert.match(html, /hover for date and value/);
+  assert.match(html, /Cumulative address space/);
+
+  assert.match(html, /hover for date and total/);
 });
 
 test('datasetDateRange ignores missing dates and bounds the range', () => {
