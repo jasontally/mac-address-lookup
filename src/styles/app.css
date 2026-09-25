@@ -238,6 +238,11 @@ main {
   font-size: var(--text-sm);
 }
 
+/* The Try:/Browse labels are set apart from the chips that follow them. */
+.row-label {
+  font-weight: 700;
+}
+
 /* The Browse row sits one level deeper (tint) so users can see the two rows
    are separate interactive groups, not one continuous area. */
 .hub-nav {
