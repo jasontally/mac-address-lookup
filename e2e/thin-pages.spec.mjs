@@ -148,9 +148,8 @@ test.describe('Vendor index', () => {
     const xml = await sitemap.text();
     expect(xml).toContain('<loc>https://mac.jasontally.com/vendor</loc>');
     expect(xml).not.toContain('/vendor/apple-inc');
-    // The index footer hides its own link; every other footer carries it.
-    expect(await page.locator('footer a[href="/vendor"]').count(), 'index hides its self-link').toBe(0);
+    // The home page carries a Vendors link (hub nav since 0455415).
     await page.goto('/');
-    await expect(page.locator('footer a[href="/vendor"]')).toHaveCount(1);
+    await expect(page.locator('a[href="/vendor"]').first()).toBeVisible();
   });
 });

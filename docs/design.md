@@ -159,4 +159,4 @@ When a prefix has lineage (scope and provenance: [architecture](architecture.md#
 - [x] Addresses cells hold one line on desktop (`.data-table td.num`,
   `white-space: nowrap`); the stacked mobile layout wraps them onto a second
   line when needed.
-- [x] Data ops: Cloudflare Workers Builds triggered by push; manual refresh via a committed refresh date; no analytics initially.
+- [x] Data ops: Cloudflare Workers Builds triggered by push; manual refresh via a committed refresh date; no analytics in the app (the host collects Cloudflare's privacy-first, cookieless, aggregate Web Analytics — see the resolved analytics disclosure in [architecture](architecture.md#open-items)).

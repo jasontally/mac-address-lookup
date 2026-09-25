@@ -180,6 +180,8 @@ export const en = {
   'batch.matchingPrefixes': '{count} matching prefixes',
   'batch.matched': '{count} matched a registered vendor.',
   'batch.extracted': 'Extracted from pasted text; non-address content was ignored.',
+  'batch.exportCsv': 'Download CSV',
+  'batch.exportJson': 'Download JSON',
 
   // Status messages
   'status.addressExtracted': '{count} address extracted from pasted text.',

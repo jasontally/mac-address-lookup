@@ -48,7 +48,8 @@ export function llmsTxt({ dataFiles = {} } = {}) {
   refuse the markdown media type, it is valid Markdown either way
 - [Help (Markdown)](${SITE}/help.md): the same documentation as Markdown
 - [Latest OUIs](${SITE}/recent): the most recently registered blocks, refreshed every deploy
-- Interface available in 31 languages (switcher on every page; each language
+- Interface available in 31 languages (30 translations plus English; switcher on
+  every page; Urdu, Arabic, and Persian render right-to-left; each language
   also has a pre-rendered home page under \`${SITE}/lang/{locale}/\`, declared
   cross-locale with \`hreflang\` alternates on all variants)
 
@@ -85,7 +86,7 @@ export function llmsTxt({ dataFiles = {} } = {}) {
 - \`/?q={text}\` - legacy query form; redirects to the path scheme.
 
 No JavaScript is required to read any page; results pages for lookups are
-fully server-rendered for registered prefixes.
+fully pre-rendered for registered prefixes.
 
 ## Data files
 
@@ -101,8 +102,9 @@ ${dataLines.join('\n')}
 The registry data is derived from the public IEEE Registration Authority
 registries (no restrictions apply). Ownership-history events come from the
 runZero mac-tracker dataset (MIT). The app itself ships no ads and no
-cookies, does no tracking, and all lookups run client-side; the host
-(Cloudflare) collects privacy-first, cookieless, aggregate web analytics.
+cookies, does no tracking, and all lookups run client-side (the addresses
+you enter are never processed by a server); the host (Cloudflare) collects
+privacy-first, cookieless, aggregate web analytics.
 `;
 }
 
@@ -124,7 +126,8 @@ correct organization rather than a generic parent block.
 - Prefix lineage: acquisitions and renames, with the dates each change was first observed
 - Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local
 
-The interface runs in 31 languages: switch it with the language picker, or
+The interface runs in 31 languages (English plus 30 translations; Urdu,
+Arabic, and Persian render right-to-left): switch it with the language picker, or
 open a pre-rendered localized home page at \`${site}/lang/{locale}/\` (for
 example [Spanish](${site}/lang/es/) or [Japanese](${site}/lang/ja/)); the
 lookup itself, results pages, and downloadable data are language-neutral.

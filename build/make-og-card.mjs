@@ -88,7 +88,7 @@ const html = `<!doctype html>
       <div class="octets">00:1A:2B</div>
       <div class="copy">
         <h2>Identify the vendor behind any MAC address or OUI prefix</h2>
-        <p>IEEE block details, randomization and VM detection, and prefix lineage &mdash; all in your browser.</p>
+        <p>IEEE block details, randomization and VM detection, and prefix lineage. All in your browser, with no tracking.</p>
       </div>
     </div>
     <div class="footer">

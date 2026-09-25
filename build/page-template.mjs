@@ -536,6 +536,7 @@ ${renderEnrichment(enrich)}${renderRelated(related, { record, vendorHub })}
               ? `<time class="footer-date" datetime="${escapeHtml(dataUpdated)}">${escapeHtml(dataUpdated)}</time>`
               : `<span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>`
           }
+          <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>

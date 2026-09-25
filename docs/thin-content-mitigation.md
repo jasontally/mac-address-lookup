@@ -45,7 +45,7 @@ Guardrails honored throughout (from the project owner, 2026-09-16):
 | Worst-case hub tables | Apple: 1,573 block rows (~240 KB raw, ~23 KB compressed) · US: 8,887 orgs (~1.3 MB raw, ~156 KB compressed) |
 | Dynamic display caps (measured 2026-09-15, `e2e/measure-limits.mjs`) | 500 rows display (23 ms throttled) · 250 batch · 5,000 rows renders in 296 ms at 4× throttle |
 | "Show all" full reveal (measured 2026-09-22, `e2e/measure-showall.mjs`) | Partials: `/00`'s 17,394 rows rebuild in 2,242 ms (1×) / 9,414 ms (4×); the hub un-hide measurement (8,885 rows = 4,091 ms at 4×) plus a real-phone <1 s reveal removed the static caps the same day | "(slow)" suffix past 1,500 rows, partial listings only |
-| Current non-page files | 3,247 — over the 2,000 non-page allowance (2,863 are `data/registry/*.txt` trie-key lookup shards); total 65,978 files ≤ the 92,000 budget |
+| Current non-page files | 3,247 — over the 2,000 non-page allowance (2,863 are `data/registry/*.txt` trie-key lookup shards); 2026-09-23 measurement, before the dimension pages |
 | Avg prefix-page size / total output | ~12.5 KB · ~828 MB |
 
 ## Cross-cutting design decisions
@@ -72,8 +72,9 @@ Guardrails honored throughout (from the project owner, 2026-09-16):
   through to the SPA shell's soft-404 handling (`noindex` + canonical to `/`).
 - **i18n:** every new visible label gets a `data-i18n` key in `src/i18n/en.mjs`, with
   `data-i18n-params` JSON attributes for interpolated values (the badge/banner
-  pattern). The other 28 locales fall back to English automatically; translations can
-  be added in a later pass (the `e2e/i18n-audit.mjs` tool flags what's missing).
+  pattern). The other locales fall back to English automatically; the
+  `e2e/i18n-audit.mjs` tool flags missing translations (all 30 are translated
+  today — verified by `e2e/locale-sweep.mjs`).
   Org names, prefixes, and counts are data and are not translated.
 - **Determinism:** link sets, hub membership, and slugs are pure functions of the
   sorted record set, so consecutive builds produce byte-stable output for unchanged
@@ -141,7 +142,9 @@ would land in the 2,000-file non-page allowance. Rework before generating any hu
 | Non-page files | 3,247 |
 | **Total** | **65,978 files (62,731 pages) = 66% of the 100,000 platform cap; 70% of the 90,000 page budget** |
 
-Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks. Hub HTML adds ~9 MB raw
+Sitemap grows 58,696 → ~62,420 URLs — still two 50k chunks at the time of
+writing (later scope changes and dimension pages have grown it again; see
+`build/generate-sitemaps.mjs` for the current chunk rule). Hub HTML adds ~9 MB raw
 (~8.9 MB across all hubs; every file far under the 20 MiB assertion). Page generation
 ~2.6 → ~3.0 s; deploy ~5 → ~5.5 min, well inside the 20-minute timeout.
 
@@ -256,9 +259,8 @@ stayed 200 only until `e2e/measure-limits.mjs` re-derived them from real timings
   instead of show-more, vendor-shaped queries gain a link to the complete static hub
   ("View all N prefixes") — the capped dynamic view and the complete static page
   complement each other.
-- **Doc sync:** `docs/design.md` still says partials are "capped at 200" — stale
-  against the measured 500. Update it to reference the measured caps and this
-  static-complete / dynamic-capped split.
+- **Doc sync:** `docs/design.md` previously said partials are "capped at 200" —
+  updated to the measured 500 and the static-complete / dynamic-capped split.
 
 This is a client-side change orthogonal to the discoverability steps; ship it with step 2 (same
 deploy) or separately — it does not gate steps 1 or 3.
