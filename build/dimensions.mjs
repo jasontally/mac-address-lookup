@@ -400,7 +400,7 @@ export function renderYearIndexPage({ dimensions, assets, site = SITE, dataUpdat
   const unknown = unknownCount > 0 ? `<p class="section-note">${escapeHtml(formatCount(unknownCount, 'en'))} records have no first-observed date.</p>` : '';
   const body = `${table(
     [
-      { label: 'Year' },
+      { label: 'Year', key: 'hub.yearIndex.column.year' },
       { label: 'Blocks', key: 'table.blocks' },
       { label: 'Addresses', key: 'table.addresses' },
       { label: 'Organizations', key: 'table.org' },
@@ -566,8 +566,8 @@ export function renderHistoryIndexPage({ history, assets, site = SITE, dataUpdat
   const body = table(
     [
       { label: 'Year' },
-      { label: 'Changes' },
-      { label: 'Prefixes', key: 'table.prefix' },
+      { label: 'Changes', key: 'hub.history.column.changes' },
+      { label: 'Prefixes', key: 'hub.history.column.prefixes' },
       { label: 'Addresses', key: 'table.addresses' },
     ],
     rows,
@@ -602,9 +602,9 @@ export function renderHistoryYearPage({ dimension, assets, site = SITE, dataUpda
   ])}\n${table(
     [
       { label: 'Prefix', key: 'table.prefix' },
-      { label: 'Previous organization' },
-      { label: 'New organization' },
-      { label: 'Observed' },
+      { label: 'Previous organization', key: 'hub.history.column.previousOrg' },
+      { label: 'New organization', key: 'hub.history.column.newOrg' },
+      { label: 'Observed', key: 'hub.history.column.observed' },
     ],
     rows,
   )}`;
@@ -636,8 +636,8 @@ export function renderHistoryCountryIndexPage({ dimensions, assets, site = SITE,
   const body = table(
     [
       { label: 'Country', key: 'detail.country' },
-      { label: 'Changes' },
-      { label: 'Prefixes', key: 'table.prefix' },
+      { label: 'Changes', key: 'hub.history.column.changes' },
+      { label: 'Prefixes', key: 'hub.history.column.prefixes' },
       { label: 'Addresses', key: 'table.addresses' },
     ],
     rows,
@@ -672,9 +672,9 @@ export function renderHistoryCountryPage({ dimension, assets, site = SITE, dataU
   ])}\n${table(
     [
       { label: 'Prefix', key: 'table.prefix' },
-      { label: 'Previous organization' },
-      { label: 'New organization' },
-      { label: 'Observed' },
+      { label: 'Previous organization', key: 'hub.history.column.previousOrg' },
+      { label: 'New organization', key: 'hub.history.column.newOrg' },
+      { label: 'Observed', key: 'hub.history.column.observed' },
     ],
     rows,
   )}`;
@@ -705,8 +705,8 @@ export function renderSuccessorIndexPage({ dimensions, assets, site = SITE, data
   );
   const body = table(
     [
-      { label: 'Current owner' },
-      { label: 'Former owners' },
+      { label: 'Current owner', key: 'hub.successor.currentOwner' },
+      { label: 'Former owners', key: 'hub.successor.formerOwners' },
       { label: 'Blocks', key: 'table.blocks' },
       { label: 'Addresses', key: 'table.addresses' },
     ],
