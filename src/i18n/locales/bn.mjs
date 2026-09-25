@@ -252,7 +252,7 @@ export const bn = {
   "title.registryIndex": "রেজিস্ট্রি টাইপ দ্বারা MAC ঠিকানা ব্লক | MAC ঠিকানা সন্ধান করুন",
   "title.registryHub": "{type} MAC ঠিকানা ব্লক | MAC ঠিকানা সন্ধান করুন",
   "title.yearIndex": "প্রথম-পালিত বছর দ্বারা MAC ঠিকানা ব্লক | MAC ঠিকানা সন্ধান করুন",
-  "title.yearHub": "ম্যাক অ্যাড্রেস ব্লক {year} সালে প্রথম পরিলক্ষিত হয় | MAC ঠিকানা সন্ধান করুন",
+  "title.yearHub": "MAC ঠিকানা ব্লক {year} সালে প্রথম পরিলক্ষিত হয় | MAC ঠিকানা সন্ধান করুন",
   "title.regionIndex": "অঞ্চল অনুসারে MAC ঠিকানা ব্লক | MAC ঠিকানা সন্ধান করুন",
   "title.regionHub": "{region} MAC ঠিকানা ব্লক | MAC ঠিকানা সন্ধান করুন",
   "title.historyIndex": "MAC ঠিকানা মালিকানার ইতিহাস | MAC ঠিকানা সন্ধান করুন",
