@@ -238,8 +238,22 @@ export function renderAllocationTimeline(records, {
       ].join('\n'))
     .join('\n');
 
-  // X ticks: evenly spaced years between the range endpoints.
+  // X ticks: evenly spaced years between the range endpoints, with the two
+  // edge labels as anchors. Any tick whose label box would collide with the
+  // left/right edge year is dropped (14px half-widths); the pinned edge
+  // labels are always visible.
+  const yearHalfPx = 14;
+  const startLabelRight = left + startYear.length * 7;
+  const endLabelLeft = right - endYear.length * 7;
   const xTickLabels = xTicks(startTime, endTime, 6)
+    .filter((tick) => {
+      const position = left + ((tick.timestamp - startTime) / (endTime - startTime)) * (right - left);
+      const tickLeft = position - yearHalfPx;
+      const tickRight = position + yearHalfPx;
+      const hitsStart = tickLeft < startLabelRight && tickRight > left;
+      const hitsEnd = tickRight > endLabelLeft && tickLeft < right;
+      return !(hitsStart || hitsEnd);
+    })
     .map((tick) => {
       const x = left + ((tick.timestamp - startTime) / (endTime - startTime)) * (right - left);
       return `          <text class="allocation-tick allocation-tick--x" x="${x.toFixed(2)}" y="${height - 6}" text-anchor="middle">${escapeSvg(tick.label)}</text>`;
