@@ -53,11 +53,10 @@ function wireAllocationTimelines() {
       const [x2, value2] = points[high];
       if (x2 === x1) return value1;
       const t = (x - x1) / (x2 - x1);
-      const logMax = Math.log10(1 + maxAddresses);
-      const normalized1 = Math.log10(1 + value1) / logMax;
-      const normalized2 = Math.log10(1 + value2) / logMax;
+      const normalized1 = value1 / maxAddresses;
+      const normalized2 = value2 / maxAddresses;
       const normalized = normalized1 + (normalized2 - normalized1) * t;
-      return Math.max(0, Math.round(10 ** (normalized * logMax) - 1));
+      return Math.max(0, Math.round(normalized * maxAddresses));
     };
 
     const show = (event) => {

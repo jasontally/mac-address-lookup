@@ -2,9 +2,9 @@
  * Static SVG allocation timeline for hub pages.
  *
  * A continuous line over exact first-observed dates. Line height is address
- * space on a log1p scale, so zero stays at the baseline and MA-L vs MA-S
- * allocations remain visible. Every chart uses the same dataset-wide date
- * range, so a sparse vendor's blips remain comparable with busy periods.
+ * space on a linear scale, with the maximum sized independently per chart so
+ * big and small vendors both fill the plot. Every chart uses the same
+ * dataset-wide date range, so sparse vendors still occupy the full timeline.
  */
 
 import { formatDate } from '../src/ui/format.mjs';
@@ -73,11 +73,10 @@ function buildPathPoints(entries, {
   directGapPx = 16,
 }) {
   const plotWidth = right - left;
-  const logMax = Math.log10(1 + maxAddresses);
   const xFor = (timestamp) =>
     left + ((timestamp - startTime) / (endTime - startTime)) * plotWidth;
   const yFor = (value) =>
-    normalizedY(value, { plotHeight, logMax }) + top;
+    normalizedY(value, { plotHeight, maxAddresses }) + top;
   const point = (timestamp, value) => ({
     x: xFor(timestamp),
     y: yFor(value),
@@ -103,19 +102,31 @@ function buildPathPoints(entries, {
   return points;
 }
 
-/** Distance from the baseline for one value on the log1p scale. */
-function normalizedY(value, { plotHeight, logMax }) {
-  const normalized = Math.log10(1 + Math.max(0, value)) / logMax;
+/** Distance from the baseline for one value on the linear scale. */
+function normalizedY(value, { plotHeight, maxAddresses }) {
+  const normalized = Math.max(0, value) / maxAddresses;
   return plotHeight * (1 - normalized);
 }
 
-/** Round one y-scale tick to a readable power of ten (or 3× / 2× of one). */
-function yTick(maxAddresses, index, total) {
-  const target = maxAddresses / 2 ** (total - index);
-  const magnitude = 10 ** Math.floor(Math.log10(target));
-  const scaled = target / magnitude;
-  const step = scaled < 1.5 ? 1 : scaled < 3.5 ? 2 : scaled < 7.5 ? 5 : 10;
-  return step * magnitude;
+/**
+ * Linear y ticks: pick "nice" round numbers dividing the plot into roughly
+ * three sections, always topped by the true maximum. Rejected when the
+ * rendered labels would collide.
+ */
+function yTicks(maxAddresses) {
+  const candidates = [maxAddresses];
+  const magnitude = 10 ** Math.floor(Math.log10(maxAddresses));
+  const scaled = maxAddresses / magnitude;
+  const outerStep = scaled < 1.5 ? 1 : scaled < 3.5 ? 2 : scaled < 7.5 ? 5 : 10;
+  const outer = magnitude * outerStep;
+  if (outer <= maxAddresses) candidates.push(outer);
+  const half = maxAddresses / 2;
+  const halfMagnitude = 10 ** Math.floor(Math.log10(half));
+  const halfScaled = half / halfMagnitude;
+  const innerStep = halfScaled < 1.5 ? 1 : halfScaled < 3.5 ? 2 : halfScaled < 7.5 ? 5 : 10;
+  const inner = halfMagnitude * innerStep;
+  if (inner > 0 && inner < maxAddresses && inner !== outer) candidates.push(inner);
+  return [...new Set(candidates.filter((value) => value > 0))];
 }
 
 /** Abbreviated axis label for an address count ("4.1 thousand", "16.8 million"). */
@@ -164,7 +175,7 @@ export function renderAllocationTimeline(records, {
   label = 'MAC address allocations',
   startDate = null,
   endDate = null,
-  note = 'Line height shows address space on a logarithmic scale; hover for date and value.',
+  note = 'Line height shows address space on a linear scale sized to this chart; hover for date and value.',
 } = {}) {
   const { points: dated, startDate: resolvedStart, endDate: resolvedEnd } =
     allocationDates(records, { startDate, endDate });
@@ -172,13 +183,12 @@ export function renderAllocationTimeline(records, {
 
   const width = 720;
   const height = 160;
-  const left = 56;           // room for y-axis tick labels
+  const left = 60;           // room for y-axis tick labels
   const right = width - 8;
   const top = 18;
   const bottom = 30;
   const baseline = top + (height - top - bottom);
   const maxAddresses = Math.max(...dated.map((entry) => entry.addresses), 1);
-  const logMax = Math.log10(1 + maxAddresses);
   const plotHeight = baseline - top;
   const startTime = Date.parse(`${resolvedStart}T00:00:00Z`);
   const endTime = Date.parse(`${resolvedEnd}T00:00:00Z`);
@@ -203,17 +213,29 @@ export function renderAllocationTimeline(records, {
   const endLabel =
     startYear === endYear ? formatDate(resolvedEnd, 'en') : endYear;
 
-  // Y ticks: two interior gridlines plus the max label at the top.
-  const yTicks = [maxAddresses, yTick(maxAddresses, 2, 3), yTick(maxAddresses, 1, 3)]
-    .filter((value, index, all) => value > 0 && all.indexOf(value) === index);
-  const yGrid = yTicks
-    .map((value) => {
-      const y = top + normalizedY(value, { plotHeight, logMax });
-      return [
+  // Y ticks: nice round values under the chart's own maximum. The topmost
+  // tick is the max itself; keep interior ticks only when their rendered
+  // labels stay 14px apart, so text never collides.
+  const ticks = yTicks(maxAddresses);
+  const gridRows = ticks.map((value) => {
+    const y = top + normalizedY(value, { plotHeight, maxAddresses });
+    return { value, y, label: tickLabel(value) };
+  });
+  const visible = [];
+  for (let index = 0; index < gridRows.length; index += 1) {
+    const current = gridRows[index];
+    const next = gridRows[index + 1];
+    const gap = next ? next.y - current.y : null;
+    if (gap !== null && gap < 14) continue;
+    visible.push(current);
+    if (gap !== null && gap < 14) index += 1;
+  }
+  const yGrid = visible
+    .map(({ value, y, label }) =>
+      [
         `          <line class="allocation-grid" x1="${left}" y1="${y.toFixed(2)}" x2="${right}" y2="${y.toFixed(2)}" />`,
-        `          <text class="allocation-tick" x="${left - 6}" y="${(y + 3).toFixed(2)}" text-anchor="end">${escapeSvg(tickLabel(value))}</text>`,
-      ].join('\n');
-    })
+        `          <text class="allocation-tick" x="${left - 6}" y="${(y + 3).toFixed(2)}" text-anchor="end">${escapeSvg(label)}</text>`,
+      ].join('\n'))
     .join('\n');
 
   // X ticks: evenly spaced years between the range endpoints.
