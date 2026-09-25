@@ -187,7 +187,8 @@ main {
 }
 
 .hero .lede {
-  font-size: var(--text-lg);
+  font-size: var(--text-base);   /* was lg (18px); the site body is 16px and the lede
+                                    is secondary text — collapsed to body size */
   color: var(--text-subtle);
   max-width: 60ch;
 }
@@ -195,7 +196,7 @@ main {
 .lookup-form {
   display: flex;
   gap: var(--space-2);
-  margin: var(--space-5) 0 var(--space-3);
+  margin: var(--space-4) 0 var(--space-3);   /* was space-5; aligns with the rest of the hero */
 }
 
 .lookup-input {
@@ -233,11 +234,11 @@ main {
   font-size: var(--text-sm);
 }
 
-/* The Browse row sits one level deeper (elevated) so users can see the two
-   rows are separate interactive groups, not one continuous area. */
+/* The Browse row sits one level deeper (tint) so users can see the two rows
+   are separate interactive groups, not one continuous area. */
 .hub-nav {
   background: var(--color-tint);
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .hub-nav a.example-chip {
@@ -288,8 +289,8 @@ main {
 
 .allocation-tick {
   fill: var(--text-subtle);
-  font-size: 10px;
-  font-family: var(--font-mono);
+  font-size: var(--text-xs);     /* was hardcoded 10px — collapsed to the site's 12px token */
+  font-family: var(--font-mono); /* tabular-nums for numeric labels, not the site's default */
   font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
@@ -303,7 +304,7 @@ main {
 
 .allocation-year {
   fill: var(--text-subtle);
-  font-size: 12px;
+  font-size: var(--text-xs);    /* was hardcoded 12px, same as xs — no-op but tokens everywhere */
   font-family: var(--font-mono);
 }
 
@@ -381,7 +382,7 @@ main {
 
 .h1-prefix {
   font-family: var(--font-mono);
-  font-size: 0.55em;
+  font-size: var(--text-xs);     /* collapsed from 0.55em of h1 (which was 12px at 24) to site xs */
   font-weight: 550;
   letter-spacing: 0;
   color: var(--text-subtle);
