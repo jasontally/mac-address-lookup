@@ -182,8 +182,12 @@ main {
 
 /* ---------- Hero / search ---------- */
 
+/* ---------- Hero / search ---------- */
+
 .hero {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);  /* was space-6 (32px) — collapsed: the result card's own
+                                     margin-top (space-5) already spaces the hero from the result;
+                                     with both, the gap was ~56px and mobile felt disconnected */
 }
 
 .hero .lede {
@@ -564,7 +568,8 @@ main {
 /* ---------- Results ---------- */
 
 .result-card {
-  margin-top: var(--space-5);
+  margin-top: var(--space-4);   /* was space-5 (24px); paired below the hero's space-4 (16px)
+                                   to give a consistent 16px vertical rhythm */
 }
 
 .result-header .eyebrow {
