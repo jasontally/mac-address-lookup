@@ -7,7 +7,6 @@ import {
   computeRegionDimensions,
   computeHistoryDimensions,
   computeHistoryCountryDimensions,
-  computeCoverageDimensions,
   computeSuccessorDimensions,
   renderRegistryPage,
   renderYearPage,
@@ -15,7 +14,6 @@ import {
   renderHistoryYearPage,
   renderHistoryCountryPage,
   renderSuccessorPage,
-  renderCoveragePage,
 } from '../build/dimensions.mjs';
 
 const ASSETS = {
@@ -69,7 +67,7 @@ test('datasetYearRange ignores missing dates and bounds the range', () => {
   assert.deepEqual(datasetYearRange([{ firstSeen: null }]), { startYear: null, endYear: null });
 });
 
-test('dimension computations group registry, year, region, history, coverage, and successors', () => {
+test('dimension computations group registry, year, region, history, and successors', () => {
   const records = [
     record('000001', { blockType: 'MA-L', firstSeen: '2020-01-01', country: 'US' }),
     record('000002AFA', { blockType: 'MA-S', prefixLen: 36, addressCount: 4096, firstSeen: '2022-01-01', country: 'DE' }),
@@ -100,11 +98,6 @@ test('dimension computations group registry, year, region, history, coverage, an
   assert.equal(history.changes.length, 1);
   assert.equal(history.years[0].year, '2024');
   assert.equal(historyCountries[0].code, 'US');
-
-  const coverage = computeCoverageDimensions(records);
-  assert.equal(coverage.length, 1);
-  assert.equal(coverage[0].parent, '000002');
-  assert.equal(coverage[0].blocks, 2);
 });
 
 test('successor pages use the existing current-owner rollup', () => {
@@ -145,10 +138,6 @@ test('dimension pages render canonical URLs, breadcrumbs, stats, and tables', ()
   ];
   const historyYear = computeHistoryDimensions(lineage, new Map([[registry.prefix, registry]])).years[0];
   const historyCountry = computeHistoryCountryDimensions(lineage, new Map([[registry.prefix, registry]]))[0];
-  const coverage = computeCoverageDimensions([
-    record('000001AFA', { prefixLen: 36, blockType: 'MA-S', addressCount: 4096 }),
-    record('000001BFB', { prefixLen: 36, blockType: 'MA-S', addressCount: 4096 }),
-  ])[0];
 
   const pages = [
     renderRegistryPage({ dimension: registry, timelineRange, assets: ASSETS, site: 'https://example.test' }),
@@ -156,7 +145,15 @@ test('dimension pages render canonical URLs, breadcrumbs, stats, and tables', ()
     renderRegionPage({ dimension: region, timelineRange, assets: ASSETS, site: 'https://example.test' }),
     renderHistoryYearPage({ dimension: historyYear, assets: ASSETS, site: 'https://example.test' }),
     renderHistoryCountryPage({ dimension: historyCountry, assets: ASSETS, site: 'https://example.test' }),
-    renderCoveragePage({ dimension: coverage, timelineRange, assets: ASSETS, site: 'https://example.test' }),
+    renderSuccessorPage({ dimension: computeSuccessorDimensions({
+      absorbedByVendor: new Map([['APPLE INC', [{ slug: 'old-co', displayName: 'Old Co', count: 1 }]]]),
+      formers: [{
+        slug: 'old-co',
+        displayName: 'Old Co',
+        prefixes: new Map([['000001', { prefix: '000001', currentOwner: 'Apple Inc.' }]]),
+      }],
+      vendors: [{ key: 'APPLE INC', slug: 'apple-inc', displayName: 'Apple Inc.', url: '/vendor/apple-inc' }],
+    }, new Map([[registry.prefix, registry]]))[0], assets: ASSETS, site: 'https://example.test' }),
   ];
 
   for (const html of pages) {
@@ -169,5 +166,5 @@ test('dimension pages render canonical URLs, breadcrumbs, stats, and tables', ()
   assert.match(pages[2], /href="\/country\/us"/);
   assert.match(pages[3], /Old Co/);
   assert.match(pages[4], /United States/);
-  assert.match(pages[5], /Child blocks/);
+  assert.match(pages[5], /Former owner/);
 });

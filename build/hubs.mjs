@@ -295,7 +295,7 @@ function breadcrumbLd(items) {
   }).replace(/</g, '\\u003c');
 }
 
-export function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], dataUpdated = null, site = SITE, countriesLink = true, vendorsLink = true }) {
+export function renderPage({ title, titleTag = null, description, canonical, breadcrumbLabel, breadcrumbKey = null, breadcrumbParent = null, heading, ledeHtml, body, assets, jsonLdNodes = [], dataUpdated = null, site = SITE }) {
   // Breadcrumbs are Home / [index /] this page: country and vendor pages sit
   // under their rollup indexes, which gives those indexes their internal links.
   const breadcrumb = breadcrumbLd([
@@ -392,7 +392,7 @@ ${body}
               ? `<time class="footer-date" datetime="${escapeHtml(dataUpdated)}">${escapeHtml(dataUpdated)}</time>`
               : ''
           }
-          ${countriesLink ? `<a href="/country" data-i18n="footer.countries">Countries</a> ·\n          ` : ''}${vendorsLink ? `<a href="/vendor" data-i18n="footer.vendors">Vendors</a> ·\n          ` : ''}<a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
+          <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
           <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a>
         </p>
       </div>
@@ -775,7 +775,6 @@ ${rows}
     jsonLdNodes: [collectionLd],
     dataUpdated,
     site,
-    countriesLink: false, // no self-link in the footer
   });
 }
 
@@ -786,7 +785,7 @@ ${rows}
  * root-level `vendor.html` beside the `vendor/` directory so the canonical is
  * extensionless `/vendor` like `/help`; it leads the `country` sitemap scope
  * alongside `/country` (build.mjs), is the breadcrumb parent of every vendor
- * page, and is linked from every footer except its own (`footer.vendors`).
+ * page, and is breadcrumb-linked from every vendor page.
  */
 export function renderVendorIndexPage({ hubData, assets, site = SITE, dataUpdated = null }) {
   const canonical = `${site}/vendor`;
@@ -860,7 +859,6 @@ ${rows}
     jsonLdNodes: [collectionLd],
     dataUpdated,
     site,
-    vendorsLink: false, // no self-link in the footer
   });
 }
 

@@ -46,7 +46,6 @@ export function countPages(files) {
     region: 0,
     history: 0,
     successor: 0,
-    coverage: 0,
   };
   for (const { path } of files) {
     if (!path.endsWith('.html')) continue;
@@ -58,7 +57,6 @@ export function countPages(files) {
     else if (path === 'region.html' || path.startsWith('region/')) counts.region += 1;
     else if (path === 'history.html' || path.startsWith('history/')) counts.history += 1;
     else if (path === 'successor.html' || path.startsWith('successor/')) counts.successor += 1;
-    else if (path === 'coverage.html' || path.startsWith('coverage/')) counts.coverage += 1;
     else if (!path.includes('/') && path !== 'index.html' && path !== '404.html') {
       counts.prefixes += 1;
     }
@@ -116,7 +114,6 @@ export function checkBudget({ files, limits = {} }) {
         region: pageCounts.region,
         history: pageCounts.history,
         successor: pageCounts.successor,
-        coverage: pageCounts.coverage,
       },
       nonPage,
       totalBytes,

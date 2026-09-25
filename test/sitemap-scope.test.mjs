@@ -7,6 +7,7 @@ const lang = ['https://example.test/lang/es/'];
 const hubs = ['https://example.test/vendor/intel', 'https://example.test/former/apple-computer'];
 const countries = ['https://example.test/country/us', 'https://example.test/country/hk'];
 const rollups = ['https://example.test/country', 'https://example.test/vendor'];
+const dimensions = ['https://example.test/registry/ma-l', 'https://example.test/year/2025'];
 const prefixes = ['https://example.test/001A2B', 'https://example.test/8C1F64AFA'];
 
 const select = (scope) =>
@@ -17,17 +18,18 @@ const select = (scope) =>
     rollupUrls: rollups,
     hubUrls: hubs,
     countryUrls: countries,
+    dimensionUrls: dimensions,
     prefixUrls: prefixes,
   });
 
 test('sitemap scopes compose cumulatively: core ⊂ country ⊂ hubs ⊂ all', () => {
   assert.deepEqual(select('core'), [...core, ...lang]);
-  assert.deepEqual(select('country'), [...core, ...lang, ...rollups, ...countries]);
-  assert.deepEqual(select('hubs'), [...core, ...lang, ...rollups, ...hubs, ...countries]);
-  assert.deepEqual(select('all'), [...core, ...lang, ...rollups, ...hubs, ...countries, ...prefixes]);
+  assert.deepEqual(select('country'), [...core, ...lang, ...rollups, ...countries, ...dimensions]);
+  assert.deepEqual(select('hubs'), [...core, ...lang, ...rollups, ...hubs, ...countries, ...dimensions]);
+  assert.deepEqual(select('all'), [...core, ...lang, ...rollups, ...hubs, ...countries, ...dimensions, ...prefixes]);
 });
 
-test('the country scope carries both rollup indexes and country hubs only', () => {
+test('the country scope carries rollups, country hubs, and new dimension hubs', () => {
   const urls = select('country');
   assert.deepEqual(
     urls.filter((url) => url.endsWith('/vendor') || url.endsWith('/country')),
@@ -35,6 +37,7 @@ test('the country scope carries both rollup indexes and country hubs only', () =
     'the /country and /vendor rollups lead the set',
   );
   assert.ok(urls.some((url) => url.includes('/country/')));
+  assert.ok(urls.some((url) => url.includes('/registry/') || url.includes('/year/')));
   assert.ok(
     !urls.some((url) => url.includes('/vendor/') || url.includes('/former/')),
     'no vendor/former detail rows yet - those join the hubs scope',

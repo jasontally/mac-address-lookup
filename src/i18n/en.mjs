@@ -25,7 +25,7 @@ export const en = {
   'hub.nav.regions': 'Regions',
   'hub.nav.history': 'History',
   'hub.nav.successors': 'Successors',
-  'hub.nav.coverage': 'Coverage',
+  'hub.nav.recent': 'Latest OUIs',
 
   // Status
   'status.loadingRegistry': 'Loading registry…',
@@ -263,8 +263,6 @@ export const en = {
   'title.historyCountry': '{country} MAC address ownership history | MAC Address Lookup',
   'title.successorIndex': 'MAC address successors and acquisitions | MAC Address Lookup',
   'title.successor': '{org} acquired MAC address blocks | MAC Address Lookup',
-  'title.coverageIndex': 'MAC address coverage and subdivisions | MAC Address Lookup',
-  'title.coverage': '{prefix} MAC address coverage | MAC Address Lookup',
 
   // Hub headings (visible h1s; org and country names stay language-neutral)
   'hub.h1.vendor': '{org} MAC address blocks',
@@ -284,8 +282,6 @@ export const en = {
   'hub.h1.historyCountry': '{country} MAC address ownership history',
   'hub.h1.successorIndex': 'MAC address successors and acquisitions',
   'hub.h1.successor': '{org} acquired MAC address blocks',
-  'hub.h1.coverageIndex': 'MAC address coverage and subdivisions',
-  'hub.h1.coverage': '{prefix} MAC address coverage',
 
   // Skip link
   'a11y.skip': 'Skip to content',
@@ -347,9 +343,6 @@ export const en = {
   'hub.successorIndex.lede': 'The current owners of prefixes that changed hands, with the former portfolios they absorbed.',
   'hub.successors.all': 'Successors',
   'hub.successor.lede': '{blocks} blocks now registered to {org} came through {former} former-owner relationships.',
-  'hub.coverageIndex.lede': 'Parent ranges and the smaller registered blocks that refine them.',
-  'hub.coverage.all': 'Coverage',
-  'hub.coverage.lede': '{prefix} contains {blocks} smaller registered blocks covering {addresses} addresses.',
   'hub.completeNote':
     'Complete as of the current IEEE registry deploy. Dates are when each registration was first observed in public data, not legal assignment dates.',
 

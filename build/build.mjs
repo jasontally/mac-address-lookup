@@ -275,7 +275,7 @@ if (!flags.has('--no-pages')) {
     timelineRange,
   });
 
-  console.log('Generating registry, year, region, history, successor, and coverage pages...');
+  console.log('Generating registry, year, region, history, and successor pages...');
   const dimensions = await writeDimensionPages({
     records,
     lineageEntries,
@@ -295,7 +295,6 @@ if (!flags.has('--no-pages')) {
     ...dimensions.historyIndexUrls,
     ...dimensions.historyCountryIndexUrls,
     ...dimensions.successorIndexUrls,
-    ...dimensions.coverageIndexUrls,
   ];
   const dimensionUrls = [
     ...dimensions.registryUrls,
@@ -304,7 +303,6 @@ if (!flags.has('--no-pages')) {
     ...dimensions.historyUrls,
     ...dimensions.historyCountryUrls,
     ...dimensions.successorUrls,
-    ...dimensions.coverageUrls,
   ];
 
   // /recent before the sitemap: it reports its own lastmod inside
@@ -366,6 +364,7 @@ if (!flags.has('--no-pages')) {
       ...dimensionIndexUrls,
     ],
     countryUrls: hubFiles.countryUrls,
+    dimensionUrls,
     sitemapScope,
     homeUrl: langPages.sitemapEntry,
     langUrls: langPages.urls,
@@ -426,7 +425,7 @@ if (budget.errors.length > 0) {
       `country ${budget.stats.pagesByType.country} · former ${budget.stats.pagesByType.former} · ` +
       `registry ${budget.stats.pagesByType.registry} · year ${budget.stats.pagesByType.year} · ` +
       `region ${budget.stats.pagesByType.region} · history ${budget.stats.pagesByType.history} · ` +
-      `successor ${budget.stats.pagesByType.successor} · coverage ${budget.stats.pagesByType.coverage}), ` +
+      `successor ${budget.stats.pagesByType.successor}), ` +
       `${formatBytes(budget.stats.totalBytes)} total`,
   );
 }

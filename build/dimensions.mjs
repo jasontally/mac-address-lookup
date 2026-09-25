@@ -1,8 +1,8 @@
 /**
  * Additional registry dimensions: registry type, first-observed year,
- * region, ownership history/successors, historical country, and parent-block
- * coverage. All pages are static HTML with complete tables and deterministic
- * build-time links; dates are observation dates, never legal transfer dates.
+ * region, ownership history/successors, and historical country. All pages are
+ * static HTML with complete tables and deterministic build-time links; dates
+ * are observation dates, never legal transfer dates.
  */
 
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -283,35 +283,6 @@ export function computeHistoryCountryDimensions(lineageEntries, recordsByPrefix 
       prefixes: new Set(countryChanges.map((change) => change.prefix)).size,
       addresses: countryChanges.reduce((sum, change) => sum + (change.addressCount ?? 0), 0),
     }));
-}
-
-export function computeCoverageDimensions(records) {
-  const groups = new Map();
-  for (const record of records) {
-    if (record.prefixLen <= 24 || record.blockType === 'CID') continue;
-    const parent = record.prefix.slice(0, 6);
-    if (!groups.has(parent)) groups.set(parent, []);
-    groups.get(parent).push(record);
-  }
-
-  const byPrefix = new Map(records.map((record) => [record.prefix, record]));
-  return [...groups.entries()]
-    .filter(([, children]) => children.length >= 2)
-    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
-    .map(([parent, childRecords]) => {
-      const parentRecord = byPrefix.get(parent) ?? null;
-      const summary = summarizeRecords(childRecords);
-      return {
-        parent,
-        parentRecord,
-        url: `/coverage/${parent}`,
-        childRecords,
-        ...summary,
-        parentType: parentRecord?.blockType ?? null,
-        parentOrg: parentRecord?.orgName ?? null,
-        parentCountry: parentRecord?.country ?? null,
-      };
-    });
 }
 
 export function computeSuccessorDimensions(formerData, recordsByPrefix = new Map()) {
@@ -801,90 +772,6 @@ export function renderSuccessorPage({ dimension, assets, site = SITE, dataUpdate
   });
 }
 
-export function renderCoverageIndexPage({ dimensions, assets, site = SITE, dataUpdated = null }) {
-  const title = 'MAC address coverage and subdivisions | MAC Address Lookup';
-  const description = 'Parent MA-L ranges with registered MA-M, MA-S, or IAB child blocks.';
-  const rows = dimensions.map((dimension) =>
-    `            <tr><td class="mono"><a href="${escapeHtml(dimension.url)}">${escapeHtml(colonize(dimension.parent))}</a></td><td>${escapeHtml(dimension.parentOrg || 'IEEE subdivision')}</td><td>${escapeHtml(formatCount(dimension.blocks, 'en'))}</td><td class="num">${escapeHtml(formatAddresses(dimension.addresses, 'en'))}</td></tr>`,
-  );
-  const body = table(
-    [
-      { label: 'Parent prefix' },
-      { label: 'Parent organization' },
-      { label: 'Child blocks', key: 'table.blocks' },
-      { label: 'Child addresses', key: 'table.addresses' },
-    ],
-    rows,
-  );
-  return dimensionPage({
-    title,
-    titleKey: 'title.coverageIndex',
-    description,
-    canonical: `${site}/coverage`,
-    breadcrumbLabel: 'Coverage',
-    breadcrumbKey: 'hub.coverage.all',
-    heading: 'MAC address coverage and subdivisions',
-    headingKey: 'hub.h1.coverageIndex',
-    ledeHtml: `          <p class="lede" data-i18n="hub.coverageIndex.lede">Parent ranges and the smaller registered blocks that refine them.</p>`,
-    body,
-    assets,
-    dataUpdated,
-    site,
-  });
-}
-
-export function renderCoveragePage({ dimension, timelineRange, assets, site = SITE, dataUpdated = null }) {
-  const title = `${colonize(dimension.parent)} MAC address coverage | MAC Address Lookup`;
-  const description = `${dimension.blocks} smaller blocks refine ${colonize(dimension.parent)}, covering ${formatAddresses(dimension.addresses, 'en')} addresses.`;
-  const parentRow = dimension.parentRecord
-    ? [            `<tr><td class="mono"><a href="/${escapeHtml(dimension.parent)}">${escapeHtml(colonize(dimension.parent))}</a></td><td>${escapeHtml(dimension.parentOrg || '-')}</td><td>${escapeHtml(dimension.parentType)}</td><td>${countryAnchor(dimension.parentCountry)}</td><td class="num">${escapeHtml(formatAddresses(dimension.parentRecord.addressCount, 'en'))}</td></tr>` ]
-    : [];
-  const rows = dimension.childRecords.map((record) =>
-    `            <tr><td class="mono"><a href="/${escapeHtml(record.prefix)}">${escapeHtml(colonize(record.prefix))}</a></td><td>${orgAnchor(record)}</td><td>${escapeHtml(record.blockType)}</td><td>${countryAnchor(record.country)}</td><td class="num">${escapeHtml(formatAddresses(record.addressCount, 'en'))}</td></tr>`,
-  );
-  const body = `${statGrid([
-    ['Parent', `<code>${escapeHtml(colonize(dimension.parent))}</code>`],
-    ['Parent organization', dimension.parentOrg ? escapeHtml(dimension.parentOrg) : 'IEEE subdivision'],
-    ['Child blocks', formatCount(dimension.blocks, 'en')],
-    ['Child addresses', formatAddresses(dimension.addresses, 'en')],
-  ])}\n${renderAllocationTimeline(dimension.childRecords, { label: `${colonize(dimension.parent)} child allocations`, ...timelineRange })}\n<h2>Parent block</h2>\n${table(
-    [
-      { label: 'Prefix', key: 'table.prefix' },
-      { label: 'Organization', key: 'table.org' },
-      { label: 'Block', key: 'table.block' },
-      { label: 'Country', key: 'detail.country' },
-      { label: 'Addresses', key: 'table.addresses' },
-    ],
-    parentRow,
-  )}\n<h2>Child blocks</h2>\n${table(
-    [
-      { label: 'Prefix', key: 'table.prefix' },
-      { label: 'Organization', key: 'table.org' },
-      { label: 'Block', key: 'table.block' },
-      { label: 'Country', key: 'detail.country' },
-      { label: 'Addresses', key: 'table.addresses' },
-    ],
-    rows,
-  )}`;
-  return dimensionPage({
-    title,
-    titleKey: 'title.coverage',
-    titleParams: { prefix: colonize(dimension.parent) },
-    description,
-    canonical: `${site}${dimension.url}`,
-    breadcrumbLabel: colonize(dimension.parent),
-    breadcrumbParent: { name: 'Coverage', url: `${site}/coverage`, key: 'hub.coverage.all' },
-    heading: `${escapeHtml(colonize(dimension.parent))} MAC address coverage`,
-    headingKey: 'hub.h1.coverage',
-    headingParams: { prefix: colonize(dimension.parent) },
-    ledeHtml: `          <p class="lede" data-i18n="hub.coverage.lede" ${paramsAttr({ prefix: colonize(dimension.parent), blocks: dimension.blocks, addresses: dimension.addresses })}>${escapeHtml(colonize(dimension.parent))} contains ${escapeHtml(formatCount(dimension.blocks, 'en'))} smaller registered blocks covering ${escapeHtml(formatAddresses(dimension.addresses, 'en'))} addresses.</p>`,
-    body,
-    assets,
-    dataUpdated,
-    site,
-  });
-}
-
 /* ------------------------------ Page writing ------------------------------- */
 
 export async function writeDimensionPages({
@@ -919,7 +806,6 @@ export async function writeDimensionPages({
   const history = computeHistoryDimensions(lineageEntries, new Map(records.map((record) => [record.prefix, record])));
   const historyCountries = computeHistoryCountryDimensions(lineageEntries, new Map(records.map((record) => [record.prefix, record])));
   const successors = computeSuccessorDimensions(formerData, new Map(records.map((record) => [record.prefix, record])));
-  const coverage = computeCoverageDimensions(records);
 
   const urls = {
     registryIndexUrls: [],
@@ -934,8 +820,6 @@ export async function writeDimensionPages({
     historyCountryUrls: [],
     successorIndexUrls: [],
     successorUrls: [],
-    coverageIndexUrls: [],
-    coverageUrls: [],
   };
 
   await mkdir(path.join(outDir, 'registry'), { recursive: true });
@@ -943,7 +827,6 @@ export async function writeDimensionPages({
   await mkdir(path.join(outDir, 'region'), { recursive: true });
   await mkdir(path.join(outDir, 'history', 'country'), { recursive: true });
   await mkdir(path.join(outDir, 'successor'), { recursive: true });
-  await mkdir(path.join(outDir, 'coverage'), { recursive: true });
 
   await renderTracked(path.join(outDir, 'registry.html'), `${site}/registry`, (date) => renderRegistryIndexPage({ dimensions: registries, assets, site, dataUpdated: date }));
   urls.registryIndexUrls.push('/registry');
@@ -987,12 +870,5 @@ export async function writeDimensionPages({
     urls.successorUrls.push(dimension.url);
   }
 
-  await renderTracked(path.join(outDir, 'coverage.html'), `${site}/coverage`, (date) => renderCoverageIndexPage({ dimensions: coverage, assets, site, dataUpdated: date }));
-  urls.coverageIndexUrls.push('/coverage');
-  for (const dimension of coverage) {
-    await renderTracked(path.join(outDir, 'coverage', `${dimension.parent}.html`), `${site}${dimension.url}`, (date) => renderCoveragePage({ dimension, timelineRange, assets, site, dataUpdated: date }));
-    urls.coverageUrls.push(dimension.url);
-  }
-
-  return { ...urls, registries, years, regions, history, historyCountries, successors, coverage };
+  return { ...urls, registries, years, regions, history, historyCountries, successors };
 }

@@ -254,13 +254,13 @@ a second block), so the portal/prefix split inside the 90,000 cap self-balances.
 - **Dimension pages** (`build/dimensions.mjs`, 2026-09-25): registry type
   (`/registry/<type>`), first-observed year (`/year/<year>`), region
   (`/region/<slug>`), ownership history (`/history/<year>` and
-  `/history/country/<code>`), successors (`/successor/<slug>`), and parent-block
-  coverage (`/coverage/<parent>`). Vendor, country, region, registry, and
-  coverage pages include a static SVG allocation timeline over the full
-  1998–current dataset range; bars are address space (log-scaled) and dots are
-  allocation counts. The lineage events also carry the historical `c` country
-  from runZero for the history-country views. Detail URLs join the sitemap in
-  the `hubs` scope; their seven indexes join the `country` scope.
+  `/history/country/<code>`), and successors (`/successor/<slug>`). Vendor,
+  country, region, registry pages include a static SVG allocation timeline over
+  the full 1998–current dataset range; bars are address space (log-scaled) and
+  dots are allocation counts. The lineage events also carry the historical `c`
+  country from runZero for the history-country views. Dimension detail URLs join
+  the sitemap and IndexNow scope in the `country` phase; their indexes lead the
+  set through `rollupUrls`.
 - **Canonical & alternate URLs (audited 2026-09-22):** every static page is self-referential and points at the exact URL that serves it — `/`, `/help`, `/recent`, the 30 `/lang/{locale}/` homes, prefix pages (uppercase, extensionless), and all hubs; Cloudflare `html_handling` 307s `.html`, trailing-slash and case variants onto those URLs (verified live). The home set carries one identical hreflang cluster (en + 30 locales + `x-default`) in the HTML of all 31 pages and on the sitemap's home entry. The only URLs without a self-canonical are dynamic paths: `not_found_handling: single-page-application` returns the shell at `200` with the shell's own `canonical → /`, and `noindex, follow` is added client-side (`src/ui/app.mjs`). Google reports those as **"Alternate page with proper canonical tag"** — expected for internal search results, which is what the ~22 excluded URLs are (the only non-static internal links are the 3,472 vendor-hub "Free-text search" links to `/<org name>`; every other internal link resolves to a real file). Nothing to fix: canonical-to-`/` + `noindex` is the sanctioned treatment for internal search results.
 - Sitemap order: home, `/help`, `/recent`, hub pages, then prefixes — hubs ahead of the bulk.
 - The home page is generated at build time with ten FAQ entries; the visible content and `FAQPage` schema come from a single source (`build/faq.mjs`), and a `WebSite` + `SearchAction` node covers `?q=` deep links.

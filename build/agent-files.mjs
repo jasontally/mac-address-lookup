@@ -80,8 +80,6 @@ export function llmsTxt({ dataFiles = {} } = {}) {
   views of ownership-change records.
 - \`/successor\` and \`/successor/{slug}\` - current owners of transferred
   prefixes and the former owners they absorbed.
-- \`/coverage\` and \`/coverage/{parent}\` - parent ranges with smaller
-  registered child blocks.
 - \`/{vendor-name}\` - free-text search over vendors, former owners, countries,
   block types, prefixes, and registration years. Results are an HTML table.
 - \`/{a},{b}\` - batch lookup of comma-separated addresses (up to 250).
@@ -181,10 +179,10 @@ registration itself, each with its complete table:
   block, including acquisitions where one new owner took over all of them
   (for example [Apple Computer](${site}/former/apple-computer), whose blocks are
   now registered to Apple, Inc.).
-- **Registry, year, region, history, successor, and coverage pages**: additional
+- **Registry, year, region, history, and successor pages**: additional
   dimensions with complete tables at \`${site}/registry\`, \`${site}/year\`,
-  \`${site}/region\`, \`${site}/history\`, \`${site}/successor\`, and
-  \`${site}/coverage\`; each index links its own detail pages.
+  \`${site}/region\`, \`${site}/history\`, and \`${site}/successor\`; each
+  index links its own detail pages.
 
 ## Frequently asked questions
 

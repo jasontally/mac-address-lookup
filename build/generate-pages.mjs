@@ -38,14 +38,17 @@ export function sitemapUrlSelection({
   rollupUrls = [],
   hubUrls = [],
   countryUrls = [],
+  dimensionUrls = [],
   prefixUrls = [],
 } = {}) {
   const base = [...coreUrls, ...langUrls];
   if (scope === 'core') return base;
-  // The /country and /vendor rollup indexes lead every hub-carrying scope.
-  if (scope === 'country') return [...base, ...rollupUrls, ...countryUrls];
-  if (scope === 'hubs') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls];
-  if (scope === 'all') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...prefixUrls];
+  // The /country and /vendor rollup indexes lead every hub-carrying scope, and
+  // the new dimension hubs ride with the country phase so their detail pages
+  // are discoverable immediately.
+  if (scope === 'country') return [...base, ...rollupUrls, ...countryUrls, ...dimensionUrls];
+  if (scope === 'hubs') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...dimensionUrls];
+  if (scope === 'all') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...dimensionUrls, ...prefixUrls];
   throw new Error(`Unknown sitemap scope: ${scope}`);
 }
 
@@ -65,6 +68,7 @@ export async function generatePages({
   hubUrls = [],
   rollupUrls = [],
   countryUrls = [],
+  dimensionUrls = [],
   langUrls = [],
   sitemapScope = 'all',
   homeUrl = null,
@@ -131,6 +135,7 @@ export async function generatePages({
     hubUrls: hubUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     rollupUrls: rollupUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     countryUrls: countryUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
+    dimensionUrls: dimensionUrls.map((url) => `${site}${url.startsWith('/') ? url : `/${url}`}`),
     prefixUrls: selected.map((record) => `${site}/${record.prefix}`),
   });
   const sitemap = await writeSitemaps({ urls, site, outDir, lastmod, lastmodFor: pageTracker?.lastmodFor ?? null });

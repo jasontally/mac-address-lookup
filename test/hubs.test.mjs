@@ -333,12 +333,11 @@ test('renderVendorIndexPage rolls up blocks and addresses per organization', () 
     /carries 12 blocks registered to 3 organizations with two or more blocks, together 101 million addresses/,
   );
 
-  // Every row ships visible; the index hides its own footer link but keeps
-  // the sibling index's.
+  // Every row ships visible; the footer no longer carries hub links.
   assert.equal((html.match(/<tr hidden>/g) ?? []).length, 0, 'every row ships visible');
   assert.ok(!html.includes('<tfoot>'), 'no expand row on index tables');
+  assert.ok(!html.includes('href="/country" data-i18n="footer.countries"'));
   assert.ok(!html.includes('href="/vendor" data-i18n="footer.vendors"'));
-  assert.match(html, /href="\/country" data-i18n="footer\.countries"/);
 });
 
 test('country pages and vendor pages breadcrumb through their rollup indexes', () => {
@@ -370,7 +369,7 @@ test('country pages and vendor pages breadcrumb through their rollup indexes', (
     'the visible breadcrumb carries an index link above the country',
   );
   assert.match(html, /"position":3,"name":"Hong Kong"/, 'the JSON-LD breadcrumb has three items');
-  assert.match(html, /href="\/country" data-i18n="footer\.countries"/, 'country pages link the index in the footer too');
+  assert.ok(!html.includes('href="/country" data-i18n="footer.countries"'), 'footer hub links are removed');
 
   const vendor = renderOrgHubPage({ hub: orgHub, assets: ASSETS, site: 'https://example.test' });
   assert.match(
@@ -379,8 +378,8 @@ test('country pages and vendor pages breadcrumb through their rollup indexes', (
     'the visible breadcrumb carries an index link above the vendor',
   );
   assert.match(vendor, /"position":3,"name":"Apple Inc\."/, 'the JSON-LD breadcrumb has three items');
-  assert.match(vendor, /href="\/country" data-i18n="footer\.countries"/);
-  assert.match(vendor, /href="\/vendor" data-i18n="footer\.vendors"/, 'non-index pages keep the Vendors footer link');
+  assert.ok(!vendor.includes('href="/country" data-i18n="footer.countries"'), 'footer hub links are removed');
+  assert.ok(!vendor.includes('href="/vendor" data-i18n="footer.vendors"'), 'footer hub links are removed');
 });
 
 test('computeFormerHubs rolls up takeovers and skips single-prefix former orgs', () => {

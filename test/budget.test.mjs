@@ -27,7 +27,6 @@ test('countPages counts prefix and hub pages by class, excluding shells', () => 
     region: 0,
     history: 0,
     successor: 0,
-    coverage: 0,
     total: 6,
   });
 });
@@ -45,7 +44,6 @@ test('checkBudget passes small outputs', () => {
     region: 0,
     history: 0,
     successor: 0,
-    coverage: 0,
   });
   assert.equal(result.stats.pages, 2);
   assert.equal(result.stats.files, 4);
