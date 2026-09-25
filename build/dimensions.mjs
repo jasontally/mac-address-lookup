@@ -166,7 +166,7 @@ export function computeRegistryDimensions(records) {
     groups.get(key).push(record);
   }
   return [...groups.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
+    .sort((a, b) => b[1].reduce((s, r) => s + r.addressCount, 0) - a[1].reduce((s, r) => s + r.addressCount, 0) || a[0].localeCompare(b[0]))
     .map(([type, typeRecords]) => ({
       type,
       slug: typeSlug(type),
@@ -202,7 +202,7 @@ export function computeRegionDimensions(records) {
     groups.get(key).push(record);
   }
   return [...groups.entries()]
-    .sort((a, b) => regionName(a[0]).localeCompare(regionName(b[0])))
+    .sort((a, b) => b[1].reduce((s, r) => s + r.addressCount, 0) - a[1].reduce((s, r) => s + r.addressCount, 0) || regionName(a[0]).localeCompare(regionName(b[0])))
     .map(([key, regionRecords]) => {
       const countryCodes = [...new Set(regionRecords.map((r) => r.country).filter(Boolean))].sort();
       return {

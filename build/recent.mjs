@@ -9,7 +9,7 @@ import { writeFile } from 'node:fs/promises';
 import { escapeHtml, SITE } from './page-template.mjs';
 import { colonize, formatDate } from '../src/ui/format.mjs';
 
-const RECENT_LIMIT = 50;
+const RECENT_LIMIT = 200;
 
 const BOOT = `(function () {
         try {

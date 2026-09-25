@@ -79,6 +79,7 @@ test('dimension computations group registry, year, region, history, and successo
   assert.deepEqual(registries.map((entry) => entry.type), ['MA-L', 'MA-S']);
   assert.deepEqual(years.map((entry) => entry.year), ['2020', '2022']);
   assert.equal(regions.find((entry) => entry.key === 'europe').blocks, 2);
+  assert.deepEqual(regions.map((entry) => entry.key), ['americas', 'europe'], 'regions sort by address space');
 
   const lineage = [
     {
