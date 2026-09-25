@@ -15,10 +15,8 @@ The app does no tracking: there are no ads, no cookies, and every lookup runs in
 - **VM & hypervisor detection** — recognizes VMware, VirtualBox, Hyper-V, KVM, Docker, Xen, and similar ranges
 - **IEEE block details** — assignment type, block size, address range, registered country, and organization details
 - **Prefix lineage** — for prefixes that changed hands (acquisitions, renames), a timeline of organizations and when each change was first observed
-- **Paste anything** — drop CLI output (`arp -a`, switch tables, logs) into the search box or batch lookup; every full MAC address inside is extracted and looked up, with non-address text ignored
-- **Vendor and former-owner search** — type a company name to list its prefixes; names from lineage match too ("Tekelec" finds the prefix that became Oracle), plus country names ("Germany"), registry types, and registration years
-- **Batch summary** — compact counts by vendor, randomized addresses, virtual machines, and unregistered prefixes for pasted lists
-- **Registration dates and portfolios** — first-registered dates for every prefix, and per-vendor block/address-space totals
+- **Paste anything** — drop CLI output (`arp -a`, switch tables, logs) into the search box; every full MAC address inside is extracted and looked up, with non-address text ignored
+- **Vendor and former-owner search** — type a company name to list its prefixes; names from lineage match too ("Tekelec" finds the prefix that became Oracle), plus country names ("Germany"), registry types, and registration years- **Registration dates and portfolios** — first-registered dates for every prefix, and per-vendor block/address-space totals
 - **Format conversions** — see the address in every common notation
 - **URL-driven lookups** — no pasting required: `mac.jasontally.com/001A2B` renders the result directly. Batch lookups and vendor searches work the same way.
 - **Static & private** — the IEEE dataset loads in the browser; all searching, processing, and presentation happen locally, and the addresses you look up are never processed by a server. The app sets no cookies. The host (Cloudflare) collects privacy-first, cookieless, aggregate web analytics (Cloudflare Web Analytics).
@@ -27,7 +25,7 @@ The app does no tracking: there are no ads, no cookies, and every lookup runs in
 
 ## URL-driven lookups
 
-Navigate directly to a result — no form submission needed. Everything after `/` is the query (address, prefix, batch list, or vendor/country/former-owner text):
+Navigate directly to a result — no form submission needed. Everything after `/` is the query (address, prefix, vendor/country/former-owner text):
 
 | URL | Result |
 | --- | --- |

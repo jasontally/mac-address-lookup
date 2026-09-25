@@ -156,10 +156,7 @@ test.describe('Path-based routing', () => {
   });
 
   test('batch export buttons produce CSV and copy JSON', async ({ page }) => {
-    await page.goto('/');
-    await page.click('#batch summary');
-    await page.fill('#batch-input', '00:1A:2B 00:50:56');
-    await page.click('#batch-form button[type=submit]');
+    await page.goto('/001A2B,005056');
     await expect(page.locator('.result-card h2')).toContainText('2');
     const download = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download CSV' }).click();
@@ -205,10 +202,7 @@ test.describe('Path-based routing', () => {
   });
 
   test('batch share URL uses %2C to avoid a redirect round trip', async ({ page }) => {
-    await page.goto('/');
-    await page.click('#batch summary');
-    await page.fill('#batch-input', '00:1A:2B 00:50:56');
-    await page.click('#batch-form button[type=submit]');
+    await page.goto('/001A2B 005056');
     await expect(page.locator('.result-card h2')).toContainText('2');
     expect(await page.evaluate(() => location.pathname)).toBe('/001A2B%2C005056');
   });

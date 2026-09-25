@@ -42,9 +42,6 @@ const ui = {
   history: document.getElementById('history'),
   historyList: document.getElementById('history-list'),
   historyClear: document.getElementById('history-clear'),
-  batchForm: document.getElementById('batch-form'),
-  batchInput: document.getElementById('batch-input'),
-  batchStatus: document.getElementById('batch-status'),
   lastUpdated: document.getElementById('last-updated'),
   themeToggle: document.getElementById('theme-toggle'),
 };
@@ -273,17 +270,6 @@ async function runBatch(text, { push = true } = {}) {
       },
     });
 
-    if (ui.batchStatus) {
-      ui.batchStatus.textContent =
-        tokens.length > MAX_BATCH
-          ? t('status.limited', { max: formatCount(MAX_BATCH), total: formatCount(tokens.length) })
-          : limited.length === 1
-            ? t(fromText ? 'status.addressExtracted' : 'status.addressLookedUp', { count: 1 })
-            : t(fromText ? 'status.addressesExtracted' : 'status.addressesLookedUp', {
-                count: formatCount(limited.length),
-              });
-    }
-
     const canonical = canonicalQuery(limited);
     if (canonical) updateUrl(`/${encodeURIComponent(canonical)}`, { push });
     setRobotsMeta(true);
@@ -424,11 +410,6 @@ if (!staticPage) {
   ui.form.addEventListener('submit', (event) => {
     event.preventDefault();
     handleInput(ui.input.value);
-  });
-
-  ui.batchForm?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    runBatch(ui.batchInput.value);
   });
 
   ui.examples?.addEventListener('click', (event) => {

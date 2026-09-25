@@ -30,15 +30,7 @@ export const en = {
   // Status
   'status.loadingRegistry': 'Loading registry…',
 
-  // Batch
-  'batch.title': 'Batch lookup',
-  'batch.description':
-    'Paste MAC addresses or CLI output: up to 250 addresses, commas, spaces, and new lines all work.',
-  'batch.label': 'MAC addresses',
-  'batch.placeholder': '00:1B:21:3C:4D:5E\narp -a output\nFA:CA:DE:00:00:01',
-  'batch.submit': 'Look up addresses',
-  'batch.exportCsv': 'Download CSV',
-  'batch.exportJson': 'Copy JSON',
+  // Batch summary/result labels
 
   // History
   'history.title': 'Recent lookups',

@@ -114,7 +114,6 @@ Typography scale (px): 12 / 13 / 14 / 16 / 18 / 20 / 24 / 30 with paired line he
 - Badges: block type (MA-L/MA-M/MA-S/IAB/CID), "randomized", "VM/hypervisor".
 - Banner: randomization explanation, invalid input, spoofing caveat.
 - Description list for block details (type, range, count, country, registered org).
-- Batch results table (collapses to cards on mobile).
 - Summary line: compact counts under result headings (vendors, randomized, virtual machines) in subtle text — no color, no extra chrome.
 - Lineage timeline: chronological list of organization names with observed dates; neutral styling with an "observed dates" caveat and source credit; rendered only for exact prefixes that changed hands.
 - FAQ disclosures (`details`/`summary`) with prose styling.

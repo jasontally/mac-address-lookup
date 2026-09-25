@@ -6,7 +6,7 @@ Related docs: [design language](design.md) · [README](../README.md)
 
 ## Overview
 
-A static, assets-only Cloudflare Worker serving a client-side MAC address lookup tool. Pre-rendered HTML pages cover the largest and most-searched IEEE prefixes so search engines can index them and people can find them; everything else (trimmed long-tail prefixes, full-MAC deep links, batch) is resolved in the browser via the SPA fallback. The registry and its prefix-lineage history ship as two small Parquet files read with Hyparquet. No server code, no API, no in-app analytics. The project is feature-complete; this document is the maintenance reference.
+A static, assets-only Cloudflare Worker serving a client-side MAC address lookup tool. Pre-rendered HTML pages cover the largest and most-searched IEEE prefixes so search engines can index them and people can find them; everything else (trimmed long-tail prefixes, full-MAC deep links, is resolved in the browser via the SPA fallback. The registry and its prefix-lineage history ship as two small Parquet files read with Hyparquet. No server code, no API, no in-app analytics. The project is feature-complete; this document is the maintenance reference.
 
 ```
 Build (Workers Builds)                          Runtime (Cloudflare edge)
@@ -39,7 +39,7 @@ Build (Workers Builds)                          Runtime (Cloudflare edge)
 mac-address-lookup/
 ├── src/                    # client app (committed)
 │   ├── engine/             # normalization, lookup, bits, formats, lineage, slugs
-│   ├── ui/                 # rendering, deep links, batch, history, theme
+│   ├── ui/                 # rendering, deep links, history, theme
 │   └── styles/             # token layer + component CSS
 ├── build/                  # Node build pipeline (committed)
 │   ├── build.mjs           # orchestrator
@@ -125,7 +125,6 @@ The data lives in its own Parquet file so it can be updated, attributed, and rea
 - **Free-text search** (`searchRegistry`): matches current organizations, former organizations from lineage, country names and codes, registry types, prefixes, and registration years; all tokens must match; ranked by match quality; capped at 500; results are `noindex`.
 - **Summaries** (`summarizeLookups`): batch and extraction views show counts by vendor, randomized addresses, virtual machines, unregistered prefixes, and invalid inputs.
 - **Vendor portfolios** (`registry.portfolio`): registered block count and total address space per organization, shown on results with a "View all prefixes" action that navigates to the org's static hub (`/vendor/<slug>`, resolved via the registry's `vendor_hub` column); search-result portfolio lines link there too.
-- **Batch**: split on comma/whitespace/newline, dedupe, cap 250, results table (collapses to cards on mobile).
 
 ## UI structure
 
