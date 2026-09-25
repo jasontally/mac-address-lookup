@@ -17,32 +17,73 @@ const lookupInput = document.getElementById('lookup-input');
 
 function wireAllocationTimelines() {
   for (const figure of document.querySelectorAll('.allocation-timeline')) {
-    const svg = figure.querySelector('svg');
+    const svg = figure.querySelector('.allocation-chart');
     const tooltip = figure.querySelector('.allocation-tooltip');
+    const crosshair = figure.querySelector('.allocation-crosshair');
     if (!svg || !tooltip) continue;
 
-    const needles = [...svg.querySelectorAll('[aria-label][stroke-opacity]')];
-    if (!needles.length) continue;
+    const points = JSON.parse(svg.dataset.points ?? '[]');
+    const maxAddresses = Number(svg.dataset.maxAddresses ?? 0);
+    const startDate = svg.dataset.startDate;
+    const endDate = svg.dataset.endDate;
+    const left = Number(svg.dataset.left ?? 0);
+    const right = Number(svg.dataset.right ?? 0);
+    const width = svg.viewBox?.baseVal?.width ?? 0;
+    const plotWidth = width - left - right;
+    if (!points.length || !maxAddresses || !plotWidth) continue;
+
+    const startTime = Date.parse(`${startDate}T00:00:00Z`);
+    const endTime = Date.parse(`${endDate}T00:00:00Z`);
+    if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) continue;
+
+    const svgX = (event) => {
+      const rect = svg.getBoundingClientRect();
+      return ((event.clientX - rect.left) / rect.width) * width;
+    };
+    const valueAt = (x) => {
+      // Step-after interpolation over raw [x, cumulativeValue] pairs: the
+      // cumulative total holds steady until the next allocation's x position.
+      let low = 0;
+      let high = points.length - 1;
+      if (x <= points[0][0]) return 0;
+      while (high - low > 1) {
+        const mid = (low + high) >> 1;
+        if (points[mid][0] <= x) low = mid;
+        else high = mid;
+      }
+      return points[low][1];
+    };
 
     const show = (event) => {
-      const target = event.target.closest('[aria-label]');
-      if (!target?.getAttribute('aria-label')) {
-        tooltip.hidden = true;
-        return;
+      const x = svgX(event);
+      const ratio = Math.min(1, Math.max(0, (x - left) / plotWidth));
+      const timestamp = startTime + ratio * (endTime - startTime);
+      const date = new Date(timestamp).toISOString().slice(0, 10);
+      const value = valueAt(x);
+      const formattedValue =
+        value > 0 ? `${formatCount(value, getLocale())} addresses` : 'No allocations';
+      if (crosshair) {
+        const lineX = left + ratio * plotWidth;
+        crosshair.setAttribute('x1', String(lineX));
+        crosshair.setAttribute('x2', String(lineX));
+        crosshair.setAttribute('visibility', 'visible');
       }
-      tooltip.textContent = target.getAttribute('aria-label');
+
+      tooltip.textContent = `${formatDate(date, getLocale())} · ${formattedValue} total`;
       tooltip.hidden = false;
       const rect = figure.getBoundingClientRect();
       const pointerX = event.clientX - rect.left;
       const pointerY = event.clientY - rect.top;
       tooltip.style.left = `${Math.min(Math.max(pointerX, 8), Math.max(8, rect.width - 8))}px`;
-      tooltip.style.top = `${Math.max(pointerY - 10, 8)}px`;
+      tooltip.style.top = `${Math.max(pointerY - 8, 8)}px`;
     };
     const hide = () => {
       tooltip.hidden = true;
+      crosshair?.setAttribute('visibility', 'hidden');
     };
 
     svg.addEventListener('pointermove', show);
+    svg.addEventListener('pointerdown', show);
     svg.addEventListener('pointerleave', hide);
   }
 }

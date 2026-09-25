@@ -234,7 +234,7 @@ main {
   text-decoration: none;
 }
 
-/* Static allocation timeline: Observable Plot spike/needle chart, inline SVG. */
+/* Static allocation timeline */
 .allocation-timeline {
   position: relative;
   margin: var(--space-5) 0;
@@ -244,23 +244,57 @@ main {
   background: var(--color-surface);
 }
 
-/* Plot's default figure style uses a class like `.plot-a1b2c3…`. We only set
-   the container sizing here; Plot's own <style> handles max-width, display. */
 .allocation-timeline svg {
-  display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
   cursor: crosshair;
   touch-action: pan-y;
 }
 
-.allocation-timeline svg [aria-label] {
-  cursor: crosshair;
+.allocation-axis {
+  stroke: var(--color-hairline);
+  stroke-width: 1;
 }
 
-/* Needle hover highlight (Plot emits the lines, not custom classes). */
-.allocation-timeline svg [stroke-opacity]:hover {
-  stroke-width: 2;
+.allocation-area {
+  fill: var(--color-accent);
+  fill-opacity: 0.08;
+}
+
+.allocation-line {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.allocation-grid {
+  stroke: var(--color-hairline);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  pointer-events: none;
+}
+
+.allocation-tick {
+  fill: var(--text-subtle);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.allocation-crosshair {
+  stroke: var(--color-line);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  pointer-events: none;
+}
+
+.allocation-year {
+  fill: var(--text-subtle);
+  font-size: 12px;
+  font-family: var(--font-mono);
 }
 
 .allocation-tooltip {

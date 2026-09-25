@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { renderAllocationTimeline, datasetDateRange } from '../build/timeline.mjs';
+import { renderAllocationTimeline, allocationDates, datasetDateRange } from '../build/timeline.mjs';
 import {
   computeRegistryDimensions,
   computeYearDimensions,
@@ -35,20 +35,33 @@ const record = (prefix, extras = {}) => ({
   ...extras,
 });
 
-test('allocation timeline is an Observable Plot inline SVG with needle marks', () => {
-  const html = renderAllocationTimeline(
+test('allocation timelines use exact dates and the full dataset range', () => {
+  const dates = allocationDates(
     [
-      record('000001', { firstSeen: '2010-01-01', blockType: 'MA-L', addressCount: 16_777_216 }),
-      record('000002', { firstSeen: '2015-06-15', blockType: 'MA-M', addressCount: 1_048_576 }),
-      record('000003', { firstSeen: '2020-03-01', blockType: 'MA-S', addressCount: 4096 }),
+      record('000001', { firstSeen: '1998-01-01' }),
+      record('000002', { firstSeen: '2020-01-01' }),
+      record('000003', { firstSeen: '2020-01-01', addressCount: 1_048_576 }),
     ],
-    { startDate: '1998-04-22', endDate: '2026-09-25' },
+    { startDate: '1998-01-01', endDate: '2020-01-01' },
   );
-  assert.match(html, /<svg/);
-  assert.match(html, /aria-label="[0-9-]+ · M/);
-  assert.match(html, /allocation-timeline/);
-  assert.match(html, /allocation-tooltip/);
-  assert.doesNotMatch(html, /allocation-line|allocation-bar|data-points/);
+  assert.equal(dates.startDate, '1998-01-01');
+  assert.equal(dates.endDate, '2020-01-01');
+  assert.equal(dates.points.length, 2);
+  assert.equal(dates.points[0].date, '1998-01-01');
+  assert.equal(dates.points.at(-1).addresses, 16_777_216 + 1_048_576);
+});
+
+test('timeline chart is a continuous date line with hover data', () => {
+  const html = renderAllocationTimeline(
+    [record('000001', { firstSeen: '2010-01-01' })],
+    { startDate: '1998-01-01', endDate: '2026-12-31' },
+  );
+  assert.match(html, /allocation-line/);
+  assert.match(html, /data-start-date="1998-01-01"/);
+  assert.match(html, /data-end-date="2026-12-31"/);
+  assert.match(html, /Cumulative address space/);
+
+  assert.match(html, /hover for date and total/);
 });
 
 test('datasetDateRange ignores missing dates and bounds the range', () => {
