@@ -76,10 +76,8 @@ function buildPathPoints(entries, {
   const logMax = Math.log10(1 + maxAddresses);
   const xFor = (timestamp) =>
     left + ((timestamp - startTime) / (endTime - startTime)) * plotWidth;
-  const yFor = (value) => {
-    const normalized = Math.log10(1 + Math.max(0, value)) / logMax;
-    return top + plotHeight * (1 - normalized);
-  };
+  const yFor = (value) =>
+    normalizedY(value, { plotHeight, logMax }) + top;
   const point = (timestamp, value) => ({
     x: xFor(timestamp),
     y: yFor(value),
@@ -105,6 +103,53 @@ function buildPathPoints(entries, {
   return points;
 }
 
+/** Distance from the baseline for one value on the log1p scale. */
+function normalizedY(value, { plotHeight, logMax }) {
+  const normalized = Math.log10(1 + Math.max(0, value)) / logMax;
+  return plotHeight * (1 - normalized);
+}
+
+/** Round one y-scale tick to a readable power of ten (or 3× / 2× of one). */
+function yTick(maxAddresses, index, total) {
+  const target = maxAddresses / 2 ** (total - index);
+  const magnitude = 10 ** Math.floor(Math.log10(target));
+  const scaled = target / magnitude;
+  const step = scaled < 1.5 ? 1 : scaled < 3.5 ? 2 : scaled < 7.5 ? 5 : 10;
+  return step * magnitude;
+}
+
+/** Abbreviated axis label for an address count ("4.1 thousand", "16.8 million"). */
+function tickLabel(value) {
+  if (value >= 1e12) return `${trimValue(value / 1e12)} trillion`;
+  if (value >= 1e9) return `${trimValue(value / 1e9)} billion`;
+  if (value >= 1e6) return `${trimValue(value / 1e6)} million`;
+  if (value >= 1e3) return `${trimValue(value / 1e3)} thousand`;
+  return formatNumber(value);
+}
+
+function trimValue(scaled) {
+  return scaled % 1 === 0 ? String(scaled) : scaled.toFixed(1);
+}
+
+/** Evenly spaced year labels across the plot's start and end years. */
+function xTicks(startTime, endTime, count) {
+  const ticks = [];
+  const startYear = new Date(startTime).getUTCFullYear();
+  const endYear = new Date(endTime).getUTCFullYear();
+  const years = endYear - startYear;
+  if (years <= 0) {
+    return [{ timestamp: new Date(Date.UTC(startYear, 0, 1)).getTime(), label: String(startYear) }];
+  }
+  const step = Math.max(1, Math.ceil(years / (count - 1)));
+  for (let year = startYear; year <= endYear; year += step) {
+    ticks.push({
+      timestamp: new Date(Date.UTC(year, 0, 1)).getTime(),
+      label: String(year),
+    });
+  }
+  return ticks;
+}
+
 function linePath(points) {
   return points
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
@@ -127,19 +172,23 @@ export function renderAllocationTimeline(records, {
 
   const width = 720;
   const height = 160;
-  const left = 8;
+  const left = 56;           // room for y-axis tick labels
   const right = width - 8;
   const top = 18;
   const bottom = 30;
   const baseline = top + (height - top - bottom);
   const maxAddresses = Math.max(...dated.map((entry) => entry.addresses), 1);
+  const logMax = Math.log10(1 + maxAddresses);
+  const plotHeight = baseline - top;
+  const startTime = Date.parse(`${resolvedStart}T00:00:00Z`);
+  const endTime = Date.parse(`${resolvedEnd}T00:00:00Z`);
   const pathPoints = buildPathPoints(dated, {
-    startTime: Date.parse(`${resolvedStart}T00:00:00Z`),
-    endTime: Date.parse(`${resolvedEnd}T00:00:00Z`),
+    startTime,
+    endTime,
     left,
     right,
     top,
-    plotHeight: baseline - top,
+    plotHeight,
     maxAddresses,
   });
   if (pathPoints.length === 0) return '';
@@ -153,6 +202,28 @@ export function renderAllocationTimeline(records, {
     startYear === endYear ? formatDate(resolvedStart, 'en') : startYear;
   const endLabel =
     startYear === endYear ? formatDate(resolvedEnd, 'en') : endYear;
+
+  // Y ticks: two interior gridlines plus the max label at the top.
+  const yTicks = [maxAddresses, yTick(maxAddresses, 2, 3), yTick(maxAddresses, 1, 3)]
+    .filter((value, index, all) => value > 0 && all.indexOf(value) === index);
+  const yGrid = yTicks
+    .map((value) => {
+      const y = top + normalizedY(value, { plotHeight, logMax });
+      return [
+        `          <line class="allocation-grid" x1="${left}" y1="${y.toFixed(2)}" x2="${right}" y2="${y.toFixed(2)}" />`,
+        `          <text class="allocation-tick" x="${left - 6}" y="${(y + 3).toFixed(2)}" text-anchor="end">${escapeSvg(tickLabel(value))}</text>`,
+      ].join('\n');
+    })
+    .join('\n');
+
+  // X ticks: evenly spaced years between the range endpoints.
+  const xTickLabels = xTicks(startTime, endTime, 6)
+    .map((tick) => {
+      const x = left + ((tick.timestamp - startTime) / (endTime - startTime)) * (right - left);
+      return `          <text class="allocation-tick allocation-tick--x" x="${x.toFixed(2)}" y="${height - 6}" text-anchor="middle">${escapeSvg(tick.label)}</text>`;
+    })
+    .join('\n');
+
   const ariaLabel = `${label} by first-observed date, ${formatDate(resolvedStart, 'en')} through ${formatDate(resolvedEnd, 'en')}. ${note}`;
 
   return `      <figure class="allocation-timeline" role="img" aria-label="${escapeSvg(ariaLabel)}">
@@ -171,12 +242,14 @@ export function renderAllocationTimeline(records, {
         >
           <title>${escapeSvg(label)}</title>
           <desc>${escapeSvg(note)}</desc>
+${yGrid}
           <line class="allocation-axis" x1="${left}" y1="${baseline}" x2="${right}" y2="${baseline}" />
           <line class="allocation-crosshair" x1="${left}" y1="${top}" x2="${left}" y2="${baseline}" visibility="hidden" vector-effect="non-scaling-stroke" />
           <path class="allocation-area" d="${area}" />
           <path class="allocation-line" d="${line}" vector-effect="non-scaling-stroke" />
           <text class="allocation-year allocation-year--start" x="${left}" y="${height - 6}">${escapeSvg(startLabel)}</text>
           <text class="allocation-year allocation-year--end" x="${right}" y="${height - 6}" text-anchor="end">${escapeSvg(endLabel)}</text>
+${xTickLabels}
         </svg>
         <div class="allocation-tooltip" hidden></div>
         <figcaption>${escapeSvg(note)}</figcaption>

@@ -269,6 +269,21 @@ main {
   stroke-linejoin: round;
 }
 
+.allocation-grid {
+  stroke: var(--color-hairline);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  pointer-events: none;
+}
+
+.allocation-tick {
+  fill: var(--text-subtle);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
 .allocation-crosshair {
   stroke: var(--color-line);
   stroke-width: 1;
