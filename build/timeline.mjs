@@ -190,7 +190,11 @@ export function renderAllocationTimeline(records, {
   // Left margin scales with the longest y-tick label so nothing clips at the
   // viewBox edge: measure the max tick, add a 6px gap from the plot.
   const maxTickLabel = tickLabel(Math.max(...dated.map((entry) => entry.cumulative), 1));
-  const left = 6 + Math.min(84, Math.ceil(maxTickLabel.length * 6.2));
+  // Left margin: size to the widest tick label so end-anchored text never clips
+  // at the viewBox edge. The label actually renders at --text-xs (12px) mono ≈ 7.2px
+  // per char in the browser, so use 7.2 as the per-char width and add a 6px gap
+  // before the y-grid line, with a generous cap so no layout overflows.
+  const left = 6 + Math.min(96, Math.ceil(maxTickLabel.length * 7.2));
   const right = width - 8;
   const top = 18;
   const bottom = 30;
