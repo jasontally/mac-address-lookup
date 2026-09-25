@@ -183,7 +183,10 @@ export function renderAllocationTimeline(records, {
 
   const width = 720;
   const height = 160;
-  const left = 60;           // room for y-axis tick labels
+  // Left margin scales with the longest y-tick label so nothing clips at the
+  // viewBox edge: measure the max tick, add a 6px gap from the plot.
+  const maxTickLabel = tickLabel(Math.max(...dated.map((entry) => entry.addresses), 1));
+  const left = 6 + Math.min(84, Math.ceil(maxTickLabel.length * 6.2));
   const right = width - 8;
   const top = 18;
   const bottom = 30;
@@ -234,14 +237,12 @@ export function renderAllocationTimeline(records, {
     .map(({ value, y, label }) =>
       [
         `          <line class="allocation-grid" x1="${left}" y1="${y.toFixed(2)}" x2="${right}" y2="${y.toFixed(2)}" />`,
-        `          <text class="allocation-tick" x="${left - 6}" y="${(y + 3).toFixed(2)}" text-anchor="end">${escapeSvg(label)}</text>`,
+        `          <text class="allocation-tick" x="${left - 4}" y="${(y + 3).toFixed(2)}" text-anchor="end">${escapeSvg(label)}</text>`,
       ].join('\n'))
     .join('\n');
 
-  // X ticks: evenly spaced years between the range endpoints, with the two
-  // edge labels as anchors. Any tick whose label box would collide with the
-  // left/right edge year is dropped (14px half-widths); the pinned edge
-  // labels are always visible.
+  // Bottom-row collision check: the pinned edge year labels and the interior
+  // x-ticks share the same row (14px half-widths each).
   const yearHalfPx = 14;
   const startLabelRight = left + startYear.length * 7;
   const endLabelLeft = right - endYear.length * 7;
