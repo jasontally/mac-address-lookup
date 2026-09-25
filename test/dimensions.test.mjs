@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { renderAllocationTimeline, allocationYears, datasetYearRange } from '../build/timeline.mjs';
+import { renderAllocationTimeline, allocationDates, datasetDateRange } from '../build/timeline.mjs';
 import {
   computeRegistryDimensions,
   computeYearDimensions,
@@ -35,36 +35,40 @@ const record = (prefix, extras = {}) => ({
   ...extras,
 });
 
-test('allocation timelines fill the full dataset year range', () => {
-  const years = allocationYears(
+test('allocation timelines use exact dates and the full dataset range', () => {
+  const dates = allocationDates(
     [
       record('000001', { firstSeen: '1998-01-01' }),
       record('000002', { firstSeen: '2020-01-01' }),
+      record('000003', { firstSeen: '2020-01-01', addressCount: 1_048_576 }),
     ],
-    { startYear: 1998, endYear: 2020 },
+    { startDate: '1998-01-01', endDate: '2020-01-01' },
   );
-  assert.equal(years.length, 23);
-  assert.equal(years[0].blocks, 1);
-  assert.equal(years[1].blocks, 0);
-  assert.equal(years.at(-1).blocks, 1);
+  assert.equal(dates.startDate, '1998-01-01');
+  assert.equal(dates.endDate, '2020-01-01');
+  assert.equal(dates.points.length, 2);
+  assert.equal(dates.points[0].date, '1998-01-01');
+  assert.equal(dates.points.at(-1).addresses, 16_777_216 + 1_048_576);
 });
 
-test('timeline chart exposes accessible year data and uses the global range', () => {
+test('timeline chart is a continuous date line with hover data', () => {
   const html = renderAllocationTimeline(
     [record('000001', { firstSeen: '2010-01-01' })],
-    { startYear: 1998, endYear: 2026 },
+    { startDate: '1998-01-01', endDate: '2026-12-31' },
   );
-  assert.match(html, /data-year="2010" data-blocks="1" data-addresses="16777216"/);
-  assert.match(html, /1998 through 2026/);
-  assert.match(html, /Bar height shows address space/);
+  assert.match(html, /allocation-line/);
+  assert.match(html, /data-start-date="1998-01-01"/);
+  assert.match(html, /data-end-date="2026-12-31"/);
+  assert.match(html, /Line height shows address space/);
+  assert.match(html, /hover for date and value/);
 });
 
-test('datasetYearRange ignores missing dates and bounds the range', () => {
-  assert.deepEqual(datasetYearRange([{ firstSeen: null }, { firstSeen: '2020-01-01' }]), {
-    startYear: 2020,
-    endYear: 2020,
+test('datasetDateRange ignores missing dates and bounds the range', () => {
+  assert.deepEqual(datasetDateRange([{ firstSeen: null }, { firstSeen: '2020-01-01' }]), {
+    startDate: '2020-01-01',
+    endDate: '2020-01-01',
   });
-  assert.deepEqual(datasetYearRange([{ firstSeen: null }]), { startYear: null, endYear: null });
+  assert.deepEqual(datasetDateRange([{ firstSeen: null }]), { startDate: null, endDate: null });
 });
 
 test('dimension computations group registry, year, region, history, and successors', () => {
@@ -121,7 +125,7 @@ test('successor pages use the existing current-owner rollup', () => {
 });
 
 test('dimension pages render canonical URLs, breadcrumbs, stats, and tables', () => {
-  const timelineRange = { startYear: 1998, endYear: 2026 };
+  const timelineRange = { startDate: '1998-01-01', endDate: '2026-12-31' };
   const registry = computeRegistryDimensions([record('000001', { blockType: 'MA-L' })])[0];
   const year = computeYearDimensions([record('000001', { firstSeen: '2020-01-01' })])[0];
   const region = computeRegionDimensions([record('000001', { country: 'US' })])[0];

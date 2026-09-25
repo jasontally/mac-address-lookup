@@ -236,6 +236,7 @@ main {
 
 /* Static allocation timeline */
 .allocation-timeline {
+  position: relative;
   margin: var(--space-5) 0;
   padding: var(--space-4);
   border: 1px solid var(--color-hairline);
@@ -246,6 +247,8 @@ main {
 .allocation-timeline svg {
   width: 100%;
   height: auto;
+  cursor: crosshair;
+  touch-action: pan-y;
 }
 
 .allocation-axis {
@@ -253,18 +256,44 @@ main {
   stroke-width: 1;
 }
 
-.allocation-bar {
+.allocation-area {
   fill: var(--color-accent);
+  fill-opacity: 0.08;
 }
 
-.allocation-dot {
-  fill: var(--text-strong);
+.allocation-line {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.allocation-crosshair {
+  stroke: var(--color-line);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  pointer-events: none;
 }
 
 .allocation-year {
   fill: var(--text-subtle);
   font-size: 12px;
   font-family: var(--font-mono);
+}
+
+.allocation-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  padding: 2px 6px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--text-default);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
 }
 
 .allocation-timeline figcaption {

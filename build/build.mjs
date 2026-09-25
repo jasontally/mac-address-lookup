@@ -17,7 +17,7 @@ import { writeAgentFiles } from './agent-files.mjs';
 import { writeLangPages } from './lang-pages.mjs';
 import { writeRecentPage } from './recent.mjs';
 import { writeDimensionPages } from './dimensions.mjs';
-import { datasetYearRange } from './timeline.mjs';
+import { datasetDateRange } from './timeline.mjs';
 import { createPageTracker, finalizePageHashes, loadPreviousPageHashes, recordDistFile, urlToDistPath } from './page-hashes.mjs';
 import { REGISTRIES } from './registries.mjs';
 
@@ -142,7 +142,7 @@ for (const record of records) {
 // once registered to (docs/thin-content-mitigation.md; requests 2026-09-16).
 const formerHubData = computeFormerHubs(lineageEntries, { vendors: hubByKey });
 const recordsByPrefix = new Map(records.map((record) => [record.prefix, record]));
-const timelineRange = datasetYearRange(records);
+const timelineRange = datasetDateRange(records);
 
 const hubIndex = {
   vendorHub: (record) => {

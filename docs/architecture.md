@@ -255,9 +255,10 @@ a second block), so the portal/prefix split inside the 90,000 cap self-balances.
   (`/registry/<type>`), first-observed year (`/year/<year>`), region
   (`/region/<slug>`), ownership history (`/history/<year>` and
   `/history/country/<code>`), and successors (`/successor/<slug>`). Vendor,
-  country, region, registry pages include a static SVG allocation timeline over
-  the full 1998–current dataset range; bars are address space (log-scaled) and
-  dots are allocation counts. The lineage events also carry the historical `c`
+  country, region, and registry pages include a static SVG allocation line over
+  the full 1998–current dataset range; the line is address space on a log1p
+  scale, grouped by exact first-observed date, with a pointer tooltip for the
+  date and address value. The lineage events also carry the historical `c`
   country from runZero for the history-country views. Dimension detail URLs join
   the sitemap and IndexNow scope in the `country` phase; their indexes lead the
   set through `rollupUrls`.
