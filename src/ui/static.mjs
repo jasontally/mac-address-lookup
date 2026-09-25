@@ -29,7 +29,8 @@ function wireAllocationTimelines() {
     const left = Number(svg.dataset.left ?? 0);
     const right = Number(svg.dataset.right ?? 0);
     const width = svg.viewBox?.baseVal?.width ?? 0;
-    const plotWidth = width - left - right;
+    // `right` is an absolute right-edge x, not a margin: the plot spans left..right.
+    const plotWidth = right - left;
     if (!points.length || !maxAddresses || !plotWidth) continue;
 
     const startTime = Date.parse(`${startDate}T00:00:00Z`);
