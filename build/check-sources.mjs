@@ -4,19 +4,43 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchWithRetry } from './fetch-with-retry.mjs';
+import { fetchLiveSource } from './live-source.mjs';
 import { compareSources, sha256, shouldRefresh } from './source-cache.mjs';
 import { DEFAULT_SITE, SOURCE_FILES } from './source-files.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
+// IEEE endpoints are flaky enough that a patient retry is needed here; the
+// library defaults (3 attempts, 2s base delay) stay unchanged elsewhere.
+const envNumber = (name, fallback) => {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+};
+const USER_AGENT =
+  'mac-address-lookup build (+https://github.com/jasontally/mac-address-lookup)';
+
 export async function currentSourceFiles(fetchImpl = fetch) {
+  const attempts = envNumber('SOURCE_FETCH_ATTEMPTS', 5);
+  const baseDelayMs = envNumber('SOURCE_FETCH_RETRY_DELAY_MS', 10_000);
   return Promise.all(
     SOURCE_FILES.map(async (source) => {
-      const response = await fetchWithRetry(source.url, {
-        fetchImpl,
-        attempts: 3,
-        timeoutMs: 60_000,
-      });
+      const response = await fetchWithRetry(
+        source.url,
+        {
+          fetchImpl,
+          headers: { 'user-agent': USER_AGENT },
+          attempts,
+          timeoutMs: 60_000,
+          baseDelayMs,
+        },
+        {
+          // An upstream file that exhausts every retry must not block change
+          // detection for the other files: serve its last deployed copy (from
+          // the production site) and treat it as unchanged this run.
+          fallback: () => fetchLiveSource(source.file, { fetchImpl }),
+          label: source.name,
+        },
+      );
       const text = await response.text();
       return { file: source.file, sha256: sha256(text) };
     }),
