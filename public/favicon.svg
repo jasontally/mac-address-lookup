@@ -4,8 +4,8 @@
     <!-- first character: blank placeholder glyph, flush against the left edge -->
     <rect x="0" y="16" width="10" height="32" rx="0" />
     <!-- colon -->
-    <rect x="25" y="19" width="14" height="14" rx="7" />
-    <rect x="25" y="31" width="14" height="14" rx="7" />
+    <rect x="25" y="20" width="12" height="12" rx="6" />
+    <rect x="25" y="32" width="12" height="12" rx="6" />
     <!-- second character: blank placeholder glyph, flush against the right edge -->
     <rect x="54" y="16" width="10" height="32" rx="0" />
   </g>
