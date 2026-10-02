@@ -655,6 +655,60 @@ hubs, or `/recent` rows linking hubs. The IndexNow manifest intersects changed
 URLs with the same scope, so newly-added pages ride along in post-deploy pings
 rather than needing a separate signal.
 
+## IndexNow is refused by Bing, and it is not a bug in the build
+
+**Symptom.** The deploy log ends with
+`indexnow: batch 3628 URLs -> 403 (IndexNow rejected the batch with 403)`.
+
+**What it is.** The engine's own answer, which the old script threw away:
+
+```
+403 {"errorCode":"UserForbiddedToAccessSite",
+     "message":"User is unauthorized to access the site. Please verify the site
+                using the key and try again"}
+```
+
+Per the IndexNow documentation, 403 means the key could not be validated. The key
+file is correct and is not the problem:
+
+| Check | Result |
+| --- | --- |
+| `public/<key>.txt` matches the `KEY` constant | yes |
+| `https://mac.jasontally.com/<key>.txt` | `200`, `text/plain`, 32 bytes, the key |
+| Fetched as `bingbot`, `IndexNow/1.0`, `YandexBot` | all `200` |
+| `robots.txt` | `User-agent: * / Allow: /`, so the key file is crawlable |
+| Submitted URLs | 3,631, all `https`, all on this host, 214 KB of 3 MB |
+| `POST` to `www.bing.com/indexnow` directly | same `403` |
+
+Bing keeps the domain-to-key binding in its own backend and refuses pings until
+that binding exists. There is nothing to fix in the request. The binding is
+created when Bingbot crawls the key file, or when the owner verifies the domain
+in **Bing Webmaster Tools**. Microsoft support confirms this is a back-end
+matter they do not debug per site.
+
+**Owner action.** Add `https://mac.jasontally.com` in Bing Webmaster Tools and
+verify it by XML file or meta tag. Bing then registers the binding and the next
+ping is accepted. Nothing in this repo changes.
+
+**What the build does instead of pretending.** Three things, all in
+`build/indexnow.mjs`:
+
+1. Logs the response body on a refusal, because `-> 403` does not say
+   `UserForbiddedToAccessSite` and sends you to change a payload that is correct.
+2. Checks the *deployed* key file before pinging, so "our fault" and "their
+   backend" stop looking identical. A pass is not proof of a working ping.
+3. Pings Yandex directly as well as the shared endpoint. `api.indexnow.org`
+   validates the key before sharing, so a Bing refusal means Yandex, Seznam and
+   Yep are told nothing. With the direct ping, 3,631 URLs reach Yandex
+   (`202`) while Bing still refuses (`403`).
+
+**The trap this avoids.** Yandex answers `202 {"success":true}` for the exact
+batch Bing rejects. A script that treats any 2xx as success reports a working
+IndexNow while Bing has refused every URL.
+
+`test/indexnow.test.mjs` holds the body-in-the-log behaviour, the endpoint
+independence, and the split that the batch cap is honoured.
+
 ## Multilingual discoverability plan (Tier 1 + Tier 2, 2026-09-18)
 
 The interface translates client-side on shared URLs, which search engines
