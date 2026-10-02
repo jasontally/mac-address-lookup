@@ -432,6 +432,29 @@ server is modern, while an unrecognised `400` is the signal for a *legacy*
 server. Answering `-32601` to `initialize` therefore made a modern server look
 like a legacy one and sent clients down a fallback that cannot work.
 
+### `server/discover` must name the versions, and the failure is silent
+
+A stateless client probes with `server/discover` before it sends anything else,
+and it reads the server's supported versions out of the reply. The spec calls
+that field `supportedVersions`; a client that pins one version and does not find
+it has nothing to negotiate against and reports a version negotiation failure.
+
+The endpoint served the tool catalog for `server/discover`, and the catalog had no
+`supportedVersions`. So the endpoint answered `200` with a perfectly good tool
+list, and the client failed on its own side. Nothing in the logs pointed at the
+server. The tell was the client: a **legacy** client never reads the field, it
+handshakes and takes the version from the initialize reply, so the same endpoint
+connected from a stateful test tool and failed from every stateless one. This is
+the shape of most 2026-07-28 bugs here: the legacy lane works, so the endpoint
+looks healthy.
+
+The catalog is now the union of both result shapes. It carries `resultType`,
+`supportedVersions`, and `_meta['io.modelcontextprotocol/serverInfo']` for the
+modern client, alongside the top-level identity fields a 2025-era client reads.
+`MCP_SUPPORTED_VERSIONS` in `build/mcp-shards.mjs` is the single source for both
+the snippet's request guard and the advertised list, because a version the guard
+refuses is a version a client is told to claim, and one test asserts they agree.
+
 **Where the version is read from, and the bug this exposed.** The guard checks
 three places, in this order: `params.protocolVersion`, then the
 `MCP-Protocol-Version` header, then `_meta` (both under `params` and at the top
@@ -480,7 +503,8 @@ possible 4-character buckets have no records, so an empty shard and a missing
 one are indistinguishable and empty is the common case. Raising an error would
 turn most unregistered lookups into 5xx. The whole-deploy case is caught by
 `catalog.json` instead: one file, so if it will not load, nothing was deployed
-and `tools/list` fails loudly rather than reporting an empty tool list.
+and both `tools/list` and `server/discover` fail loudly rather than reporting an
+empty tool list.
 
 ## Security review (2026-10-01)
 

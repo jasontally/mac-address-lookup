@@ -250,6 +250,50 @@ describe('tools/list structure (requirements from the official suite)', () => {
   });
 });
 
+// ---------------------------------------------------------------- server/discover
+
+describe('server/discover (the stateless entry point)', () => {
+  let h;
+  before(async () => { h = await harness(); });
+  after(() => h.restore());
+
+  // A stateless client probes here before anything else and picks a version out
+  // of `supportedVersions`. Nothing else in the reply matters to it. A server
+  // that omits the field sends no error at all: it answers 200 with the tool
+  // catalog, and the client reports a version negotiation failure on its own
+  // side. That is why this endpoint worked from a stateful test tool, which
+  // handshakes instead, and failed from every stateless one.
+  test('the result advertises the pinned version and the server identity', async () => {
+    const res = await h.client.request('server/discover', undefined, 1);
+    assert.equal(res.status, 200);
+    const result = res.json.result;
+    assert.ok(
+      Array.isArray(result.supportedVersions) && result.supportedVersions.length > 0,
+      'supportedVersions is the field a stateless client negotiates from and must be a non-empty list',
+    );
+    assert.ok(
+      result.supportedVersions.includes(PROTOCOL_VERSION),
+      `a client pinning ${PROTOCOL_VERSION} must find it in ${JSON.stringify(result.supportedVersions)}`,
+    );
+    assert.equal(result.resultType, 'complete');
+    const info = result._meta?.['io.modelcontextprotocol/serverInfo'];
+    assert.equal(info?.name, 'mac-address-lookup');
+    assert.equal(info?.version, '1.0.0');
+  });
+
+  // The drift guard. Advertise a version and the guard refuses it, and the
+  // client is told to claim a version that then fails; refuse a version that
+  // discovery advertises, and the client walks away before it sends anything.
+  test('every advertised version is a version the endpoint actually serves', async () => {
+    const { json } = await h.client.request('server/discover', undefined, 1);
+    assert.ok(Array.isArray(json.result.supportedVersions), 'discover must advertise a version list');
+    for (const version of json.result.supportedVersions) {
+      const res = await h.client.request('tools/list', undefined, 1, { 'MCP-Protocol-Version': version });
+      assert.equal(res.status, 200, `${version} is advertised by discover but refused by the endpoint`);
+    }
+  });
+});
+
 // ---------------------------------------------------------------- tool behaviour
 
 describe('lookup tool behaviour', () => {

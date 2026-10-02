@@ -459,6 +459,21 @@ version is coerced so it is refused rather than treated as absent; and
 `test/mcp-conformance.test.mjs` guard this, and were verified to fail against the
 old behaviour by reintroducing it.
 
+**Discovery negotiation (bug fixed 2026-10-02).** `server/discover` returned the
+tool catalog, and the catalog carried no `supportedVersions`. That is the field a
+2026-07-28 client reads to pick a version, and a client that pins `2026-07-28`
+and does not find it fails its own connection with no server-side error to
+explain it. Found from a third-party playground: the endpoint connected from its
+**stateful** test mode, which handshakes, and failed from **stateless** mode,
+which probes. The legacy lane working is what made the endpoint look healthy.
+
+The catalog is now the union of both result shapes: `resultType`,
+`supportedVersions`, and `_meta['io.modelcontextprotocol/serverInfo']` next to the
+top-level identity fields a 2025-era client reads. `MCP_SUPPORTED_VERSIONS` in
+`build/mcp-shards.mjs` is the single source for the snippet's guard and the
+advertised list, and a check in `test/mcp-conformance.test.mjs` claims each
+advertised version against the endpoint, so the two cannot drift apart.
+
 ### ARD well-known catalogs
 
 `public/.well-known/ai-catalog.json` and `public/.well-known/ard.json` are

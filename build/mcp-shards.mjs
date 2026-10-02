@@ -46,6 +46,23 @@ export const SITE = 'https://mac.jasontally.com';
 export const MCP_ROUTE = '/mcp';
 
 /**
+ * Protocol versions the endpoint serves, newest first.
+ *
+ * 2026-07-28 is the only modern revision, so it is the one a stateless client
+ * pins. The two 2025 dates are legacy handshake revisions, served by the same
+ * one-fetch handler.
+ *
+ * The list is declared here, not inside the snippet, because it is published in
+ * two places that must agree: the guard the snippet runs on every request, and
+ * `supportedVersions` in the `server/discover` result. A modern client reads
+ * discover first and then claims one of the versions it names, so advertising a
+ * version the guard refuses is a dead end, and advertising too few hides a
+ * version the endpoint does serve.
+ */
+export const MCP_PROTOCOL_VERSION = '2026-07-28';
+export const MCP_SUPPORTED_VERSIONS = [MCP_PROTOCOL_VERSION, '2025-11-25', '2025-06-18'];
+
+/**
  * The exact Snippet rule expression this module expects to be installed.
  *
  * Scoping by host is not optional. A Snippet rule is zone-wide, so a bare
@@ -222,6 +239,13 @@ export function shardStats({ shards, table }, { targetBytes = SHARD_TARGET_BYTES
  * The pre-generated tool catalog the snippet serves for `tools/list` and
  * `server/discover`. One object serves both calls: the endpoint is public and
  * read-only, so the extra fields are harmless and save a second file.
+ *
+ * It has to be the union of the two result shapes, not just the tool list.
+ * `server/discover` returns a `DiscoverResult`, and the one field a stateless
+ * client cannot do without is `supportedVersions`. A legacy client never looks
+ * at it: it handshakes, and reads the version from the initialize reply. So the
+ * endpoint connected fine from a stateful test tool while every stateless tool
+ * failed to negotiate, with no error from the server to explain it.
  */
 export function methodCatalog({ site = SITE } = {}) {
   const inputSchema = {
@@ -257,14 +281,27 @@ export function methodCatalog({ site = SITE } = {}) {
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   };
+  // The identity fields sit at the top level as well, because a 2025-era
+  // client reads them from an initialize result, and this one object answers
+  // both.
+  const serverInfo = { name: 'mac-address-lookup', title: 'MAC Address Lookup', version: '1.0.0' };
   return {
-    name: 'mac-address-lookup',
-    title: 'MAC Address Lookup',
-    version: '1.0.0',
+    resultType: 'complete',
+    // The DiscoverResult field a stateless client reads to pick a version. A
+    // client that pins 2026-07-28 and finds no `supportedVersions` has nothing
+    // to negotiate against and reports a version negotiation failure, so this
+    // field is what makes the endpoint connectable without a handshake.
+    supportedVersions: MCP_SUPPORTED_VERSIONS,
+    name: serverInfo.name,
+    title: serverInfo.title,
+    version: serverInfo.version,
     websiteUrl: site,
     instructions: `Public, read-only MAC address and OUI lookup derived from the IEEE Registration Authority registries. Call lookup once per address. The record page at the returned url carries the organization address, the block range, and ownership history. See ${site}/help for block types and how to read your own MAC address.`,
     capabilities: { tools: { listChanged: false } },
     tools: [tool],
+    // Where the modern spec puts the identity. A legacy client reads the fields
+    // above; a modern client reads this.
+    _meta: { 'io.modelcontextprotocol/serverInfo': serverInfo },
   };
 }
 
@@ -493,10 +530,10 @@ async function lookup(request, payload, id) {
 /**
  * Protocol version this server speaks, and the only one it speaks.
  *
- * 2026-07-28 only. There is no legacy lane, so the version has to be stated
+ * ${MCP_PROTOCOL_VERSION} only. There is no legacy lane, so the version has to be stated
  * rather than negotiated down.
  */
-const PROTOCOL_VERSION = '2026-07-28';
+const PROTOCOL_VERSION = '${MCP_PROTOCOL_VERSION}';
 
 /**
  * Versions this endpoint can serve statelessly. Each is a *request* contract,
@@ -505,7 +542,7 @@ const PROTOCOL_VERSION = '2026-07-28';
  * whose connection flow probes with initialize is not turned away.
  */
 const LEGACY_HANDSHAKE = true;
-const SUPPORTED_VERSIONS = [PROTOCOL_VERSION, '2025-11-25', '2025-06-18'];
+const SUPPORTED_VERSIONS = ${JSON.stringify(MCP_SUPPORTED_VERSIONS)};
 /**
  * Largest request body the endpoint will read.
  *

@@ -223,7 +223,7 @@ const PROTOCOL_VERSION = '2026-07-28';
  * whose connection flow probes with initialize is not turned away.
  */
 const LEGACY_HANDSHAKE = true;
-const SUPPORTED_VERSIONS = [PROTOCOL_VERSION, '2025-11-25', '2025-06-18'];
+const SUPPORTED_VERSIONS = ["2026-07-28","2025-11-25","2025-06-18"];
 /**
  * Largest request body the endpoint will read.
  *

@@ -62,6 +62,18 @@ await check('no initialize handshake is required', async () => {
   assert(Array.isArray(tools) && tools.length > 0, 'tools must be a non-empty array');
 });
 
+await check('server/discover names the version a stateless client pins', async () => {
+  // The field a modern client negotiates from. If it is absent the server still
+  // answers 200, and the client fails its own connection with no server-side
+  // error to explain it.
+  const res = await client.request('server/discover', undefined, 1);
+  equal(res.status, 200, 'status');
+  const versions = res.json.result.supportedVersions;
+  assert(Array.isArray(versions), `supportedVersions must be a list, got ${JSON.stringify(res.json.result)}`);
+  assert(versions.includes('2026-07-28'), `must advertise 2026-07-28, got ${JSON.stringify(versions)}`);
+  equal(res.json.result._meta['io.modelcontextprotocol/serverInfo'].name, 'mac-address-lookup', 'serverInfo');
+});
+
 await check('initialize is answered, so a connector probe gets a 2xx', async () => {
   // A connector UI probes with initialize before it can classify the server. A
   // 400 here reads as an auth challenge, which is what Claude reported. The
