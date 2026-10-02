@@ -285,6 +285,18 @@ export function methodCatalog({ site = SITE } = {}) {
         addressCount: { type: ['number', 'null'], description: 'Addresses in the matched block.' },
         orgName: { type: ['string', 'null'], description: 'Registered organization name.' },
         country: { type: ['string', 'null'], description: 'ISO 3166-1 alpha-2 registration country.' },
+        // Only present when the query did not match. The specification says a
+        // client SHOULD validate a structured result against this schema, so a
+        // field the miss branch returns and this does not declare is a fault a
+        // strict client will report, on a path the hit-only test never reads.
+        locallyAdministered: {
+          type: 'boolean',
+          description: 'The bit pattern marks the address locally administered, which usually means a randomized or virtual-machine address. Present only when there is no match.',
+        },
+        multicast: {
+          type: 'boolean',
+          description: 'The bit pattern marks the address a multicast group. Present only when there is no match.',
+        },
         url: { type: 'string', description: `Record page on ${site}.` },
       },
       required: ['query', 'prefix', 'url'],

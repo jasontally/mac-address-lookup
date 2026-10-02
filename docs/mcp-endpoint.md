@@ -339,12 +339,44 @@ against the specification's JSON Schema for the negotiated version. Every fault
 this endpoint had in 2026-10 was a field missing or wrongly shaped, and a schema
 check finds that class of fault by construction. The local suite asserts those
 same fields by name, which catches a regression but not an unexpected shape.
-`test/mcp-wire-schema.test.mjs` closes that gap without the install; see the
-schema section below.
-
 `checkToolsListShape` remains, transcribed from the runner's published prose for
 the `tools-list` scenario, so the structural requirement is enforced in `npm test`
 with no network.
+
+### Wire-schema validation, without the install
+
+`test/mcp-wire-schema.test.mjs` does the runner's `wire-schema-valid` check locally.
+Every response the endpoint sends is validated against the pinned 2026-07-28 wire
+schema, then against the definition for its own method.
+
+The schema is pinned at `test/fixtures/mcp-schema-2026-07-28.json` rather than
+fetched, so `npm test` needs no network. `test/mcp-wire-schema.mjs` implements
+the 18 keywords the schema actually uses and ignores annotations. One check
+fails if a future schema uses anything else, so an unimplemented keyword cannot
+let a validation pass silently.
+
+**Why the envelope alone is not enough.** `JSONRPCResultResponse.result` is typed
+as `Result`, which requires only `resultType` and permits anything else. A
+malformed tool result passes the envelope and fails `CallToolResult`. Both are
+checked, because the method-specific definition is the one that constrains the
+payload.
+
+**Two faults it found on the first run, which the named-field checks could not:**
+
+1. The `outputSchema` did not declare `locallyAdministered` or `multicast`, which
+   the miss path returns. The specification says a client SHOULD validate a
+   structured result against `outputSchema`, so a strict client would reject an
+   unregistered address — the one case a client hits most often. The hit-path test
+   could not see it, because those fields only appear on a miss.
+2. The schema types `ttlMs` as `integer`, not `number`. A float is a fault the
+   specification cares about and a `typeof` check does not.
+
+**One message the schema cannot model.** A parse error answers `id: null`, which
+JSON-RPC 2.0 requires when the id cannot be determined. `JSONRPCErrorResponse`
+types `id` as `string | integer` and does not model that case. The two
+specifications disagree and JSON-RPC governs the wire, so the endpoint keeps the
+null and the test records the conflict rather than satisfying the schema by
+omitting the field.
 
 ### Load and correctness testing
 

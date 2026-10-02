@@ -812,6 +812,7 @@ mode is silent.
 
 | Layer | Command | Scope |
 | --- | --- | --- |
+| MCP wire schema | `npm test` (`test/mcp-wire-schema.test.mjs`) | Every response validated against the pinned 2026-07-28 JSON Schema. The local stand-in for the official runner's `wire-schema-valid` check, which needs an install this environment cannot make. Validates the envelope and then the method-specific definition, since the envelope alone permits almost anything |
 | Unit and in-process | `npm test` | Normalization, longest-prefix matching, partial listings, bit flags, VM mapping, batch parsing, MAC extraction, shard selection and grouping, lineage counting, free-text search, vendor portfolios, schema-version guard, page selection, template escaping, sitemap chunking, hub rendering, FAQ injection, the MCP snippet's conformance suite, the shard-layout oracle, and the legal/privacy claims. Node's built-in `node:test`, no test dependencies |
 | Browser | `npm run test:e2e` | Playwright specs in `e2e/`: `lookup`, `thin-pages`, `lang-pages`. Against production by default, or a local build with `E2E_BASE_URL=http://localhost:8788` |
 | Live MCP | `npm run mcp:conformance` | The deployed `/mcp` endpoint. The only check that catches a stale zone Snippet, a rule that lost its host term, or shards that never reached the edge. Not part of `npm test` because it sends real traffic |
