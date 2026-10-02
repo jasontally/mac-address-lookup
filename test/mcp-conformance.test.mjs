@@ -352,10 +352,27 @@ describe('endpoint scoping', () => {
 
   test('the rule expression is scoped to one host and one path', () => {
     const expression = mcpRuleExpression();
-    assert.equal(expression, `(http.host eq "${HOST}" and http.request.uri.path eq "${MCP_ROUTE}")`);
+    assert.equal(
+      expression,
+      `(http.host eq "${HOST}" and (http.request.uri.path eq "${MCP_ROUTE}" or http.request.uri.path eq "${MCP_ROUTE}/"))`,
+    );
     // A path-only rule is zone-wide and would fire on every subdomain, where
     // the shard fetch 404s and every lookup reports no vendor.
     assert.ok(expression.includes('http.host eq'), 'host term missing');
+  });
+
+  test('the snippet serves the trailing-slash path too', async () => {
+    // The handler takes no path branch, so the rule expression is the only
+    // thing that decides whether /mcp/ reaches it. Guard the property the rule
+    // now depends on, so a future path check in the handler cannot drift.
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}/`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    }));
+    assert.equal(res.status, 200, `trailing-slash POST returned ${res.status}`);
+    const body = await res.json();
+    assert.equal(body.result.tools[0].name, 'lookup');
   });
 
   test('any other host is refused with 404 before a shard is fetched', async () => {

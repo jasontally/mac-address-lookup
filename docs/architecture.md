@@ -341,10 +341,20 @@ address and the edge does the matching, so no index is involved at any point.
 `jasontally.com`. The snippet resolves its shard fetch against the incoming
 request's own host, so on the wrong hostname it would 404 every key and report
 no vendor for every address. The rule is
-`(http.host eq "mac.jasontally.com" and http.request.uri.path eq "/mcp")`, and
-the snippet independently refuses a host mismatch with a 404. Both come from
+`(http.host eq "mac.jasontally.com" and (http.request.uri.path eq "/mcp" or http.request.uri.path eq "/mcp/"))`,
+and the snippet independently refuses a host mismatch with a 404. Both come from
 `mcpRuleExpression()` in `build/mcp-shards.mjs`, which the build, the snippet
 header, and `build/deploy-mcp-snippet.mjs` all share.
+
+**The rule must match the trailing slash too.** Clients disagree on whether to
+send `/mcp` or `/mcp/`, and the two forms are different paths to the Rules
+engine. With an exact `eq "/mcp"`, a POST to `/mcp/` does not run the snippet at
+all: it falls through to the assets-only Worker, and Workers Static Assets
+serves GET and HEAD only, so the POST returns `405` with an empty body and none
+of the MCP headers. Glama's MCP Inspector Online sends the slashed form, so the
+endpoint looked broken while `/mcp` was healthy. A `307` redirect to `/mcp` is
+not a fix, because the Streamable HTTP transport must not depend on a client
+re-POSTing after a redirect. Match both paths instead.
 
 **Who executes the snippet.** A Cloudflare Snippet, not a Worker. Workers Builds
 deploys the Worker; the Snippets product has no wrangler command, so the Snippet

@@ -273,16 +273,35 @@ test('the tool catalog declares one lookup tool with an address argument', () =>
 
 test('the rule expression scopes by host as well as path', () => {
   const expression = mcpRuleExpression();
-  assert.equal(expression, '(http.host eq "mac.jasontally.com" and http.request.uri.path eq "/mcp")');
+  assert.equal(
+    expression,
+    '(http.host eq "mac.jasontally.com" and (http.request.uri.path eq "/mcp" or http.request.uri.path eq "/mcp/"))',
+  );
   // A path-only expression is zone-wide and would fire on every subdomain.
   assert.ok(expression.includes('http.host eq'), 'host term must be present');
   assert.ok(expression.includes('http.request.uri.path eq'), 'path term must be present');
 });
 
+test('the rule expression accepts the trailing-slash path', () => {
+  // Clients normalise the trailing slash inconsistently. When the rule matches
+  // only '/mcp', a POST to '/mcp/' skips the snippet and lands on the
+  // assets-only Worker, which serves GET and HEAD only and answers 405 with an
+  // empty body. That is what Glama's MCP Inspector Online hit.
+  const expression = mcpRuleExpression();
+  assert.ok(
+    expression.includes('http.request.uri.path eq "/mcp"'),
+    'the bare route must still match',
+  );
+  assert.ok(
+    expression.includes('http.request.uri.path eq "/mcp/"'),
+    'the trailing-slash route must also match, or the snippet never runs for those clients',
+  );
+});
+
 test('the rule expression follows the site and route it is given', () => {
   assert.equal(
     mcpRuleExpression({ site: 'https://other.example', route: '/rpc' }),
-    '(http.host eq "other.example" and http.request.uri.path eq "/rpc")',
+    '(http.host eq "other.example" and (http.request.uri.path eq "/rpc" or http.request.uri.path eq "/rpc/"))',
   );
 });
 

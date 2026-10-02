@@ -58,12 +58,22 @@ export const MCP_ROUTE = '/mcp';
  * `http.host` is the right field: the Cloudflare docs note it holds the `Host`
  * header from the original client request and is not rewritten by Origin Rules.
  *
+ * Both `${route}` and `${route}/` must match, because clients normalise the
+ * trailing slash and not all of them agree. An exact `eq "/mcp"` misses the
+ * `/mcp/` form, and the failure is silent and confusing: the Snippet never runs,
+ * the assets-only Worker answers instead, and Workers Static Assets serves only
+ * GET and HEAD, so the POST comes back `405` with an empty body and no MCP
+ * headers. Glama's MCP Inspector Online does exactly this. Do not "simplify"
+ * this back to one path. A redirect is not a fix either: the Streamable HTTP
+ * transport must not depend on a client re-POSTing after a 307.
+ *
  * Exported so the build, the generated snippet's header comment, and
  * `build/deploy-mcp-snippet.mjs` all render the same string. Do not retype it.
  */
 export function mcpRuleExpression({ site = SITE, route = MCP_ROUTE } = {}) {
   const host = new URL(site).host;
-  return `(http.host eq "${host}" and http.request.uri.path eq "${route}")`;
+  const pathTerm = `(http.request.uri.path eq "${route}" or http.request.uri.path eq "${route}/")`;
+  return `(http.host eq "${host}" and ${pathTerm})`;
 }
 
 /** Absolute path, inside the site, holding the shard files. */

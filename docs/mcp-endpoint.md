@@ -578,6 +578,24 @@ same-zone subrequest from re-entering the handler. Do not remove it in the hope
 of satisfying a client that dislikes the 405; the 2026-07-28 specification lets a
 server refuse the optional GET stream, and clients that fail on it are the bug.
 
+**Tell the two 405s apart, because one of them is a routing failure.** The
+snippet's own 405 carries `access-control-allow-origin: *`, `allow: POST,
+OPTIONS`, and a JSON-RPC body. A 405 with an **empty body and no headers** did not
+come from the snippet at all: the rule did not match, the request fell through to
+the assets-only Worker, and Static Assets answered because it serves GET and
+HEAD only. In the Cloudflare HTTP log that shows up as `originResponseStatus: 0`
+with a non-zero `edgeResponseStatus` — no invocation, so there are no Worker logs
+to read and no request body to find. Read `clientRequestPath` first; it names the
+path the rule failed on. This is what a `POST /mcp/` looked like: the rule matched
+`/mcp` exactly, and every client that normalises a trailing slash got the routing
+405 instead of the endpoint. Both paths are in the rule now.
+
+**Do not look for an `mcp-protocol-version` response header.** The snippet does
+not send one. That name appears only inside `access-control-expose-headers` and
+`access-control-allow-headers`, so a test that checks for the bare header fails
+even on a healthy response. Use the body: a JSON-RPC result carrying the tool is
+something neither fallback can produce.
+
 **Never deepen the shard key past 6 hex characters.** The base is 4 and the
 deepest override is 6, which is the shortest registered prefix (MA-L). Go
 deeper and a 6-character record is keyed by itself, lands in a different file,

@@ -5,7 +5,7 @@
  * and rebuild. Deploy this file as a Cloudflare Snippet on the zone with a rule
  * whose filter expression is exactly:
  *
- *   (http.host eq "mac.jasontally.com" and http.request.uri.path eq "/mcp")
+ *   (http.host eq "mac.jasontally.com" and (http.request.uri.path eq "/mcp" or http.request.uri.path eq "/mcp/"))
  *
  * The host is in the expression on purpose. A Snippet rule is zone-wide, so a
  * path-only rule also fires on every other subdomain, where the shard fetch

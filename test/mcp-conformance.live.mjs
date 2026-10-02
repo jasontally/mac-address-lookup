@@ -179,6 +179,34 @@ await check('the rule expression is host-scoped, as installed', () => {
   assert(expression.includes(`"${MCP_ROUTE}"`), `expression does not name ${MCP_ROUTE}: ${expression}`);
 });
 
+await check('the trailing-slash path reaches the endpoint, as installed', async () => {
+  // Clients disagree on whether to send /mcp or /mcp/. Both must be routed to
+  // the snippet. When only /mcp is in the rule, a POST to /mcp/ does not run the
+  // snippet at all: it falls through to the assets-only Worker, and Static
+  // Assets serves GET and HEAD only, so the POST returns 405 with an empty body.
+  // Glama's MCP Inspector Online hit exactly that.
+  //
+  // Assert on the body, not on a header. The snippet sets no `mcp-protocol-version`
+  // response header; that name only appears inside access-control-expose-headers.
+  // The body is the sound discriminator, because the one thing the fallbacks
+  // cannot produce is a JSON-RPC result carrying the tool: Static Assets answers
+  // a POST with 405 and no body, and the SPA fallback answers with HTML.
+  const response = await fetch(`${SITE}${MCP_ROUTE}/`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+  });
+  equal(response.status, 200, 'trailing-slash POST status');
+  assert(
+    /^application\/json/i.test(response.headers.get('content-type') || ''),
+    `trailing-slash POST content-type was ${response.headers.get('content-type')}, ` +
+      'which means the SPA fallback answered instead of the snippet',
+  );
+  const body = await response.json();
+  equal(body.id, 1, 'trailing-slash JSON-RPC id');
+  equal(body.result?.tools?.[0]?.name, 'lookup', 'trailing-slash tools/list payload');
+});
+
 await check('the routed shard is on the edge, as text/plain', async () => {
   // The routed key follows the depth table. 8C1F is carved to depth 6, and
   // '8C1F64AFA'.slice(0, 6) is '8C1F64', so that is the file the snippet reads.
