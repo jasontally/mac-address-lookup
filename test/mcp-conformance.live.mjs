@@ -129,6 +129,29 @@ await check('GET is refused with 405 and an Allow header', async () => {
   assert(/POST/.test(String(res.headers.get('allow'))), 'Allow must advertise POST');
 });
 
+await check('a tool call result carries resultType, as the strict validator requires', async () => {
+  // A strict 2026-07-28 client rejects the whole result without this field and
+  // reports "missing required resultType". It failed here in BOTH playground
+  // modes, because the per-request endpoints re-detect and our discover
+  // advertises 2026-07-28, so "stateful" was not testing the lenient path.
+  const res = await client.callTool('lookup', { mac: '8C:1F:64:AF:A4:B2' });
+  equal(res.status, 200, 'status');
+  equal(res.json.result.resultType, 'complete', 'resultType');
+  assert(
+    typeof res.json.result.structuredContent?.orgName === 'string',
+    'the vendor must survive validation, or the fix only moved the error',
+  );
+});
+
+await check('an unmatched address is also marked complete', async () => {
+  // The miss path is the easier one to break: it is the branch with no vendor in
+  // it, and a strict client would discard it exactly the same way.
+  const res = await client.callTool('lookup', { mac: '02:00:00:00:00:01' });
+  equal(res.status, 200, 'status');
+  equal(res.json.result.resultType, 'complete', 'resultType');
+  equal(res.json.result.structuredContent.orgName, null, 'no vendor, and it says so');
+});
+
 await check('bad arguments get INVALID_PARAMS', async () => {
   const res = await client.callTool('lookup', { mac: 'nope' });
   equal(res.json.error.code, JSON_RPC.INVALID_PARAMS, 'error code');

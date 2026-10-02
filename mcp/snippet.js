@@ -51,8 +51,32 @@ function headers(extra) {
   );
 }
 
+/**
+ * Wrap a result and mark it complete.
+ *
+ * This lives inside the snippet template literal, so backticks have to be
+ * escaped here or they close the template early. The emitted snippet carries
+ * plain backticks.
+ *
+ * 2026-07-28 requires `resultType` on every result, and the defaulting bridge
+ * that treats an absent value as complete applies only to servers on earlier
+ * revisions. A strict client therefore rejects the whole result when it is
+ * missing, which for a tool call means the answer is discarded even though the
+ * lookup was right.
+ *
+ * It is set here, in the one function every result goes through, rather than at
+ * each call site. That is deliberate: the two bugs in a row came from adding a
+ * field at some call sites and forgetting the others. A new method cannot ship a
+ * result without it.
+ *
+ * An explicit `resultType` still wins, so a caller that returns an interim
+ * result such as `input_required` is not overridden.
+ */
 function rpcResult(id, result) {
-  return new Response(JSON.stringify({ jsonrpc: '2.0', id: id === undefined ? null : id, result }), {
+  const marked = result && typeof result === 'object' && 'resultType' in result
+    ? result
+    : { resultType: 'complete', ...result };
+  return new Response(JSON.stringify({ jsonrpc: '2.0', id: id === undefined ? null : id, result: marked }), {
     status: 200,
     headers: headers(),
   });

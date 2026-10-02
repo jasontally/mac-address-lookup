@@ -482,6 +482,36 @@ The tool catalog is identical for every caller and is rewritten only by a build,
 so it carries `ttlMs: 3600000` and `cacheScope: "public"`. `resources/read` is the
 case that wants `"private"`.
 
+**`resultType` is required on every result, including a tool call.** 2026-07-28
+requires it, and the bridge that treats an absent value as complete applies only
+to servers on an earlier revision. A strict client throws the **whole** result
+away when it is missing, so the symptom is a rejected result rather than a
+missing field:
+
+```
+Invalid result for tools/call: missing required resultType — servers implementing
+protocol revision 2026-07-28 MUST include it (the absent-means-complete bridge
+applies only to earlier-revision servers)
+```
+
+The lookup was correct and got discarded anyway. The server sees a `200` with a
+good vendor in it.
+
+**It is set in `rpcResult`, not at the call sites.** Two bugs in a row came from
+adding a field in one place and forgetting the others: `supportedVersions` was
+missing from the catalog, and `resultType` was missing from the tool result.
+Marking it inside the one function every result passes through means a new method
+cannot ship without it. An explicit `resultType` still wins, so an interim result
+such as `input_required` is not overridden.
+
+**Testing the stateless lane only.** This one failed in **both** playground
+modes, which is the trap. The playground sends its mode choice to `/connect`
+alone; its per-request endpoints have no mode flag and re-detect each time. Our
+`server/discover` advertises `2026-07-28`, so detection resolves to the strict
+modern rule in either mode. "Stateful works" therefore proved nothing, because
+stateful was validating against the same strict rule and passing only by luck on
+a different method. Test the strict lane first.
+
 **Where the version is read from, and the bug this exposed.** The guard checks
 three places, in this order: `params.protocolVersion`, then the
 `MCP-Protocol-Version` header, then `_meta` (both under `params` and at the top
@@ -632,6 +662,11 @@ budget.
 | Snippets per zone | 0 Free / 25 Pro / 50 Business / 300 Enterprise | One used |
 | Static asset files | 100,000 hard limit | Roughly three-quarters used, shared with the whole site. The build asserts against it |
 | Static asset requests | unlimited, free | This is the whole cost argument |
+
+The 32 KB package limit is why this endpoint is hand-rolled. No MCP SDK fits in
+it, and the smallest public zero-dependency MCP servers on the same platform sit
+around 7 KB of protocol layer. Measured sizes, the SDK floor, and the patterns
+worth copying: [mcp-comparanda.md](mcp-comparanda.md).
 
 ### The plan cliff, which is the one that matters
 

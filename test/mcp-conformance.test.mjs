@@ -250,6 +250,28 @@ describe('tools/list structure (requirements from the official suite)', () => {
   });
 });
 
+/**
+ * The strict validator a modern client applies, transcribed from the
+ * playground's own rejection:
+ *
+ *   "Invalid result for tools/call: missing required resultType -- servers
+ *    implementing protocol revision 2026-07-28 MUST include it (the
+ *    absent-means-complete bridge applies only to earlier-revision servers)"
+ *
+ * The important word is MUST, and the second half of the sentence: a server on
+ * 2025-11-25 may omit it, and this endpoint also serves that revision. So the
+ * same field is mandatory or optional depending on which revision answered, and
+ * one strict and one lenient client disagree about a byte-identical response.
+ *
+ * That is why a fix verified in "stateful" mode proves nothing about the
+ * stateless lane. The playground sends its mode to /connect only; its
+ * per-request endpoints re-detect, and our discover advertises 2026-07-28, so
+ * both modes validate against the modern rule.
+ */
+function assertModernResult(result, label) {
+  assert.equal(result?.resultType, 'complete', `${label}: missing resultType`);
+}
+
 // ---------------------------------------------------------------- server/discover
 
 describe('server/discover (the stateless entry point)', () => {
@@ -320,6 +342,37 @@ describe('lookup tool behaviour', () => {
   let h;
   before(async () => { h = await harness(); });
   after(() => h.restore());
+
+  // `resultType` is required on every 2026-07-28 result, and the bridge that
+  // treats an absent value as complete applies only to earlier revisions. A
+  // strict client discards the whole result when it is missing, so a correct
+  // lookup is thrown away and the client reports a malformed result instead of
+  // the vendor.
+  //
+  // This covers both tool-call paths: a hit and a miss. A miss is the easier one
+  // to break, because it is the branch with no vendor in it.
+  test('a tool call result is marked complete on both the hit and the miss path', async () => {
+    const hit = await h.client.callTool('lookup', { mac: '8C:1F:64:AF:A4:B2' });
+    assertModernResult(hit.json.result, 'matched address');
+    const miss = await h.client.callTool('lookup', { mac: '02:00:00:00:00:01' });
+    assertModernResult(miss.json.result, 'unmatched address');
+    assert.equal(miss.json.result.structuredContent.orgName, null, 'the miss path still returns its payload');
+  });
+
+  test('every result this endpoint can return is marked complete', async () => {
+    // A new method added later goes through the same wrapper, so this is the
+    // check that keeps it honest. ping and tools/list are included because they
+    // are the ones a caller is most likely to forget.
+    for (const call of [
+      () => h.client.request('ping', undefined, 1),
+      () => h.client.request('tools/list', undefined, 1),
+      () => h.client.request('server/discover', undefined, 1),
+      () => h.client.callTool('lookup', { mac: '8C1F64AFA4B2' }),
+    ]) {
+      const res = await call();
+      assert.equal(res.json.result.resultType, 'complete');
+    }
+  });
 
   test('the result carries text content and a matching structured payload', async () => {
     const res = await h.client.callTool('lookup', { mac: '8C:1F:64:AF:A4:B2' });
@@ -650,7 +703,10 @@ describe('legacy stateless handshake (legacy:stateless)', () => {
   test('ping is answered, since some clients probe with it', async () => {
     const res = await h.client.request('ping', undefined, 1);
     assert.equal(res.status, 200);
-    assert.deepEqual(res.json.result, {});
+    // Now marked complete, like every other result. `ping` was the one that
+    // returned a bare {} and would have been the next thing a strict client
+    // rejected.
+    assert.deepEqual(res.json.result, { resultType: 'complete' });
   });
 
   // Regression: the guard read only the header and _meta, and initialize carries
