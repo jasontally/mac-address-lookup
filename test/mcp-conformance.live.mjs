@@ -72,6 +72,18 @@ await check('server/discover names the version a stateless client pins', async (
   assert(Array.isArray(versions), `supportedVersions must be a list, got ${JSON.stringify(res.json.result)}`);
   assert(versions.includes('2026-07-28'), `must advertise 2026-07-28, got ${JSON.stringify(versions)}`);
   equal(res.json.result._meta['io.modelcontextprotocol/serverInfo'].name, 'mac-address-lookup', 'serverInfo');
+  equal(res.json.result.ttlMs, typeof res.json.result.ttlMs, 'ttlMs must be present');
+});
+
+await check('tools/list carries the caching hints a strict validator requires', async () => {
+  // A result marked complete MUST carry ttlMs and cacheScope. A strict client
+  // rejects the whole result without them, so the symptom is an empty tool list
+  // rather than a complaint about the hints.
+  const { res } = await client.listTools();
+  equal(res.status, 200, 'status');
+  const result = res.json.result;
+  assert(typeof result.ttlMs === 'number' && result.ttlMs >= 0, `ttlMs must be a number >= 0, got ${result.ttlMs}`);
+  assert(['public', 'private'].includes(result.cacheScope), `cacheScope must be public or private, got ${result.cacheScope}`);
 });
 
 await check('initialize is answered, so a connector probe gets a 2xx', async () => {

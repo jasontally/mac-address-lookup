@@ -455,6 +455,33 @@ modern client, alongside the top-level identity fields a 2025-era client reads.
 the snippet's request guard and the advertised list, because a version the guard
 refuses is a version a client is told to claim, and one test asserts they agree.
 
+### Marking a result "complete" makes the caching hints mandatory
+
+`resultType: "complete"` is not decoration. The specification says servers **MUST**
+include caching hints on results that carry it, and names the fields: `ttlMs`, an
+integer in milliseconds, and `cacheScope`, `"public"` or `"private"`. The rule
+covers `server/discover` and every list call.
+
+A strict client validator throws away the **whole** result when they are missing.
+So the symptom is not "the hints are absent" but **"this server has no tools"**:
+the tool list arrived and was discarded with the rest. Nothing on the server
+points at the cause, because the response is a correct `200` with a good tool
+list in it.
+
+That is how the fix for the missing `supportedVersions` introduced the next fault.
+The connection then succeeded, the client asked for the tool list, and came back
+with nothing. A third-party playground, reached through its own HTTP API, named
+both fields exactly:
+
+```
+Invalid result for tools/list: expected number, received undefined   path: ttlMs
+Invalid option: expected one of "public"|"private"                     path: cacheScope
+```
+
+The tool catalog is identical for every caller and is rewritten only by a build,
+so it carries `ttlMs: 3600000` and `cacheScope: "public"`. `resources/read` is the
+case that wants `"private"`.
+
 **Where the version is read from, and the bug this exposed.** The guard checks
 three places, in this order: `params.protocolVersion`, then the
 `MCP-Protocol-Version` header, then `_meta` (both under `params` and at the top

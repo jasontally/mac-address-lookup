@@ -474,6 +474,24 @@ top-level identity fields a 2025-era client reads. `MCP_SUPPORTED_VERSIONS` in
 advertised list, and a check in `test/mcp-conformance.test.mjs` claims each
 advertised version against the endpoint, so the two cannot drift apart.
 
+**Caching hints (bug fixed 2026-10-02).** `resultType: "complete"` is not
+decoration. The specification requires servers to include caching hints on every
+result that carries it — `ttlMs`, an integer in milliseconds, and `cacheScope`,
+`"public"` or `"private"` — and says so for `server/discover` and every list call.
+
+The fix above added `resultType` and the discover fields but not the hints, so the
+next fault arrived immediately: the connection succeeded, then the client came
+back with **no tools**. A strict validator discards the whole result when the hints
+are missing, so the tool list is thrown away with them. The server sees a correct
+`200` carrying a good tool list and has nothing to report. The catalog now carries
+`ttlMs: 3600000` and `cacheScope: "public"` — the tool list is identical for every
+caller and changes only when the build deploys.
+
+The lesson is the one these three bugs share: a client that fails on a strict
+validator reports the *symptom it can see*, and "no tools" points at the tool list
+rather than at two absent fields. Reach for the validator's own error text before
+guessing at the data.
+
 ### ARD well-known catalogs
 
 `public/.well-known/ai-catalog.json` and `public/.well-known/ard.json` are

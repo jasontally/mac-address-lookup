@@ -281,6 +281,26 @@ describe('server/discover (the stateless entry point)', () => {
     assert.equal(info?.version, '1.0.0');
   });
 
+  // The rule that makes the two fields above mandatory, and the one that is
+  // easiest to break by accident: a result marked "complete" MUST carry them.
+  //
+  // A strict client validator throws the whole result away when they are absent,
+  // so the visible symptom is "the server has no tools", not "the hints are
+  // missing". The server sees a correct 200 and has nothing to report.
+  test('a complete result carries the caching hints the specification requires', async () => {
+    for (const method of ['server/discover', 'tools/list']) {
+      const { json } = await h.client.request(method, undefined, 1);
+      const result = json.result;
+      assert.equal(result.resultType, 'complete', `${method} resultType`);
+      assert.equal(typeof result.ttlMs, 'number', `${method} must carry a numeric ttlMs`);
+      assert.ok(Number.isInteger(result.ttlMs) && result.ttlMs >= 0, `${method} ttlMs must be an integer >= 0`);
+      assert.ok(
+        result.cacheScope === 'public' || result.cacheScope === 'private',
+        `${method} cacheScope must be "public" or "private", got ${JSON.stringify(result.cacheScope)}`,
+      );
+    }
+  });
+
   // The drift guard. Advertise a version and the guard refuses it, and the
   // client is told to claim a version that then fails; refuse a version that
   // discovery advertises, and the client walks away before it sends anything.

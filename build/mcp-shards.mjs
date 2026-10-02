@@ -63,6 +63,16 @@ export const MCP_PROTOCOL_VERSION = '2026-07-28';
 export const MCP_SUPPORTED_VERSIONS = [MCP_PROTOCOL_VERSION, '2025-11-25', '2025-06-18'];
 
 /**
+ * How long a client may treat the tool catalog as fresh, in milliseconds.
+ *
+ * One hour. The catalog only changes when the build deploys, and it is 3 KB, so
+ * a client that re-fetches hourly pays nothing. A shorter value would also work;
+ * a longer one would keep a changed tool list alive in client caches for longer
+ * than the deploy that changed it deserves.
+ */
+const CATALOG_TTL_MS = 60 * 60 * 1000;
+
+/**
  * The exact Snippet rule expression this module expects to be installed.
  *
  * Scoping by host is not optional. A Snippet rule is zone-wide, so a bare
@@ -287,6 +297,21 @@ export function methodCatalog({ site = SITE } = {}) {
   const serverInfo = { name: 'mac-address-lookup', title: 'MAC Address Lookup', version: '1.0.0' };
   return {
     resultType: 'complete',
+    // A result marked "complete" MUST carry caching hints. The specification
+    // says so directly: servers MUST include `ttlMs` and `cacheScope` on
+    // results with `resultType: "complete"` from server/discover and every
+    // list call. Marking the result complete is what makes them mandatory, so
+    // these two lines are not optional extras.
+    //
+    // A strict client validator rejects the WHOLE result when they are missing,
+    // so the symptom is not "the hints are absent" but "the server has no
+    // tools": the tool list it did receive was thrown away with the rest. That
+    // is what happened here, and it is silent on the server, because the
+    // response is a perfectly good 200.
+    ttlMs: CATALOG_TTL_MS,
+    // The tool list is the same for every caller, so a shared cache may hold
+    // it. `resources/read` is the case that wants "private".
+    cacheScope: 'public',
     // The DiscoverResult field a stateless client reads to pick a version. A
     // client that pins 2026-07-28 and finds no `supportedVersions` has nothing
     // to negotiate against and reports a version negotiation failure, so this
