@@ -330,6 +330,59 @@ test('the generated snippet is an ES module that fits the snippet limit', async 
   assert.match(source, /Object\.hasOwn\(payload, 'id'\)/);
 });
 
+/**
+ * The tool catalog must not sit behind the shard cache TTL.
+ *
+ * The shards are keyed by prefix, so a file name never changes when its content
+ * does, and a 24-hour TTL is a fair trade for them. `catalog.json` is in the
+ * same directory and is not that: it carries the tool description and the
+ * advertised protocol versions, and it changes whenever the generator changes.
+ *
+ * A 24-hour TTL on it leaves each edge location serving the copy it cached, so
+ * after a deploy one location can answer `server/discover` with the new
+ * `supportedVersions` and another with none at all. The endpoint then passes in
+ * one test and fails in another, with no server-side error to explain it.
+ *
+ * Note also that Cloudflare joins two values when two matching rules set the
+ * same header, so adding a narrower rule for the catalog alongside the wildcard
+ * would produce `no-store, public, max-age=86400` and keep the TTL. The wildcard
+ * has to stop matching the catalog instead.
+ */
+test('the shard cache TTL does not cover the tool catalog', async () => {
+  const headers = await readFile(path.join(import.meta.dirname, '..', 'public', '_headers'), 'utf8');
+  const blocks = headers
+    .split(/\n(?=\S)/)
+    .map((block) => block.split('\n').filter((line) => !line.trimStart().startsWith('#')))
+    .filter((lines) => lines.length > 1)
+    .map((lines) => ({
+      pattern: lines[0].trim(),
+      cacheControl: lines.slice(1).find((line) => /^cache-control:/i.test(line.trim())) || '',
+    }));
+
+  const matches = (pattern, url) =>
+    pattern.includes('*')
+      ? new RegExp('^' + pattern.replace(/[.]/g, '\\.').replace(/\*/g, '[^/]*') + '$').test(url)
+      : pattern === url;
+
+  const cached = blocks.filter((block) => /max-age=(\d{4,})/.test(block.cacheControl));
+  const catalog = '/data/mcp/catalog.json';
+  const covering = cached.filter((block) => matches(block.pattern, catalog));
+
+  assert.deepEqual(
+    covering.map((block) => block.pattern),
+    [],
+    `${catalog} must not match a long-TTL rule; the edge would serve a stale catalog after a deploy`,
+  );
+
+  // The shards must keep their TTL. Without this the rule above could be
+  // deleted and the test would still pass.
+  const shard = '/data/mcp/8c1f64.txt';
+  assert.ok(
+    cached.some((block) => matches(block.pattern, shard)),
+    'the .txt shards are still cached; they are the reason this rule exists',
+  );
+});
+
 test('the generated snippet has no null-length crash in the match loop', async () => {
   const { dist } = await writeFixture();
   const source = await readFile(path.join(dist, 'mcp-snippet.js'), 'utf8');

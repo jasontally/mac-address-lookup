@@ -88,8 +88,15 @@
 /data/lineage.ndjson
   Cache-Control: public, max-age=86400
 
-# MCP lookup shards: keyed by a registered prefix, immutable once published.
-/data/mcp/*
+# MCP lookup shards: keyed by a registered prefix, so the file name never changes
+# when the content does. Scoped to *.txt on purpose. catalog.json sits in the same
+# directory and must NOT inherit this: it carries the tool description and the
+# protocol versions, it changes when the generator changes, and a 24-hour TTL
+# leaves every edge location that cached it serving the old one after a deploy.
+# That is what made the endpoint disagree with itself between locations, and why
+# a fix could look live in one test and broken in another. catalog.json falls
+# through to the platform default, public, max-age=0, must-revalidate.
+/data/mcp/*.txt
   Cache-Control: public, max-age=86400
 
 # Security headers (catch-all last so specific cache rules apply first).

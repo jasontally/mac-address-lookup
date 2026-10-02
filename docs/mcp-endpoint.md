@@ -533,6 +533,27 @@ turn most unregistered lookups into 5xx. The whole-deploy case is caught by
 and both `tools/list` and `server/discover` fail loudly rather than reporting an
 empty tool list.
 
+**`catalog.json` must not inherit the shard cache TTL.** The shard rule in
+`public/_headers` is `/data/mcp/*.txt`, scoped to the extension on purpose. The
+catalog lives in the same directory and is not like a shard: its name never
+changes, but its content changes whenever the generator does, and it carries the
+advertised protocol versions.
+
+Under a 24-hour TTL, each edge location keeps serving the copy it cached. After a
+deploy that fixes the catalog, one location answers `server/discover` with the
+new `supportedVersions` and another answers with none, so the endpoint passes in
+one place and still fails to negotiate in another, with no error from the server.
+That is the shape to recognise: a fix that is deployed, works in one test, and
+still fails elsewhere. `catalog.json` now falls through to the platform default,
+`public, max-age=0, must-revalidate`, so the edge revalidates on every request.
+
+Note for anyone narrowing the rule instead of widening it: Cloudflare **joins**
+the values when two matching rules set the same header. A `no-store` rule for the
+catalog placed next to the old wildcard would have produced
+`no-store, public, max-age=86400`, which keeps the TTL and reads as nonsense. The
+wildcard has to stop matching the catalog. `test/mcp-shards.test.mjs` holds this
+property, and also holds that the shards keep their TTL.
+
 ## Security review (2026-10-01)
 
 Adversarial pass over the deployed Snippet, before rotating the deployment
