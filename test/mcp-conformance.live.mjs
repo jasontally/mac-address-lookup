@@ -72,7 +72,15 @@ await check('server/discover names the version a stateless client pins', async (
   assert(Array.isArray(versions), `supportedVersions must be a list, got ${JSON.stringify(res.json.result)}`);
   assert(versions.includes('2026-07-28'), `must advertise 2026-07-28, got ${JSON.stringify(versions)}`);
   equal(res.json.result._meta['io.modelcontextprotocol/serverInfo'].name, 'mac-address-lookup', 'serverInfo');
-  equal(res.json.result.ttlMs, typeof res.json.result.ttlMs, 'ttlMs must be present');
+  // `equal` compares JSON, so it cannot assert a type. A check written as
+  // `equal(ttlMs, typeof ttlMs)` compares 3600000 to "number" and always fails,
+  // which is what this did: the value was correct and the assertion was wrong.
+  assert(typeof res.json.result.ttlMs === 'number', `ttlMs must be a number, got ${JSON.stringify(res.json.result.ttlMs)}`);
+  assert(Number.isInteger(res.json.result.ttlMs) && res.json.result.ttlMs >= 0, 'ttlMs must be an integer >= 0');
+  assert(
+    ['public', 'private'].includes(res.json.result.cacheScope),
+    `cacheScope must be "public" or "private", got ${JSON.stringify(res.json.result.cacheScope)}`,
+  );
 });
 
 await check('tools/list carries the caching hints a strict validator requires', async () => {
