@@ -30,6 +30,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mcpRuleExpression, SITE } from './mcp-shards.mjs';
+import { mergeSnippetRule, rulesMatch } from './snippet-rules.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -83,32 +84,14 @@ async function api(route, init = {}) {
 const snippetRoute = (id) => `/zones/${id}/snippets/${encodeURIComponent(SNIPPET_NAME)}`;
 const rulesRoute = (id) => `/zones/${id}/snippets/snippet_rules`;
 
-/** True when the observed rule list already equals what we want. */
-function rulesMatch(desired, observed) {
-  if (!Array.isArray(observed) || desired.length !== observed.length) return false;
-  return desired.every((want, i) => {
-    const got = observed[i] || {};
-    return (
-      got.snippet_name === want.snippet_name &&
-      got.expression === want.expression &&
-      (got.description ?? undefined) === want.description &&
-      // Cloudflare defaults a rule to disabled when `enabled` is omitted, and
-      // a disabled rule matches nothing. This must be sent explicitly.
-      got.enabled === want.enabled
-    );
-  });
-}
-
 const code = await readFile(SNIPPET_FILE, 'utf8');
 const expression = mcpRuleExpression();
-const desiredRules = [
-  {
-    snippet_name: SNIPPET_NAME,
-    expression,
-    description: 'Serve the stateless MCP lookup endpoint at /mcp',
-    enabled: true,
-  },
-];
+const ourRule = {
+  snippet_name: SNIPPET_NAME,
+  expression,
+  description: 'Serve the stateless MCP lookup endpoint at /mcp and /mcp/',
+  enabled: true,
+};
 
 const observed = await api(rulesRoute(zoneId)).catch((error) => {
   // A zone that never had a rule list 404s, which means "no rules" rather than
@@ -117,6 +100,15 @@ const observed = await api(rulesRoute(zoneId)).catch((error) => {
   throw error;
 });
 
+// The PUT below replaces the WHOLE list, and this zone is shared. The rule list
+// also carries `icanhazip`, which belongs to another project and covers 69
+// subdomains of jasontally.com. Sending a single-rule list would delete it, so
+// merge into whatever is installed instead of replacing the list.
+const desiredRules = mergeSnippetRule(observed, ourRule);
+const foreign = (Array.isArray(observed) ? observed : []).filter(
+  (rule) => rule.snippet_name !== SNIPPET_NAME,
+);
+
 const needsCode = !dryRun;
 const needsRules = !rulesMatch(desiredRules, observed);
 
@@ -124,6 +116,7 @@ console.log(`snippet  ${SNIPPET_NAME}  ${(code.length / 1024).toFixed(1)} KB fro
 console.log(`rule     ${expression}`);
 console.log(`zone     ${zoneId} (${SITE})`);
 console.log(`current  ${observed ? `${observed.length} rule(s)` : 'no rule list'}`);
+console.log(`keeping  ${foreign.length} rule(s) owned by others: ${foreign.map((r) => r.snippet_name).join(', ') || 'none'}`);
 console.log(`plan     upload code: ${dryRun ? 'skipped (--dry-run)' : 'yes'} | rules: ${needsRules ? 'update' : 'already current'}`);
 
 if (dryRun) {
@@ -155,6 +148,21 @@ if (needsRules) {
 }
 
 const finalRules = await api(rulesRoute(zoneId));
-console.log(`\nverify    ${Array.isArray(finalRules) ? JSON.stringify(finalRules) : 'no rule list'}`);
+
+// Read the list back and prove every foreign rule survived. A PUT that drops
+// another project's rule is silent: it returns 200 with the shortened list. This
+// is the only place that failure would become visible.
+const survivors = (Array.isArray(finalRules) ? finalRules : []).filter(
+  (rule) => rule.snippet_name !== SNIPPET_NAME,
+);
+const lost = foreign.filter((was) => !survivors.some((now) => now.snippet_name === was.snippet_name));
+if (lost.length > 0) {
+  console.error(
+    `\nABORT: the PUT removed rule(s) owned by another project: ${lost.map((r) => r.snippet_name).join(', ')}.\n` +
+      '       Restore them from build/deploy-mcp-snippet.mjs or the API before anything else.',
+  );
+  process.exit(1);
+}
+console.log(`\nverify    ${finalRules.length} rule(s); ${survivors.length} foreign rule(s) intact: ${survivors.map((r) => r.snippet_name).join(', ') || 'none'}`);
 console.log('\nNext: curl -sS https://mac.jasontally.com/mcp -H \'content-type: application/json\' \\');
 console.log("  -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}'");
