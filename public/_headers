@@ -64,6 +64,15 @@
   Content-Type: application/json
   Cache-Control: public, max-age=86400
 
+# MCP server card: the pre-connection discovery document at the path clients
+# probe (SEP-1649). It is the same document as server.json, the metadata the
+# official MCP Registry publishes, so an agent that finds either one finds the
+# same server. A real JSON file here also stops the SPA fallback from answering
+# this path with HTML.
+/.well-known/mcp/server-card.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
 # help.md carries Markdown source; some tools refuse the text/markdown media
 # type, so present it as plain text (the content reads fine either way).
 /help.md

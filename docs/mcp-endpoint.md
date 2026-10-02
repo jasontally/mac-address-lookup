@@ -8,6 +8,10 @@ header.
 This document covers the one thing the build cannot do for you: the Snippet that
 serves the endpoint. The shards and the Snippet source are both build output.
 
+For the other side of the endpoint, the metadata it is listed under and the
+directories and registries it can appear in, see
+[docs/mcp-listing.md](mcp-listing.md).
+
 ## How the two halves fit
 
 | Piece | Built by | Published by | Cost |

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.jasontally.mac/mcp",
+  "title": "MAC Address Lookup",
+  "description": "Find the organization behind a MAC address or OUI prefix in the IEEE registries. No auth, no key.",
+  "version": "1.0.0",
+  "websiteUrl": "https://mac.jasontally.com",
+  "repository": {
+    "url": "https://github.com/jasontally/mac-address-lookup",
+    "source": "github",
+    "id": "1367839436"
+  },
+  "icons": [
+    {
+      "src": "https://mac.jasontally.com/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "any"
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mac.jasontally.com/mcp"
+    }
+  ]
+}
