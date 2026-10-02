@@ -292,24 +292,59 @@ reached the edge. Sends real requests, so it is not part of `npm test`.
 
 **3. Load and correctness** — `npm run mcp:load`. See below.
 
-**4. The official conformance runner does not apply yet.** The framework is
-`@modelcontextprotocol/conformance`, but it rejects the version outright:
+**4. The official conformance runner applies now, and is the strongest gate
+available.** `@modelcontextprotocol/conformance` supports this revision:
 
 ```
-$ npx @modelcontextprotocol/conformance list --server --spec-version 2026-07-28
+npx @modelcontextprotocol/conformance list --server --requirements 2026-07-28
+npx @modelcontextprotocol/conformance server --url https://mac.jasontally.com/mcp \
+  --requirements 2026-07-28
+```
+
+**This corrects an earlier note in this document**, which said the runner
+rejected the version. That was true when written and is now false:
+
+```
 Unknown spec version: 2026-07-28
 Valid versions: 2025-03-26, 2025-06-18, 2025-11-25, draft, extension
 ```
 
-The README's `list --requirements 2026-07-28` is aspirational; that option does
-not exist in the published package. Running the 2025-11-25 suite against this
-endpoint fails on its first message, because that harness sends `initialize`
-and 2026-07-28 removed it. Those failures would be correct behaviour, so the
-suite is not a usable gate until `modelcontextprotocol` ships 2026-07-28
-scenarios. The one thing borrowed from it is the `tools/list` structural
-requirement — every tool must have `name`, `description`, and a valid JSON
-Schema `inputSchema` — transcribed into `checkToolsListShape` and asserted in
-both layers.
+`--requirements` is the flag to use, not `--spec-version`. It loads the frozen
+requirement set the revision shipped with, rather than whatever the suite has
+accumulated since, so the result answers "does this conform to 2026-07-28"
+rather than "does this pass today's suite".
+
+`requirements/2026-07-28.yaml` names 38 required server scenarios, anchored to
+`@modelcontextprotocol/conformance@0.2.0-alpha.10`. Read that as coverage
+before treating it as a pass/fail gate:
+
+| Group | Required | This endpoint |
+| --- | --- | --- |
+| `tools-list`, `tools-call-simple-text`, `tools-call-error` | 3 | implemented, and covered locally |
+| `tools-call-image`, `-audio`, `-embedded-resource`, `-mixed-content`, `-with-progress` | 5 | absent: the one tool returns text and structured content only |
+| `resources-list`, `-read-text`, `-read-binary`, `-templates-read`, `sep-2164-resource-not-found` | 5 | absent: no resources are declared |
+| `prompts-list`, `-get-simple`, `-get-with-args`, `-get-embedded-resource`, `-get-with-image` | 5 | absent: no prompts are declared |
+| `server-stateless`, `server-sse-multiple-streams`, `dns-rebinding-protection`, `completion-complete`, `caching` | 5 | the ones that test this design |
+| `input-required-result-*` | 15 | absent: multi-round-trip elicitation and sampling |
+
+Twenty of the 38 are for capabilities a single-tool lookup server does not
+implement, and an absent capability is a correct answer rather than a defect.
+The five in the transport row are the ones worth reading the report for.
+`dns-rebinding-protection` in particular: it checks `Origin` validation, which
+this snippet does not perform. That is a real gap to decide on, not a pass.
+
+**The check this suite has that the local tests do not** is
+`wire-schema-valid`, which validates every message the implementation sends
+against the specification's JSON Schema for the negotiated version. Every fault
+this endpoint had in 2026-10 was a field missing or wrongly shaped, and a schema
+check finds that class of fault by construction. The local suite asserts those
+same fields by name, which catches a regression but not an unexpected shape.
+`test/mcp-wire-schema.test.mjs` closes that gap without the install; see the
+schema section below.
+
+`checkToolsListShape` remains, transcribed from the runner's published prose for
+the `tools-list` scenario, so the structural requirement is enforced in `npm test`
+with no network.
 
 ### Load and correctness testing
 

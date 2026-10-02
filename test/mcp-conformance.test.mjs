@@ -2,15 +2,27 @@
  * Conformance checks for the /mcp endpoint, derived from the 2026-07-28
  * specification.
  *
- * This is not the official suite, because the official suite cannot run it:
- * `@modelcontextprotocol/conformance` rejects the version outright, and the
- * official TypeScript client at 2.2.0 caps at 2025-11-25 and cannot connect.
- * See `test/mcp-2026-07-28-client.mjs` for that evidence.
+ * This is not the official suite. `@modelcontextprotocol/conformance` does
+ * support 2026-07-28 now, and is the stronger gate:
+ *
+ *   npx @modelcontextprotocol/conformance server --url <url> --requirements 2026-07-28
+ *
+ * An earlier note here said it rejected the version, quoting `Valid versions:
+ * 2025-03-26, 2025-06-18, 2025-11-25, draft, extension`. That was true when
+ * written and is now false. Two reasons this suite stays regardless: the runner
+ * has to be installed, and `npm test` must not need a network install; and the
+ * official TypeScript client at 2.2.0 still caps at 2025-11-25, so the client
+ * below is still written from the specification text.
  *
  * What is borrowed verbatim: the `tools/list` structural requirements, which
  * the official suite publishes as prose for its `tools-list` scenario. Those
- * are transcribed into `checkToolsListShape` so they are enforced here and are
- * ready to be replaced by the official runner the day it supports 2026-07-28.
+ * are transcribed into `checkToolsListShape`.
+ *
+ * What the official runner has that this file does not: `wire-schema-valid`,
+ * which validates every message against the specification's JSON Schema. That
+ * check lives in `test/mcp-wire-schema.test.mjs` here, without the install,
+ * because it is the check that finds the class of fault this endpoint actually
+ * had — a field missing or wrongly shaped, silently, in a `200`.
  *
  * What is derived: the stateless-core behaviours, taken from the specification
  * and the release notes. Each group below names its source.

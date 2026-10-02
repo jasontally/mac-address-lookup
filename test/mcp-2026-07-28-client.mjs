@@ -4,16 +4,22 @@
  * Why this exists rather than `@modelcontextprotocol/client`: the official
  * TypeScript client at 2.2.0 reports `LATEST_PROTOCOL_VERSION` of
  * `2025-11-25` and cannot connect to a 2026-07-28 server at all — it sends
- * `initialize` first and then reports "Not connected". The official
- * conformance suite rejects the version outright:
+ * `initialize` first and then reports "Not connected".
  *
- *   $ npx @modelcontextprotocol/conformance list --server --spec-version 2026-07-28
- *   Unknown spec version: 2026-07-28
- *   Valid versions: 2025-03-26, 2025-06-18, 2025-11-25, draft, extension
+ * The official conformance runner does support this revision, and is the
+ * stronger gate:
  *
- * So this client is written from the specification text, and doubles as
- * executable documentation of what a stateless client actually does: no
- * handshake, no session, one POST per request, identity in headers.
+ *   npx @modelcontextprotocol/conformance server --url <url> --requirements 2026-07-28
+ *
+ * Use `--requirements`, not `--spec-version`. An earlier note in this repository
+ * said the runner rejected the version, quoting `Valid versions: 2025-03-26,
+ * 2025-06-18, 2025-11-25, draft, extension`. That was true when written and is
+ * now false: `--requirements` loads the frozen set the revision shipped with.
+ *
+ * This client stays because the runner needs one installed, and `npm test` must
+ * not need a network install. It is written from the specification text, and
+ * doubles as executable documentation of what a stateless client actually does:
+ * no handshake, no session, one POST per request, identity in headers.
  *
  * Reference: https://modelcontextprotocol.io/specification/2026-07-28/
  */

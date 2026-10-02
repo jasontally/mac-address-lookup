@@ -299,6 +299,8 @@ if (failed > 0) {
   process.exit(1);
 }
 console.log(`\nThe deployed endpoint conforms on every check in this suite.`);
-console.log('This suite is derived from the 2026-07-28 spec, not the official');
-console.log('conformance runner, which does not yet accept that version. See');
-console.log('test/mcp-2026-07-28-client.mjs.');
+console.log('The official runner covers more and is the stronger gate:');
+console.log('  npx @modelcontextprotocol/conformance server \\');
+console.log('    --url https://mac.jasontally.com/mcp --requirements 2026-07-28');
+console.log('It needs an install, which is why it is not wired into npm test. See');
+console.log('docs/mcp-endpoint.md for what its 38 required scenarios cover.');
