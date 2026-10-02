@@ -5,14 +5,18 @@
  * This is not the official suite. `@modelcontextprotocol/conformance` does
  * support 2026-07-28 now, and is the stronger gate:
  *
- *   npx @modelcontextprotocol/conformance server --url <url> --requirements 2026-07-28
+ *   npx @modelcontextprotocol/conformance@0.2.0-alpha.12 server \
+ *     --url <url> --requirements 2026-07-28
  *
  * An earlier note here said it rejected the version, quoting `Valid versions:
  * 2025-03-26, 2025-06-18, 2025-11-25, draft, extension`. That was true when
- * written and is now false. Two reasons this suite stays regardless: the runner
- * has to be installed, and `npm test` must not need a network install; and the
- * official TypeScript client at 2.2.0 still caps at 2025-11-25, so the client
- * below is still written from the specification text.
+ * written and is now false. Pin the version: `latest` is `0.1.16`, which predates
+ * the revision and has no `--requirements` flag.
+ *
+ * Two reasons this suite stays regardless: the runner has to be installed, and
+ * `npm test` must not need a network install; and the official TypeScript client
+ * at 2.2.0 still caps at 2025-11-25, so the client below is still written from
+ * the specification text.
  *
  * What is borrowed verbatim: the `tools/list` structural requirements, which
  * the official suite publishes as prose for its `tools-list` scenario. Those

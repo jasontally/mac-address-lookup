@@ -9,7 +9,12 @@
  * The official conformance runner does support this revision, and is the
  * stronger gate:
  *
- *   npx @modelcontextprotocol/conformance server --url <url> --requirements 2026-07-28
+ *   npx @modelcontextprotocol/conformance@0.2.0-alpha.12 server \
+ *     --url <url> --requirements 2026-07-28
+ *
+ * Pin the version. `latest` is `0.1.16`, published 2026-03-30, which predates
+ * the revision and has no `--requirements` flag; that is what `unknown option
+ * '--requirements'` means. `--requirements` first appears in `0.2.0-alpha.11`.
  *
  * Use `--requirements`, not `--spec-version`. An earlier note in this repository
  * said the runner rejected the version, quoting `Valid versions: 2025-03-26,

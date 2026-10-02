@@ -802,10 +802,11 @@ mode is silent.
 - The official conformance runner supports 2026-07-28 via `--requirements`. An
   earlier note in this repository said it did not, quoting a `Valid versions`
   list without `2026-07-28`; that has been corrected in
-  [docs/mcp-endpoint.md](mcp-endpoint.md). Twenty of its 38 required server
+  [docs/mcp-endpoint.md](mcp-endpoint.md). Twenty of its 37 required server
   scenarios cover capabilities this endpoint does not implement, which is a
   correct answer rather than a defect. `dns-rebinding-protection` is the one to
-  read: it checks `Origin` validation, which the Snippet does not perform.
+  read: it checks `Origin` validation, which the Snippet does not perform. The
+  command needs `@0.2.0-alpha.12` pinned; `latest` predates the revision.
 - Sitemap and robots live; sitemap accepted by Google Search Console.
 
 ## Testing
@@ -817,7 +818,7 @@ mode is silent.
 | Browser | `npm run test:e2e` | Playwright specs in `e2e/`: `lookup`, `thin-pages`, `lang-pages`. Against production by default, or a local build with `E2E_BASE_URL=http://localhost:8788` |
 | Live MCP | `npm run mcp:conformance` | The deployed `/mcp` endpoint. The only check that catches a stale zone Snippet, a rule that lost its host term, or shards that never reached the edge. Not part of `npm test` because it sends real traffic |
 | Load and correctness | `npm run mcp:load` | Drives the deployed endpoint with a real request mix and validates every response against a brute-force oracle. See [MCP endpoint](mcp-endpoint.md) |
-| Official conformance | `npx @modelcontextprotocol/conformance server --url https://mac.jasontally.com/mcp --requirements 2026-07-28` | The 38 server scenarios the 2026-07-28 revision requires, frozen at the revision's release. The strongest gate, and the only check that validates outbound messages against the specification's JSON Schema. Needs an install, so it is not wired into `npm test`. Coverage and the known gaps are in [MCP endpoint](mcp-endpoint.md) |
+| Official conformance | `npx @modelcontextprotocol/conformance@0.2.0-alpha.12 server --url https://mac.jasontally.com/mcp --requirements 2026-07-28` | The 37 server scenarios the 2026-07-28 revision requires, frozen at the revision's release. The strongest gate, and the only check that validates outbound messages against the specification's JSON Schema. Pin the version: `latest` is `0.1.16`, which predates the revision and has no `--requirements` flag. Needs an install, so it is not wired into `npm test`. Coverage and the known gaps are in [MCP endpoint](mcp-endpoint.md) |
 | Ad-hoc | `node e2e/<script>.mjs` | `locale-sweep`, `i18n-audit`, the `measure-*` benchmarks, Lighthouse runners |
 
 ## Privacy stance

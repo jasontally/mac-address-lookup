@@ -300,7 +300,9 @@ if (failed > 0) {
 }
 console.log(`\nThe deployed endpoint conforms on every check in this suite.`);
 console.log('The official runner covers more and is the stronger gate:');
-console.log('  npx @modelcontextprotocol/conformance server \\');
+console.log('  npx @modelcontextprotocol/conformance@0.2.0-alpha.12 server \\');
 console.log('    --url https://mac.jasontally.com/mcp --requirements 2026-07-28');
-console.log('It needs an install, which is why it is not wired into npm test. See');
-console.log('docs/mcp-endpoint.md for what its 38 required scenarios cover.');
+console.log('Pin the version: latest is 0.1.16, which predates the revision and has');
+console.log('no --requirements flag. It needs an install, which is why it is not wired');
+console.log('into npm test. See docs/mcp-endpoint.md for what its 37 required');
+console.log('scenarios cover, and which are absent capabilities rather than faults.');

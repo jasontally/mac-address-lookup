@@ -293,30 +293,46 @@ reached the edge. Sends real requests, so it is not part of `npm test`.
 **3. Load and correctness** — `npm run mcp:load`. See below.
 
 **4. The official conformance runner applies now, and is the strongest gate
-available.** `@modelcontextprotocol/conformance` supports this revision:
+available.** `@modelcontextprotocol/conformance` supports this revision, but only
+from the alpha line. **`latest` is `0.1.16`, published 2026-03-30, which predates
+the revision and has no `--requirements` flag** — that is what
+`unknown option '--requirements'` means:
 
 ```
-npx @modelcontextprotocol/conformance list --server --requirements 2026-07-28
-npx @modelcontextprotocol/conformance server --url https://mac.jasontally.com/mcp \
-  --requirements 2026-07-28
+npx @modelcontextprotocol/conformance@0.2.0-alpha.12 server \
+  --url https://mac.jasontally.com/mcp --requirements 2026-07-28
 ```
 
-**This corrects an earlier note in this document**, which said the runner
-rejected the version. That was true when written and is now false:
+Pin the version. `@alpha` tracks the newest alpha and moves.
+
+| Version | Published | `--requirements` |
+| --- | --- | --- |
+| `0.1.16` (`latest`) | 2026-03-30 | no |
+| `0.2.0-alpha.10` | 2026-07-27 | no |
+| `0.2.0-alpha.11` | 2026-08-07 | yes |
+| `0.2.0-alpha.12` | 2026-10-01 | yes |
+
+**This corrects two earlier notes in this document.** The first said the runner
+rejected the version:
 
 ```
 Unknown spec version: 2026-07-28
 Valid versions: 2025-03-26, 2025-06-18, 2025-11-25, draft, extension
 ```
 
-`--requirements` is the flag to use, not `--spec-version`. It loads the frozen
-requirement set the revision shipped with, rather than whatever the suite has
-accumulated since, so the result answers "does this conform to 2026-07-28"
-rather than "does this pass today's suite".
+That was true when written and is now false. The second gave a command with no
+version, which resolves to `latest` and fails; and it named `alpha.10` as the
+anchor to run, which is the release the requirement set was *derived* from and
+which cannot execute it.
 
-`requirements/2026-07-28.yaml` names 38 required server scenarios, anchored to
-`@modelcontextprotocol/conformance@0.2.0-alpha.10`. Read that as coverage
-before treating it as a pass/fail gate:
+`--requirements` is the flag to use, not `--spec-version`. It loads the frozen
+set the revision shipped with, so the result answers "does this conform to
+2026-07-28" rather than "does this pass today's suite". It cannot be combined
+with `--suite`, `--scenario` or `--spec-version`.
+
+`requirements/2026-07-28.yaml` names **37** required server scenarios (verified
+against a run, which reported `Running requirements 2026-07-28 (50 scenarios)`
+and scored 37). Read that as coverage before treating it as a pass/fail gate:
 
 | Group | Required | This endpoint |
 | --- | --- | --- |
@@ -325,13 +341,18 @@ before treating it as a pass/fail gate:
 | `resources-list`, `-read-text`, `-read-binary`, `-templates-read`, `sep-2164-resource-not-found` | 5 | absent: no resources are declared |
 | `prompts-list`, `-get-simple`, `-get-with-args`, `-get-embedded-resource`, `-get-with-image` | 5 | absent: no prompts are declared |
 | `server-stateless`, `server-sse-multiple-streams`, `dns-rebinding-protection`, `completion-complete`, `caching` | 5 | the ones that test this design |
-| `input-required-result-*` | 15 | absent: multi-round-trip elicitation and sampling |
+| `input-required-result-*` | 14 | absent: multi-round-trip elicitation and sampling |
 
-Twenty of the 38 are for capabilities a single-tool lookup server does not
+Twenty of the 37 are for capabilities a single-tool lookup server does not
 implement, and an absent capability is a correct answer rather than a defect.
 The five in the transport row are the ones worth reading the report for.
 `dns-rebinding-protection` in particular: it checks `Origin` validation, which
-this snippet does not perform. That is a real gap to decide on, not a pass.
+this snippet does not perform.
+
+The run also reports 13 scenarios under **not scored**: 10 `tasks-*` marked
+`extension`, and `json-schema-2020-12`, `http-header-validation`,
+`http-custom-header-server-validation` marked `pending` because the suite's own
+reference fixture cannot pass them. None affects conformance.
 
 **The check this suite has that the local tests do not** is
 `wire-schema-valid`, which validates every message the implementation sends
