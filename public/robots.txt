@@ -1,0 +1,48 @@
+# Public IEEE-derived data and pre-rendered lookup pages: open to all
+# crawlers by default. AI crawlers are explicitly welcomed: the site is
+# static HTML readable without JavaScript, publishes downloadable data
+# files, and the app does no tracking (the host collects Cloudflare's
+# privacy-first, cookieless, aggregate web analytics). See /llms.txt for
+# the URL scheme.
+
+User-agent: *
+Allow: /
+
+# Explicit AI-crawler policy: allowed (same as the default above, stated
+# so the intent is documented and easy to flip per-bot if it ever changes).
+# The site also publishes an unauthenticated MCP server at /mcp and an agent
+# catalog at /.well-known/ard.json. Neither path is listed here: this file
+# carries only crawl rules that Google's parser recognises. The catalog is
+# pointed at by a <link rel="ai-catalog"> tag in every page head instead.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://mac.jasontally.com/sitemap.xml

@@ -1,0 +1,11 @@
+# One rule. Cloudflare Workers Static Assets has no way to serve both
+# /.well-known/oauth-protected-resource and /.well-known/oauth-protected-resource/mcp
+# as files, because a file and a directory cannot share a name. RFC 9728 puts
+# the path-suffixed document at the suffixed path, and that is the file in the
+# repo; this maps the bare host path onto it so a client that probes either gets
+# the same JSON. A 200 rewrite serves the file in place, so the request is not
+# redirected and no extra hop is involved.
+#
+# Without this, both paths fall through to the SPA fallback and return
+# index.html with a 200, which an auth-discovery client cannot parse.
+/.well-known/oauth-protected-resource /.well-known/oauth-protected-resource/mcp 200

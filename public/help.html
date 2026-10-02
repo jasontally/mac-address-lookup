@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Help & documentation | MAC Address Lookup</title>
+    <meta
+      name="description"
+      content="How MAC address lookup works: OUI and registry types, randomized and locally administered addresses, finding your own MAC address, prefix lineage, and answers to common questions."
+    />
+    <link rel="canonical" href="https://mac.jasontally.com/help" />
+    <link rel="ai-catalog" href="/.well-known/ai-catalog.json" type="application/ai-catalog+json" />
+    <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MAC Address Lookup" />
+    <meta property="og:title" content="Help & documentation | MAC Address Lookup" />
+    <meta
+      property="og:description"
+      content="How MAC address lookup works, IEEE registry types, randomized addresses, finding your own MAC address, and answers to common questions."
+    />
+    <meta property="og:url" content="https://mac.jasontally.com/help" />
+    <meta property="og:image" content="https://mac.jasontally.com/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MAC Address Lookup" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="alternate" type="text/markdown" href="/help.md" />
+    <link rel="describedby" type="text/plain" href="/llms.txt" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="{{APP_CSS}}" />
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem('mal.theme');
+          if (mode === 'light' || mode === 'dark') document.documentElement.dataset.mode = mode;
+        } catch (error) {
+          /* storage unavailable; system preference applies */
+        }
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Help & documentation | MAC Address Lookup",
+        "url": "https://mac.jasontally.com/help",
+        "isPartOf": { "@type": "WebSite", "name": "MAC Address Lookup", "url": "https://mac.jasontally.com/" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {{FAQ_SCHEMA}}
+    </script>
+    <script>
+      // Pre-rendered pages keep English HTML for crawlers; the app swaps
+      // translated labels after boot. Provide the decode worker URL early.
+      window.__malWorker = '{{WORKER_JS}}';
+    </script>
+    <script type="module" src="{{STATIC_JS}}"></script>
+  </head>
+  <body data-static-page="true">
+    <a class="skip-link" href="#main" data-i18n="a11y.skip">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container">
+        <a class="wordmark" href="/" data-i18n="nav.brand">MAC Address Lookup</a>
+        <div class="header-actions">
+          <select id="locale-picker" class="locale-picker" aria-label="Language" data-i18n-aria="a11y.language">
+          </select>
+          <button type="button" id="theme-toggle" class="button button--ghost button--icon" data-i18n-title="nav.theme" aria-label="Toggle theme">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5V2.5a5.5 5.5 0 0 1 0 11Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span data-i18n="help.breadcrumb">Help</span>
+        </nav>
+
+        <section class="prose">
+          <h1 data-i18n="help.title">Help &amp; documentation</h1>
+
+          <h2 data-i18n="help.whatThisTells">What this tool tells you</h2>
+          <p>
+            Every network interface has a MAC address, and its first three bytes (the
+            <abbr title="Organizationally Unique Identifier">OUI</abbr>) are registered with the IEEE
+            Registration Authority. This lookup resolves that prefix against the complete IEEE registries
+            using longest-prefix matching, so small blocks resolve to the correct organization rather than a
+            generic parent block.
+          </p>
+          <ul>
+            <li>Vendor and registered organization, with block type and address range</li>
+            <li>Randomization detection: modern phones randomize Wi-Fi addresses, which have no vendor</li>
+            <li>Virtual-machine prefixes for VMware, VirtualBox, Hyper-V, Parallels, Xen, QEMU/KVM, and Docker</li>
+            <li>Prefix lineage: acquisitions and renames, with the dates each change was first observed</li>
+            <li>Format conversions: colon, hyphen, Cisco dot, plain hex, EUI-64, and IPv6 link-local</li>
+          </ul>
+
+          <h2 data-i18n="help.howItWorks">How MAC address lookup works</h2>
+          <p>
+            A MAC address is 48 bits, usually written as six hex pairs such as <code>00:1B:21:3C:4D:5E</code>.
+            The IEEE assigns the leading bits to organizations as registered blocks: MA-L blocks are 24 bits,
+            MA-M blocks are 28 bits, and MA-S and IAB blocks are 36 bits. A lookup tries the longest
+            registered prefix first, so a device inside an MA-S block is attributed to the company that holds
+            that block, not the parent MA-L. The first octet also carries two flag bits: the I/G bit marks
+            multicast addresses, and the U/L bit marks locally administered addresses such as randomized
+            privacy addresses and virtual machines.
+          </p>
+          <p>
+            The interface runs in 31 languages (English plus 30 translations; Urdu, Arabic, and Persian
+            render right-to-left): switch it with the language picker in the header's toolbar.
+          </p>
+
+          <h2 data-i18n="help.blockTypes">MAC address block types</h2>
+          <div class="table-wrap">
+            <table class="data-table stack-table">
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="table.registry">Registry</th>
+                  <th scope="col" data-i18n="table.prefixLength">Prefix length</th>
+                  <th scope="col" data-i18n="table.addressesPerBlock">Addresses per block</th>
+                  <th scope="col" data-i18n="table.typicalUse">Typical use</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td data-i18n-data-label="table.registry" data-label="Registry">MA-L</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">24 bits (6 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">16,777,216</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Classic OUI; the vast majority of network hardware</td></tr>
+                <tr><td data-i18n-data-label="table.registry" data-label="Registry">MA-M</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">28 bits (7 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">1,048,576</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Mid-size allocations, common for newer vendors</td></tr>
+                <tr><td data-i18n-data-label="table.registry" data-label="Registry">MA-S</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">36 bits (9 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">4,096</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Small allocations; IoT modules and niche hardware</td></tr>
+                <tr><td data-i18n-data-label="table.registry" data-label="Registry">IAB</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">36 bits (9 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">4,096</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Legacy Individual Address Blocks from reserved ranges</td></tr>
+                <tr><td data-i18n-data-label="table.registry" data-label="Registry">CID</td><td data-i18n-data-label="table.prefixLength" data-label="Prefix length">24 bits (6 hex)</td><td data-i18n-data-label="table.addressesPerBlock" data-label="Addresses per block">-</td><td data-i18n-data-label="table.typicalUse" data-label="Typical use">Company identifiers, not assigned to network interfaces</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 data-i18n="help.findYourMac">How to find your own MAC address</h2>
+          <ul>
+            <li><strong>Windows:</strong> run <code>getmac /v</code>, or open Settings → Network &amp; internet → Hardware properties.</li>
+            <li><strong>macOS:</strong> open System Settings → Network → Details, or run <code>ifconfig en0 | grep ether</code>.</li>
+            <li><strong>Linux:</strong> run <code>ip link</code> and read the <code>link/ether</code> value.</li>
+            <li><strong>iPhone / Android:</strong> open the Wi-Fi network details. The "private Wi-Fi address" shown there is randomized and will not resolve to a vendor.</li>
+          </ul>
+
+          <h2>Browse by registration dimension</h2>
+          <p>
+            Besides prefix pages, the site pre-renders reference pages organized by the
+            registration itself, each with its complete table. The home page links
+            every index under "MAC address by":
+          </p>
+          <ul>
+            <li><a href="/country">Country index</a> - <code>/country</code>: every country with at least one registered MAC address block, with organization, block, and address totals, each row linking the country's full page.</li>
+            <li><a href="/vendor">Vendor index</a> - <code>/vendor</code>: every organization with two or more registered MAC address blocks, with block and address totals, each row linking the organization's full page.</li>
+            <li><a href="/vendor/apple-inc">Vendor pages</a> - <code>/vendor/&lt;name&gt;</code>: every MAC block registered to one organization, with block types, address space, countries, registration dates, and an allocation timeline.</li>
+            <li><a href="/country/us">Country pages</a> - <code>/country/&lt;code&gt;</code>: every organization with blocks registered in that country, sorted by address space, with an allocation timeline.</li>
+            <li>Former-owner pages - <code>/former/&lt;name&gt;</code>: organizations that no longer hold any of the prefixes once registered to them, showing what happened to each block, including acquisitions where a single new owner took over all of them (for example <a href="/former/apple-computer">Apple Computer</a>, whose blocks are now registered to Apple, Inc.).</li>
+            <li><a href="/registry">Registry index</a> - <code>/registry</code>: MA-L, MA-M, MA-S, IAB, and CID totals and per-type pages.</li>
+            <li><a href="/year">Year index</a> - <code>/year</code>: blocks grouped by the year they were first observed in public data.</li>
+            <li><a href="/region">Region index</a> - <code>/region</code>: registration countries grouped into continents.</li>
+            <li><a href="/history">History index</a> - <code>/history</code>: observed ownership changes by year, plus <code>/history/country/&lt;code&gt;</code> historical-country views.</li>
+            <li><a href="/successor">Successor index</a> - <code>/successor</code>: current owners of blocks that changed hands and the former portfolios they absorbed.</li>
+          </ul>
+
+          <h2 data-i18n="help.faq">Frequently asked questions</h2>
+          <div class="faq-list">
+{{FAQ_LIST}}
+          </div>
+
+          <h2 id="mcp">Connect an AI assistant to this lookup</h2>
+          <p>
+            This site publishes an <a href="https://modelcontextprotocol.io" rel="noopener">MCP</a> server at
+            <code>https://mac.jasontally.com/mcp</code>. It is open, unauthenticated, and read-only. There is no
+            API key, no account, and no session. Point an assistant that supports MCP servers at that URL and
+            ask it about a MAC address or OUI prefix; it will get one resolved answer, including the vendor,
+            block type, address count, and registration country.
+          </p>
+          <p>
+            If your assistant does not support MCP servers, give it this request instead. It is a plain
+            <code>POST</code> of JSON, and the reply is JSON:
+          </p>
+          <pre><code>POST /mcp
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":1,"method":"tools/call",
+ "params":{"name":"lookup","arguments":{"mac":"8C:1F:64:AF:A4:B2"}}}</code></pre>
+          <p>
+            Machine-readable catalogs are at
+            <a href="/.well-known/ai-catalog.json">/.well-known/ai-catalog.json</a> and
+            <a href="/.well-known/ard.json">/.well-known/ard.json</a>, and a plain-text summary is at
+            <a href="/llms.txt">/llms.txt</a>. Full setup notes are in
+            <a href="https://github.com/jasontally/mac-address-lookup/blob/main/docs/mcp-endpoint.md" rel="noopener">the repository</a>.
+          </p>
+          <p>
+            Lookups you make here run entirely in your browser and are never sent to a server. An MCP lookup
+            differs, because it is an HTTP request. The <a href="/privacy">privacy policy</a> explains the
+            difference, and the <a href="/terms">terms of service</a> explain what a registry match does and
+            does not mean, including that results can be wrong or out of date and that this site is not
+            affiliated with IEEE.
+          </p>
+
+          <h2 data-i18n="help.dataSources">Data sources and accuracy</h2>
+          <p>
+            Current assignments come from the IEEE Registration Authority's MA-L, MA-M, MA-S, IAB, and CID
+            registries, refreshed on every deploy. Historical changes come from
+            <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> (MIT),
+            which records when an organization name changed in the public data. Those dates are observation
+            dates, not legal transfer dates, and the registries do not reassign most prefixes. An
+            acquisition usually leaves the old vendor name on existing hardware forever.
+          </p>
+          <p>
+            Both datasets are downloadable as machine-readable files: one JSON object per line, no keys:
+            <a href="/data/registry.ndjson">registry.ndjson</a> for every assignment and
+            <a href="/data/lineage.ndjson">lineage.ndjson</a> for every ownership change
+            and its historical registration country.
+            The most recent registrations are listed on the <a href="/recent">Latest OUIs</a> page,
+            refreshed on every deploy.
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>
+          <span data-i18n="footer.dataSources">Data: IEEE Registration Authority registries; historical changes from</span>
+          <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> <span data-i18n="footer.license">(MIT).</span>
+          <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
+        </p>
+        <p>
+          <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never processed by a server.</span>
+          <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a> ·
+          <a href="/help#mcp" data-i18n="footer.mcp">Connect via stateless MCP</a> ·
+          <a href="/privacy">Privacy</a> ·
+          <a href="/terms">Terms</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

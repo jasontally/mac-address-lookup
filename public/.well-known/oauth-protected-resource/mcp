@@ -1,0 +1,7 @@
+{
+  "resource": "https://mac.jasontally.com/mcp",
+  "authorization_servers": [],
+  "scopes_supported": [],
+  "bearer_methods_supported": [],
+  "resource_documentation": "https://mac.jasontally.com/help#mcp"
+}

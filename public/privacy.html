@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy policy | MAC Address Lookup</title>
+    <meta
+      name="description"
+      content="What MAC Address Lookup collects, what it does not, and how the browser lookup and the MCP endpoint differ. No accounts, no cookies, no advertising."
+    />
+    <link rel="canonical" href="https://mac.jasontally.com/privacy" />
+    <link rel="ai-catalog" href="/.well-known/ai-catalog.json" type="application/ai-catalog+json" />
+    <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1b1b" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MAC Address Lookup" />
+    <meta property="og:title" content="Privacy policy | MAC Address Lookup" />
+    <meta
+      property="og:description"
+      content="What MAC Address Lookup collects, what it does not, and how the browser lookup and the MCP endpoint differ."
+    />
+    <meta property="og:url" content="https://mac.jasontally.com/privacy" />
+    <meta property="og:image" content="https://mac.jasontally.com/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MAC Address Lookup" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="{{APP_CSS}}" />
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem('mal.theme');
+          if (mode === 'light' || mode === 'dark') document.documentElement.dataset.mode = mode;
+        } catch (error) {
+          /* storage unavailable; system preference applies */
+        }
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Privacy policy | MAC Address Lookup",
+        "url": "https://mac.jasontally.com/privacy",
+        "isPartOf": { "@type": "WebSite", "name": "MAC Address Lookup", "url": "https://mac.jasontally.com/" }
+      }
+    </script>
+    <script>
+      window.__malWorker = '{{WORKER_JS}}';
+    </script>
+    <script type="module" src="{{STATIC_JS}}"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <main id="main">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/" data-i18n="nav.brand">MAC Address Lookup</a> <span aria-hidden="true">/</span> <span>Privacy</span>
+        </nav>
+
+        <section class="prose">
+          <h1>Privacy policy</h1>
+          <p class="section-note">Last updated 1 October 2026.</p>
+
+          <p>
+            This site is a free lookup tool for MAC addresses and OUI prefixes. It has no accounts, no
+            sign-in, no advertising, and no analytics of its own. The short version is that a lookup you run
+            on this website never leaves your browser.
+          </p>
+          <p>
+            There is one exception, and it is the MCP endpoint for AI assistants. An MCP lookup is an HTTP
+            request, so the address being looked up does reach the server. That difference is explained in
+            full below, because it is the only part of this site where a lookup leaves your device.
+          </p>
+
+          <h2>What a lookup on this website does</h2>
+          <p>
+            The page downloads a public dataset from this site and runs the whole search in your browser.
+            The address or prefix you type is matched against that local copy. It is never sent to a server,
+            and this site has no server-side search code at all: the host only serves static files.
+          </p>
+          <p>
+            The site sets no cookies, runs no advertising or tracking scripts, embeds no third-party
+            content, and sends no telemetry. Three small values are kept in your browser's own local storage
+            so the site remembers them between visits:
+          </p>
+          <ul>
+            <li>your light or dark theme choice, under the key <code>mal.theme</code>;</li>
+            <li>your language choice, under the key <code>mal.locale</code>;</li>
+            <li>your recent lookups, so you can revisit them, under the key <code>mal.history.v1</code>.</li>
+          </ul>
+          <p>
+            These stay on your device. They are readable only by this site on this device, are never
+            transmitted, and clearing your browser storage removes them. The recent-lookup list can also be
+            cleared from the interface at any time.
+          </p>
+
+          <h2>What the host collects</h2>
+          <p>
+            This site is hosted on Cloudflare. Serving any web page means the host sees the request, and a
+            request necessarily carries an IP address and a user-agent string. Cloudflare also collects
+            privacy-first, aggregate web analytics that use no cookies and no client-side state, and that do
+            not fingerprint individuals.
+          </p>
+          <p>
+            Cloudflare's Web Analytics and Workers Logs processing is governed by
+            <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare's privacy policy</a>,
+            not by this one. This site adds nothing to it.
+          </p>
+
+          <h2>The MCP endpoint, and why it is different</h2>
+          <p>
+            <code>https://mac.jasontally.com/mcp</code> is an MCP server for AI assistants. It is public,
+            unauthenticated, and read-only. Because a client has to make an HTTP request to use it, an
+            address submitted to that endpoint is visible to the host in the request. Specifically:
+          </p>
+          <ul>
+            <li>
+              the MAC address or OUI prefix appears in the body of a <code>POST</code> request to
+              <code>/mcp</code>, so it reaches Cloudflare's network in the same way any website request does;
+            </li>
+            <li>
+              no session is created, no identifier is issued, and no lookup is linked to any other lookup or
+              to any account, because no accounts exist;
+            </li>
+            <li>
+              the server's own code does not write any lookup to storage and emits no log line; the
+              operational request logs kept by the host may still record request metadata such as the
+              timestamp, the IP address, and the user-agent string.
+            </li>
+          </ul>
+          <p>
+            Because these are network requests, treat an MCP lookup the way you would treat typing an address
+            into any website over HTTPS. Do not use the MCP endpoint for anything where that exposure would
+            matter, and note that the browser interface at <a href="/">the home page</a> has no such
+            exposure.
+          </p>
+
+          <h2>Where the data comes from</h2>
+          <p>
+            The dataset is the public IEEE Registration Authority registries (MA-L, MA-M, MA-S, IAB, and
+            CID), refreshed on each deploy. Historical ownership changes come from
+            <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a>, used
+            under the MIT licence. Both are public data about organizations, not about you. This site does
+            not hold registration records of individuals, and a MAC prefix resolves to a registered
+            organization, never to a named person.
+          </p>
+
+          <h2>What this site never does</h2>
+          <ul>
+            <li>It does not collect, store, or sell personal information about you.</li>
+            <li>It does not use advertising, ad tracking, or third-party trackers.</li>
+            <li>It does not set cookies.</li>
+            <li>It does not require or offer an account, and it has no user database.</li>
+            <li>It does not log your browser lookups.</li>
+          </ul>
+
+          <h2>Children</h2>
+          <p>
+            The site is a technical reference for network administrators and developers. It is not directed
+            at children, and it knowingly collects no information from anyone, of any age.
+          </p>
+
+          <h2>Your rights</h2>
+          <p>
+            Because this site collects no personal information and sets no cookies, there is normally nothing
+            for it to export, correct, or delete. If you believe data relating to you has reached the host's
+            operational logs, that processing sits with Cloudflare under its own privacy policy and its own
+            retention commitments; Cloudflare is the right party to contact about it. Requests about this
+            site itself can go through the project's public repository, which is linked from
+            <a href="/help">the help page</a>.
+          </p>
+
+          <h2>Changes to this policy</h2>
+          <p>
+            This policy may change when the site changes, so that it continues to describe the site
+            accurately. The date at the top of this page always reflects the current version.
+          </p>
+
+          <p>
+            The terms that govern use of this site are in the <a href="/terms">terms of service</a>. The
+            lookup methodology and data sources are documented on the <a href="/help">help page</a>.
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>
+          <span data-i18n="footer.dataSources">Data: IEEE Registration Authority registries; historical changes from</span>
+          <a href="https://github.com/runZeroInc/mac-tracker" rel="noopener">runZero mac-tracker</a> <span data-i18n="footer.license">(MIT).</span>
+          <span data-i18n="footer.bundled">Bundled software:</span> <a href="https://github.com/hyparam/hyparquet" rel="noopener">hyparquet</a> <span data-i18n="footer.license">(MIT).</span>
+        </p>
+        <p>
+          <span data-i18n="footer.dataNote">All lookups run in your browser, and the addresses you look up are never processed by a server.</span>
+          <span data-i18n="footer.refreshed">Data refreshed</span>
+          <span id="last-updated" data-i18n="footer.refreshPlaceholder">on the latest deploy</span>
+          <a href="/help" data-i18n="footer.help">Help &amp; documentation</a> ·
+          <a href="https://github.com/jasontally/mac-address-lookup" rel="noopener" data-i18n="footer.source">Source on GitHub</a> ·
+          <a href="/help#mcp" data-i18n="footer.mcp">Connect via stateless MCP</a> ·
+          <a href="/privacy">Privacy</a> ·
+          <a href="/terms">Terms</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

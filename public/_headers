@@ -1,0 +1,91 @@
+# Manifests must always be revalidated so new deploys are picked up: they map
+# to content-hashed files that are replaced on every deploy.
+/data/manifest.json
+  Cache-Control: no-cache
+
+/data/sources-index.json
+  Cache-Control: no-cache
+
+# Content-hashed data and raw source copies are immutable.
+/data/*.parquet
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/sources/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Bundled app assets are content-hashed; cache them immutably.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Legal pages: they must not be cached hard, because a change to the terms is
+# a change a user must be able to see.
+/privacy.html
+  Cache-Control: public, max-age=86400
+
+/terms.html
+  Cache-Control: public, max-age=86400
+
+# Crawler-facing files change rarely; keep them cached for a week.
+/favicon.svg
+  Cache-Control: public, max-age=604800
+
+/robots.txt
+  Cache-Control: public, max-age=604800
+
+/sitemap*
+  Cache-Control: public, max-age=604800
+
+# Agent-facing documentation and downloads: stable names, refreshed weekly
+# with the data, so revalidate daily rather than caching long.
+/llms.txt
+  Cache-Control: public, max-age=86400
+
+# ARD catalogs, which declare the site's MCP server. Real JSON files here also
+# prevent the SPA fallback from turning these well-known paths into HTML.
+/.well-known/ai-catalog.json
+  Content-Type: application/ai-catalog+json
+  Cache-Control: public, max-age=86400
+
+/.well-known/ard.json
+  Content-Type: application/ai-catalog+json
+  Cache-Control: public, max-age=86400
+
+# OAuth 2.0 Protected Resource Metadata (RFC 9728). The MCP endpoint needs no
+# authorization, so the document lists no authorization servers. It exists so an
+# auth-discovery probe gets parseable JSON instead of the SPA shell: with
+# not_found_handling single-page-application, an unmatched .well-known path
+# returns index.html with a 200. Both paths are listed because _redirects maps
+# the bare one onto the other, and _headers matches the request path.
+/.well-known/oauth-protected-resource
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
+/.well-known/oauth-protected-resource/mcp
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
+# help.md carries Markdown source; some tools refuse the text/markdown media
+# type, so present it as plain text (the content reads fine either way).
+/help.md
+  Cache-Control: public, max-age=86400
+  Content-Type: text/plain; charset=utf-8
+
+/help.txt
+  Cache-Control: public, max-age=86400
+
+/data/registry.ndjson
+  Cache-Control: public, max-age=86400
+
+/data/lineage.ndjson
+  Cache-Control: public, max-age=86400
+
+# MCP lookup shards: keyed by a registered prefix, immutable once published.
+/data/mcp/*
+  Cache-Control: public, max-age=86400
+
+# Security headers (catch-all last so specific cache rules apply first).
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: DENY

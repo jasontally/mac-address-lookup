@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build output (regenerable)
+dist/
+screenshots/
+build/.cache/
+.wrangler/
+
+# Environment
+.env
+.env.*
+client_secrets.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editors
+.vscode/
+.idea/
+
+# OpenCode
+opencode.jsonc
+
+# Test artifacts
+.playwright-mcp/
+test-results/
+playwright-report/

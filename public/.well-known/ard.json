@@ -1,0 +1,41 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "MAC Address Lookup",
+    "identifier": "jasontally.com",
+    "documentationUrl": "https://mac.jasontally.com/help",
+    "trustManifest": {
+      "identity": "https://mac.jasontally.com",
+      "identityType": "https"
+    }
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:mac.jasontally.com:mcp:lookup",
+      "displayName": "MAC Address Lookup",
+      "type": "application/mcp-server-card+json",
+      "mediaType": "application/mcp-server-card+json",
+      "url": "https://mac.jasontally.com/mcp",
+      "description": "Resolve a MAC address or OUI prefix to its registered organization, by longest-prefix match across the IEEE MA-L, MA-M, MA-S, IAB, and CID registries. Reports the block type, address count, registration country, and a link to the full record page. Read-only, public, and unauthenticated.",
+      "capabilities": [
+        "lookup",
+        "MACAddressLookup",
+        "OUI",
+        "IEEE"
+      ],
+      "representativeQueries": [
+        "what company made this Wi-Fi adapter",
+        "identify the vendor for a MAC address",
+        "look up an OUI prefix",
+        "is this MAC address randomized",
+        "which company owns this MAC prefix"
+      ],
+      "metadata": {
+        "websiteUrl": "https://mac.jasontally.com/",
+        "supportUrl": "https://mac.jasontally.com/help",
+        "privacyPolicyUrl": "https://mac.jasontally.com/privacy",
+        "termsOfServiceUrl": "https://mac.jasontally.com/terms"
+      }
+    }
+  ]
+}
