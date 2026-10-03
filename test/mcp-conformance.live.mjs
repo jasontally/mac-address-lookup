@@ -98,7 +98,16 @@ await check('initialize is answered, so a connector probe gets a 2xx', async () 
   // A connector UI probes with initialize before it can classify the server. A
   // 400 here reads as an auth challenge, which is what Claude reported. The
   // handshake is answered statelessly: no session, no Mcp-Session-Id.
-  const res = await client.request('initialize', { protocolVersion: '2025-06-18', capabilities: {} }, 1);
+  // The header must agree with the body, so a probe asking for an older
+  // revision sends a matching header, which is what a real 2025-era client
+  // does. The 2026 header behind a 2025 body is refused as a header mismatch,
+  // and that is deliberate: see the routing-header checks below.
+  const res = await client.request(
+    'initialize',
+    { protocolVersion: '2025-06-18', capabilities: {} },
+    1,
+    { 'MCP-Protocol-Version': '2025-06-18' },
+  );
   equal(res.status, 200, 'status');
   equal(res.json.result.protocolVersion, '2025-06-18', 'negotiated version');
   equal(res.json.result.capabilities.tools.listChanged, false, 'capabilities');
