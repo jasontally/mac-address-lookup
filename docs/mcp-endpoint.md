@@ -651,6 +651,60 @@ turn most unregistered lookups into 5xx. The whole-deploy case is caught by
 and both `tools/list` and `server/discover` fail loudly rather than reporting an
 empty tool list.
 
+**Four routing faults the official conformance run found.** The runner scored the
+endpoint against the 37 scenarios 2026-07-28 requires. Most failures were absent
+capabilities: prompts, resources, other `tools/call` content types, and the
+multi-round-trip `input_required` family. Those are correct answers for a
+single-tool lookup server, not defects. Four were real, and all four are now
+fixed.
+
+| Fault | Was | Now | Specification |
+| --- | --- | --- | --- |
+| Unimplemented method | `400` | `404` + `-32601` | "If the server does not implement the requested RPC method, it MUST respond with `404 Not Found` and a JSON-RPC error with code `-32601`" |
+| `MCP-Protocol-Version` header disagrees with the body | `-32022` | `-32020` | "the server MUST reject the request with `400 Bad Request` and a `HeaderMismatch` JSON-RPC error" |
+| `Mcp-Method` header disagrees with the body | served the body, `200` | `-32020` | "Servers that process the request body MUST reject requests where the values specified in the headers do not match the corresponding values in the request body" |
+| `Mcp-Name` with surrounding spaces | `400` | accepted | RFC 9110: optional whitespace around a field value is not part of the value |
+
+The `-32022` case was the worst of the four, and not because of the status code.
+A client reads `UnsupportedProtocolVersionError` as "choose a version I support
+and retry", so it would retry the same malformed header indefinitely. The fault
+is in the header, so the code has to name the header.
+
+The mismatch cases are a security property rather than tidiness. The
+specification gives the reason directly: "This prevents potential security
+vulnerabilities when different components in the network rely on different
+sources of truth, for example a load balancer routing on the header value while
+the MCP server executes based on the body value." The handler read
+`payload.method || header`, which is exactly the behaviour that warns against.
+A request whose header said `prompts/list` and whose body said `tools/list` was
+served as `tools/list` with a `200`, and nothing reported the disagreement.
+
+**Header requirements apply to the modern revision only.** `Mcp-Method` is
+required on 2026-07-28 and did not exist on 2025-11-25, so requiring one
+unconditionally would turn away exactly the legacy clients this endpoint answers
+deliberately. A request that names no version at all is served leniently.
+
+**One thing deliberately not changed.** The specification marks
+`protocolVersion` and `clientCapabilities` as required in `RequestMetaObject`,
+and three `server-stateless` checks report that they are not enforced here. That
+is left as-is on purpose: requiring `_meta` on every request would break the
+2025-era clients the endpoint serves on purpose. It is a trade with a cost
+either way, not an oversight, and it is recorded here so the decision is
+visible rather than assumed.
+
+**`dns-rebinding-protection` cannot be measured against this endpoint.** Both its
+checks report `non-localhost-url`. The scenario requires `localhost`,
+`127.0.0.1` or `[::1]`, so it never exercised anything here. The specification
+does require servers to validate `Origin`, and this snippet does not, so the
+gap is real. It is simply not something that scenario can find.
+
+**How to read the report.** Every `tools-call-*` scenario calls a fixture tool by
+name — `test_simple_text`, `test_image_content`, `test_error_handling` and so on.
+The suite expects a reference server that publishes those. A real server has
+`lookup`, so all seven are not applicable. Checks reporting `untestable: true`
+were not measured at all. The three `pending` scenarios fail because the suite's
+own reference fixture cannot pass them.
+
 **`catalog.json` must not inherit the shard cache TTL.** The shard rule in
 `public/_headers` is `/data/mcp/*.txt`, scoped to the extension on purpose. The
 catalog lives in the same directory and is not like a shard: its name never

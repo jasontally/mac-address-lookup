@@ -160,6 +160,69 @@ await check('an unmatched address is also marked complete', async () => {
   equal(res.json.result.structuredContent.orgName, null, 'no vendor, and it says so');
 });
 
+await check('an unimplemented method gets 404, not 400', async () => {
+  // 404 is what the specification requires for a method the server does not
+  // implement. 400 is what a malformed request earns, and it is also what an
+  // unsupported version earns, so reusing it here makes three faults look alike.
+  const res = await client.request('completion/complete', undefined, 1);
+  equal(res.status, 404, 'status');
+  equal(res.json.error.code, -32601, 'error code');
+});
+
+await check('a routing header that disagrees with the body is refused', async () => {
+  // The security case: a load balancer trusting the header would route this
+  // somewhere else, while the server executed the body. They must not disagree
+  // silently.
+  const response = await fetch(URL_UNDER_TEST, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json',
+      'MCP-Protocol-Version': '2026-07-28',
+      'Mcp-Method': 'prompts/list',
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+  });
+  equal(response.status, 400, 'status');
+  const body = await response.json();
+  equal(body.error.code, -32020, 'HeaderMismatch, not UnsupportedProtocolVersion');
+});
+
+await check('a padded Mcp-Name field value is accepted', async () => {
+  // RFC 9110 allows optional whitespace around a field value and the server
+  // strips it, so a correct client must not be refused.
+  const response = await fetch(URL_UNDER_TEST, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json',
+      'MCP-Protocol-Version': '2026-07-28',
+      'Mcp-Method': 'tools/call',
+      'Mcp-Name': '  lookup  ',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'tools/call',
+      params: { name: 'lookup', arguments: { mac: '8C:1F:64:AF:A4:B2' } },
+    }),
+  });
+  equal(response.status, 200, 'status');
+  const body = await response.json();
+  assert(
+    body.result?.structuredContent?.orgName === 'DATA ELECTRONIC DEVICES, INC',
+    'the padded header must resolve to the real vendor, not be refused',
+  );
+});
+
+await check('a 2025-era client is still served without the routing headers', async () => {
+  // The relaxation. A 2025-era client sends no Mcp-Method header, so requiring
+  // one would turn away exactly the legacy clients this endpoint answers.
+  const res = await client.request('tools/list', undefined, 1, { 'MCP-Protocol-Version': '2025-11-25' });
+  equal(res.status, 200, 'status');
+  assert(Array.isArray(res.json.result.tools), 'tools must still be listed');
+});
+
 await check('bad arguments get INVALID_PARAMS', async () => {
   const res = await client.callTool('lookup', { mac: 'nope' });
   equal(res.json.error.code, JSON_RPC.INVALID_PARAMS, 'error code');

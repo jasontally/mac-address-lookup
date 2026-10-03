@@ -129,9 +129,14 @@ describe('2026-07-28 base protocol', () => {
     // initialize is deliberately NOT in this list: it is answered statelessly so
     // a connector UI that probes with it is not turned away. See the
     // "legacy stateless handshake" group below.
+    // 404, not 400. The specification: "If the server does not implement the
+    // requested RPC method, it MUST respond with 404 Not Found and a JSON-RPC
+    // error with code -32601." A 400 is what a malformed request earns, and it
+    // is also what an unsupported version earns, so using it here makes three
+    // different faults indistinguishable.
     for (const method of ['notifications/initialized', 'logging/setLevel', 'completion/complete']) {
       const res = await h.client.request(method, undefined, 1);
-      assert.equal(res.status, 400, `${method} should be an error, got ${res.status}`);
+      assert.equal(res.status, 404, `${method} should be a 404, got ${res.status}`);
       assert.equal(res.json.error.code, JSON_RPC.METHOD_NOT_FOUND, `${method} error code`);
     }
   });
@@ -353,6 +358,116 @@ describe('server/discover (the stateless entry point)', () => {
 });
 
 // ---------------------------------------------------------------- tool behaviour
+
+// ---------------------------------------------------------------- header routing
+
+/**
+ * Header and body validation.
+ *
+ * The specification requires this on security grounds, not tidiness: "This
+ * prevents potential security vulnerabilities when different components in the
+ * network rely on different sources of truth, for example a load balancer
+ * routing on the header value while the MCP server executes based on the body
+ * value." Reading `payload.method || header` and preferring the body is exactly
+ * the behaviour that warns against, and it meant a gateway and this server could
+ * disagree with nothing reporting it.
+ *
+ * These four checks are the failures an official conformance run surfaced:
+ * `-32020` is required for a mismatch, unknown methods must be `404`, and a
+ * field value's surrounding optional whitespace is not part of its value.
+ */
+describe('header and body agreement', () => {
+  let h;
+  before(async () => { h = await harness(); });
+  after(() => h.restore());
+
+  const HEADER_MISMATCH = -32020;
+
+  test('a version header that disagrees with the body is refused with -32020', async () => {
+    // Not -32022. A client reads -32022 as "pick a version I support and retry",
+    // and would retry the same bad header forever. The fault is the header, so
+    // the code has to say so.
+    const res = await h.client.request(
+      'tools/list',
+      undefined,
+      1,
+      { 'MCP-Protocol-Version': '2026-07-28' },
+    );
+    const body = { jsonrpc: '2.0', id: 1, method: 'tools/list', params: { _meta: { 'io.modelcontextprotocol/protocolVersion': '2025-11-25' } } };
+    const direct = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}/`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'tools/list' },
+      body: JSON.stringify(body),
+    }));
+    assert.equal(direct.status, 400);
+    const json = await direct.json();
+    assert.equal(json.error.code, HEADER_MISMATCH, 'a mismatch is not an unsupported version');
+    assert.match(json.error.message, /Header mismatch/);
+    assert.equal(res.status, 200, 'the matching pair above is the control');
+  });
+
+  test('a routing header that disagrees with the method is refused, not resolved', async () => {
+    // The failure that mattered: the header said prompts/list, the body said
+    // tools/list, and the server served tools/list with a 200. A load balancer
+    // trusting the header would have routed this somewhere else entirely.
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}/`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'MCP-Protocol-Version': '2026-07-28',
+        'Mcp-Method': 'prompts/list',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    }));
+    assert.equal(res.status, 400);
+    assert.equal((await res.json()).error.code, HEADER_MISMATCH);
+  });
+
+  test('the routing headers are required on the modern revision', async () => {
+    for (const omit of ['Mcp-Method', 'Mcp-Name']) {
+      const headers = { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28' };
+      if (omit !== 'Mcp-Method') headers['Mcp-Method'] = 'tools/call';
+      const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}/`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'lookup', arguments: { mac: '8C1F64AFA4B2' } } }),
+      }));
+      assert.equal(res.status, 400, `omitting ${omit} must be refused`);
+      assert.equal((await res.json()).error.code, HEADER_MISMATCH, `omitting ${omit}`);
+    }
+  });
+
+  test('surrounding whitespace in a field value is not part of the value', async () => {
+    // RFC 9110 allows optional whitespace around a field value, and a server
+    // strips it. Refusing `"  lookup  "` is refusing a correct request.
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}/`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'MCP-Protocol-Version': '2026-07-28',
+        'Mcp-Method': 'tools/call',
+        'Mcp-Name': '  lookup  ',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'lookup', arguments: { mac: '8C1F64AFA4B2' } } }),
+    }));
+    assert.equal(res.status, 200, 'a padded field value is a legal field value');
+    assert.equal((await res.json()).result.structuredContent.orgName, 'DATA ELECTRONIC DEVICES, INC');
+  });
+
+  test('a 2025-era request is served without the routing headers it cannot send', async () => {
+    // The relaxation, and the reason it exists. A client on 2025-11-25 sends no
+    // Mcp-Method header, so requiring one would turn away exactly the legacy
+    // clients this endpoint answers deliberately.
+    const res = await h.client.request(
+      'tools/list',
+      undefined,
+      1,
+      { 'MCP-Protocol-Version': '2025-11-25' },
+    );
+    assert.equal(res.status, 200, 'a legacy client must still be served');
+    assert.ok(Array.isArray(res.json.result.tools));
+  });
+});
 
 describe('lookup tool behaviour', () => {
   let h;
@@ -640,7 +755,17 @@ describe('legacy stateless handshake (legacy:stateless)', () => {
   // does NOT reintroduce a session.
 
   test('initialize is answered, so a connector probe gets a 2xx', async () => {
-    const res = await h.client.request('initialize', { protocolVersion: '2025-06-18', capabilities: {} }, 1);
+    // The header must agree with the body. The client helper defaults the header
+    // to the current revision, so a probe asking for an older one has to send a
+    // matching header, which is what a real 2025-era client does. Sending the
+    // 2026 header with a 2025 body is now refused as a header mismatch, and that
+    // is the point: see "a header that disagrees with the body is refused".
+    const res = await h.client.request(
+      'initialize',
+      { protocolVersion: '2025-06-18', capabilities: {} },
+      1,
+      { 'MCP-Protocol-Version': '2025-06-18' },
+    );
     assert.equal(res.status, 200, 'the probe must succeed');
     const r = res.json.result;
     assert.equal(r.protocolVersion, '2025-06-18', 'must echo a version it can serve');
@@ -769,7 +894,15 @@ describe('legacy stateless handshake (legacy:stateless)', () => {
 
   test('every supported version is echoed back exactly', async () => {
     for (const version of ['2026-07-28', '2025-11-25', '2025-06-18']) {
-      const res = await h.client.request('initialize', { protocolVersion: version }, 1);
+      // Header and body must agree, so each probe sends both. A client that
+      // asked for 2025-11-25 with a 2026 header is asking for two things at once
+      // and is refused, which is a separate test below.
+      const res = await h.client.request(
+        'initialize',
+        { protocolVersion: version },
+        1,
+        { 'MCP-Protocol-Version': version },
+      );
       assert.equal(res.status, 200, `${version} must be served`);
       assert.equal(res.json.result.protocolVersion, version, 'the echo must be exact');
     }

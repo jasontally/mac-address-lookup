@@ -604,6 +604,55 @@ const PROTOCOL_VERSION = '${MCP_PROTOCOL_VERSION}';
  */
 const LEGACY_HANDSHAKE = true;
 const SUPPORTED_VERSIONS = ${JSON.stringify(MCP_SUPPORTED_VERSIONS)};
+
+/**
+ * HTTP status for a method this server does not implement.
+ *
+ * The specification is unambiguous: "If the server does not implement the
+ * requested RPC method, it MUST respond with 404 Not Found and a JSON-RPC error
+ * with code -32601." A 400 is what a malformed request earns, and it is also
+ * what an unsupported protocol version earns, so using it for an unknown method
+ * makes three different faults indistinguishable to a client deciding whether
+ * to fix the request, change version, or give up.
+ */
+const METHOD_NOT_FOUND_STATUS = 404;
+
+/**
+ * Error code for a header that disagrees with the body.
+ *
+ * Reserved by the specification for exactly this: "The HTTP headers do not match
+ * the corresponding values in the request body, or required headers are
+ * missing/malformed."
+ */
+const HEADER_MISMATCH = -32020;
+
+/** Read a header, trimming the optional whitespace RFC 9110 allows around a field value. */
+function headerValue(request, name) {
+  const raw = request.headers.get(name);
+  return raw === null ? null : raw.trim();
+}
+
+/**
+ * Decode a header value that uses the Base64 sentinel, per Value Encoding.
+ *
+ * A name with surrounding spaces is not a legal plain field value, so a
+ * conforming client sends the sentinel form instead. Comparing the encoded
+ * form against the body value would report a mismatch on a correct request,
+ * which is the one failure mode header validation must not have. Tool names
+ * here are ASCII, so there is nothing else to handle.
+ */
+function decodeHeaderValue(value) {
+  if (value === null) return null;
+  if (value.startsWith('=?base64?') && value.endsWith('?=')) {
+    const encoded = value.slice(9, -2);
+    try {
+      return atob(encoded);
+    } catch {
+      return value;
+    }
+  }
+  return value;
+}
 /**
  * Largest request body the endpoint will read.
  *
@@ -681,12 +730,110 @@ function claimedVersion(request, payload) {
       if (typeof meta[key] === 'string') return meta[key].trim();
     }
   }
-  const fromHeader = request.headers.get('mcp-protocol-version');
-  if (fromHeader) return fromHeader.trim();
+  const fromHeader = headerValue(request, 'mcp-protocol-version');
+  if (fromHeader) return fromHeader;
   const topMeta = payload && payload._meta;
   if (topMeta && typeof topMeta === 'object') {
     const key = 'io.modelcontextprotocol/protocolVersion';
     if (typeof topMeta[key] === 'string') return topMeta[key].trim();
+  }
+  return null;
+}
+
+/**
+ * The version the body claims, ignoring the header entirely.
+ *
+ * Needed to compare the two. The header is not a fallback here; the point is to
+ * detect when they disagree, so it must not be able to supply the value.
+ */
+function bodyVersion(payload) {
+  const params = payload && payload.params;
+  if (params && typeof params === 'object') {
+    if (typeof params.protocolVersion === 'string' && params.protocolVersion) {
+      return params.protocolVersion.trim();
+    }
+    const meta = params._meta;
+    if (meta && typeof meta === 'object') {
+      const key = 'io.modelcontextprotocol/protocolVersion';
+      if (typeof meta[key] === 'string') return meta[key].trim();
+    }
+  }
+  const topMeta = payload && payload._meta;
+  if (topMeta && typeof topMeta === 'object') {
+    const key = 'io.modelcontextprotocol/protocolVersion';
+    if (typeof topMeta[key] === 'string') return topMeta[key].trim();
+  }
+  return null;
+}
+
+/**
+ * Reject a request whose routing headers disagree with its body.
+ *
+ * The specification requires this on every request that carries a body, and the
+ * reason is a security property rather than tidiness: "This prevents potential
+ * security vulnerabilities when different components in the network rely on
+ * different sources of truth, for example a load balancer routing on the header
+ * value while the MCP server executes based on the body value."
+ *
+ * Reading \`payload.method || header\` and preferring the body is exactly the
+ * behaviour that note warns about. It also has a practical cost that a
+ * conformance run made visible: with no validation, a request whose header says
+ * \`prompts/list\` and whose body says \`tools/list\` was served, so a gateway that
+ * routed on the header and this server that executed the body disagreed and
+ * nothing said so.
+ *
+ * Only enforced for the modern revision. A 2025-era client sends no
+ * \`Mcp-Method\` header at all, and requiring one would turn away the clients this
+ * endpoint answers deliberately. See \`isModern\` below.
+ */
+function headerMismatch(id, message) {
+  return rpcError(id, HEADER_MISMATCH, message, 400);
+}
+
+function routingError(request, payload, id) {
+  const fromHeader = headerValue(request, 'mcp-protocol-version');
+  const fromBody = bodyVersion(payload);
+  if (fromHeader !== null && fromBody !== null && fromHeader !== fromBody) {
+    return headerMismatch(
+      id,
+      'Header mismatch: the MCP-Protocol-Version header says ' + fromHeader +
+        ' but the request body says ' + fromBody + '.',
+    );
+  }
+
+  // The claim that decides which rules apply. Null means the request named no
+  // version at all, which is a 2025-era request, and is served leniently.
+  const claimed = claimedVersion(request, payload);
+  if (claimed === null || claimed !== PROTOCOL_VERSION) return null;
+
+  const methodHeader = headerValue(request, 'Mcp-Method');
+  const bodyMethod = typeof payload.method === 'string' ? payload.method : null;
+  if (methodHeader === null) {
+    return headerMismatch(id, 'Header mismatch: the Mcp-Method header is required on this protocol revision and was absent.');
+  }
+  if (bodyMethod !== null && methodHeader !== bodyMethod) {
+    return headerMismatch(
+      id,
+      'Header mismatch: the Mcp-Method header says ' + methodHeader +
+        ' but the request body says ' + bodyMethod + '.',
+    );
+  }
+
+  // Mcp-Name is required for tools/call, and must agree with params.name.
+  const nameHeader = decodeHeaderValue(headerValue(request, 'Mcp-Name'));
+  const params = payload.params;
+  const bodyName = params && typeof params === 'object' && typeof params.name === 'string' ? params.name : null;
+  if (bodyMethod === 'tools/call') {
+    if (nameHeader === null) {
+      return headerMismatch(id, 'Header mismatch: the Mcp-Name header is required on tools/call and was absent.');
+    }
+    if (bodyName !== null && nameHeader !== bodyName) {
+      return headerMismatch(
+        id,
+        'Header mismatch: the Mcp-Name header says ' + nameHeader +
+          ' but the request body says ' + bodyName + '.',
+      );
+    }
   }
   return null;
 }
@@ -763,8 +910,18 @@ export default {
       return versionError(id, claimed);
     }
 
-    const method = payload.method || request.headers.get('Mcp-Method') || '';
-    const toolName = (payload.params && payload.params.name) || request.headers.get('Mcp-Name') || '';
+    // The version header and the body must agree, and the routing headers must
+    // match the body. Checked after the version guard so an unsupported version
+    // is still reported as such: a client picking a version this server does not
+    // serve needs the supported list, not a lecture about its headers.
+    const routing = routingError(request, payload, id);
+    if (routing) return routing;
+
+    // Routing is validated above, so the body is authoritative and the header is
+    // a convenience for the body-less case only. For a 2025-era request there is
+    // no header to read, so this is the body's own value either way.
+    const method = payload.method || headerValue(request, 'Mcp-Method') || '';
+    const toolName = (payload.params && payload.params.name) || headerValue(request, 'Mcp-Name') || '';
 
     if (method === 'initialize') {
       // 2026-07-28 removed the handshake, but a connector UI still probes with
@@ -813,7 +970,15 @@ export default {
       }
       return lookup(request, payload, id);
     }
-    return rpcError(id, -32601, 'Unknown method "' + method + '". This server exposes tools/list and tools/call.');
+    // 404, not 400: the request was well formed and the method is not implemented.
+    // A 400 here would read as "your request is malformed" and send a client
+    // looking at its own request rather than at the server's method set.
+    return rpcError(
+      id,
+      -32601,
+      'Unknown method "' + method + '". This server exposes tools/list and tools/call.',
+      METHOD_NOT_FOUND_STATUS,
+    );
   },
 };
 `;
