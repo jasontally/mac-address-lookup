@@ -140,10 +140,53 @@ await check('a notification gets 202 and no body', async () => {
   equal(res.text, '', 'body');
 });
 
-await check('GET is refused with 405 and an Allow header', async () => {
-  const res = await client.raw('GET');
+await check('a GET that asks for a stream gets it, for old-transport probes', async () => {
+  // 2026-07-28 removed the GET stream and says a single-revision server SHOULD
+  // answer with 405. SHOULD is not MUST (RFC 2119 section 3) and no MUST forbids
+  // the stream, so it is served for one reason: a connector that probes the old
+  // transport reads a 405 as fatal rather than as an era signal. One such client
+  // discovered the tool list over POST and then failed at call time on
+  // "MCP SSE probe returned 405".
+  const res = await fetch(`${SITE}${MCP_ROUTE}`, {
+    method: 'GET',
+    headers: { accept: 'text/event-stream' },
+  });
+  equal(res.status, 200, 'status');
+  assert(
+    /^text\/event-stream/i.test(res.headers.get('content-type') || ''),
+    `content-type was ${res.headers.get('content-type')}`,
+  );
+  // The load-bearing part. The specification's detection algorithm says a client
+  // that receives an `endpoint` event concludes the server runs the OLD transport
+  // and uses it for all later traffic, which POSTs without the modern headers and
+  // is then refused. The stream must stay comment-only.
+  const text = await res.text();
+  assert(!/event:\s*endpoint/i.test(text), `an endpoint event would downgrade clients: ${JSON.stringify(text)}`);
+  assert(!/^data:/m.test(text), `no event data may be sent: ${JSON.stringify(text)}`);
+});
+
+await check('a GET that does not ask for a stream is still refused with 405', async () => {
+  // The 405 is what stops a same-zone subrequest from re-entering the handler.
+  const res = await fetch(`${SITE}${MCP_ROUTE}`, { method: 'GET', headers: { accept: 'application/json' } });
   equal(res.status, 405, 'status');
   assert(/POST/.test(String(res.headers.get('allow'))), 'Allow must advertise POST');
+});
+
+await check('the stream did not weaken the POST guards', async () => {
+  // A change near the method dispatch can plausibly loosen POST as a side effect.
+  // A POST with no version header is served here on purpose: this endpoint is
+  // lenient for 2025-era clients, which send none. Single-revision strictness
+  // was tried and rolled back, so it is not asserted.
+  const mismatch = await fetch(`${SITE}${MCP_ROUTE}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'prompts/list' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+  });
+  equal(mismatch.status, 400, 'a header that disagrees with the body');
+  equal((await mismatch.json()).error.code, -32020, 'error code');
+  const unknown = await client.request('tools/list', undefined, 1, { 'MCP-Protocol-Version': '1999-01-01' });
+  equal(unknown.status, 400, 'an unknown version');
+  equal(unknown.json.error.code, -32022, 'error code');
 });
 
 await check('a tool call result carries resultType, as the strict validator requires', async () => {
@@ -320,7 +363,12 @@ await check('the trailing-slash path reaches the endpoint, as installed', async 
   // a POST with 405 and no body, and the SPA fallback answers with HTML.
   const response = await fetch(`${SITE}${MCP_ROUTE}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', accept: 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json',
+      'MCP-Protocol-Version': '2026-07-28',
+      'Mcp-Method': 'tools/list',
+    },
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
   });
   equal(response.status, 200, 'trailing-slash POST status');

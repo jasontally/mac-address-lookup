@@ -18,22 +18,27 @@ on the raw generated source at `build/build.mjs:450`.
 
 | Measurement | Bytes |
 | --- | --- |
-| Committed and deployed source, comments included | 26,279 |
-| Same file with comments stripped | 13,521 |
-| Minified (esbuild, ES2022) | **7,711** |
-| Minified and gzipped | 3,057 |
+| Committed and deployed source, comments included | 29,374 |
+| Same file with comments stripped | 14,188 |
+| Minified (esbuild, ES2022) | **8,150** |
+| Minified and gzipped | 3,151 |
 
-So the deployed artifact is **7.7 KB minified**, zero dependencies, and the
-source file is **80% of the 32 KB ceiling**. The 32 KB budget is what forces the
+So the deployed artifact is **8.2 KB minified**, zero dependencies, and the
+source file is **90% of the 32 KB ceiling**. The 32 KB budget is what forces the
 design: it is not possible to fit an SDK here.
 
-**Measured cost of dual-era support.** Serving `2026-07-28` alone was tried on
-2026-10-04 and gave 6,643 bytes minified, about 1 KB less, almost all of it in
-conditional routing rules and a second lenient path through the version guard.
-It was rolled back: one connector still could not complete a tool call, and
-without its request headers the cause was not diagnosable from the server side.
-The saving is real but it is not worth an endpoint nobody can call. Re-measure
-before quoting a figure here; it has now moved three times.
+**Both compatibility costs are now paid, and both are measured.** Serving
+`2025-06-18` and `2025-11-25` alongside `2026-07-28` costs about 1 KB over a
+single-revision endpoint: conditional routing rules and a second lenient path
+through the version guard. The GET stream shim, for clients that probe the
+retired HTTP+SSE transport, costs a few hundred bytes more. Single-revision
+support was built and rolled back on 2026-10-04; the shim was kept. The sum is
+8,150, against a 32 KB ceiling.
+
+Note the ceiling is now at 90%, and the peer below is smaller than this row on
+minified bytes. Re-measure before quoting a figure here — it has moved four
+times, and the honest number is always the one esbuild produces today, not one
+copied from an earlier paragraph.
 
 ## Why no SDK can fit
 
@@ -57,7 +62,7 @@ Measured from the repository trees, not from the READMEs.
 
 | Server | Runtime | Transport | Deps | Protocol layer | Protocol |
 | --- | --- | --- | --- | --- | --- |
-| **This project** | JS, Cloudflare Snippet | Streamable HTTP, stateless | **none** | 7,711 B minified | 2026-07-28, 2025-11-25, 2025-06-18 |
+| **This project** | JS, Cloudflare Snippet | Streamable HTTP, stateless | **none** | 8,150 B minified | 2026-07-28, 2025-11-25, 2025-06-18 |
 | [`outboundani/five9-mcp`](https://github.com/outboundani/five9-mcp) | JS, Cloudflare Worker | Streamable HTTP, stateless | **none** (`dependencies` absent) | **7,194 B / 172 lines** | 2025-06-18, 2025-03-26, 2024-11-05 |
 | [`outboundani/genesys-mcp`](https://github.com/outboundani/genesys-mcp) | JS, Cloudflare Worker | Streamable HTTP, stateless | none | **7,507 B / 179 lines** | same family |
 | [`firasd/mcpclock`](https://github.com/firasd/mcpclock) | TS, Cloudflare Worker | stateless via `agents/mcp` | `agents`, SDK, `zod` | 35,480 B / 1,036 lines | SDK |
@@ -122,12 +127,16 @@ spoofed `Host`, an unbounded body, and an HTML body parsed as shard data.
 - **The architecture is validated, not novel.** A second project reached the same
   conclusion independently, on the same platform, with the same transport. That
   is the strongest available evidence short of a benchmark.
-- **The size claim to defend is the minified one**, 7,711 bytes. Quote that, not
-  the 26,279-byte source file, when comparing against a 32 KB ceiling.
-- **The peer is at 7,194 bytes of protocol layer while also serving 73 tools.**
-  One tool at 7,711 bytes minified is not a fat implementation; the comment
-  density is what makes the source file look large. Note the peer is now the
-  *smaller* number on this measure, so do not oversell the comparison.
+- **The size claim to defend is the minified one**, 8,150 bytes. Quote that, not
+  the 29,374-byte source file, when comparing against a 32 KB ceiling.
+- **The peer is now the smaller number.** 7,194 bytes of protocol layer while also
+  serving 73 tools, against 8,150 here for one tool. The honest reading is that
+  this endpoint is not smaller than the peer; it is smaller than an SDK would
+  be, which is the claim worth making. The comment density is what makes the
+  source file look large, but that does not move the minified number.
+- **Two compatibility decisions are paid for in that figure.** Roughly 1 KB is the
+  2025-era versions, a few hundred bytes the GET stream shim. Both are real and
+  both are recorded above; neither is free.
 - **Re-check the SDK floor if the 32 KB Snippet limit ever changes.** A worker
   route has no 32 KB limit and no subrequest cap of 2, and the SDK becomes
   affordable the moment either moves. See the fallback note in

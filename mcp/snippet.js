@@ -41,7 +41,7 @@ function headers(extra) {
     {
       'content-type': 'application/json; charset=utf-8',
       'access-control-allow-origin': '*',
-      'access-control-allow-methods': 'POST, OPTIONS',
+      'access-control-allow-methods': 'POST, GET, OPTIONS',
       'access-control-allow-headers':
         'content-type, accept, authorization, mcp-protocol-version, mcp-method, mcp-name, mcp-session-id',
       'access-control-expose-headers': 'mcp-protocol-version, mcp-session-id',
@@ -87,6 +87,52 @@ function rpcError(id, code, message, status) {
     JSON.stringify({ jsonrpc: '2.0', id: id === undefined ? null : id, error: { code, message } }),
     { status: status || 400, headers: headers() },
   );
+}
+
+/**
+ * Answer a GET with an SSE stream that opens and immediately closes.
+ *
+ * Why this exists. 2026-07-28 removed the standalone GET stream, and the
+ * specification says a server that serves only this revision SHOULD answer such
+ * a request with 405. SHOULD is not MUST (RFC 2119 section 3), and no MUST
+ * forbids the stream, so serving it is permitted. It is served here because a
+ * connector that probes the old transport treats a 405 as a fatal error rather
+ * than as the era signal it is: one such client discovered the tool list over
+ * POST, then failed at call time on "MCP SSE probe returned 405".
+ *
+ * The one thing this must never do is send an `endpoint` event. The
+ * specification's own detection algorithm says a client that receives one
+ * concludes the server runs the old HTTP+SSE transport and uses that transport
+ * for all later communication -- which is worse than the 405, because the old
+ * transport POSTs without the modern routing headers and this server refuses
+ * them with -32602. A comment line carries no event, so a conforming client
+ * waits for `endpoint`, never sees it, and stays on the modern path.
+ *
+ * A comment is the correct payload and not a placeholder: per the SSE
+ * specification, a line beginning with a colon carries no event data, and
+ * clients must ignore such lines rather than treat them as malformed.
+ *
+ * `X-Accel-Buffering: no` is what the specification asks for on an SSE response.
+ *
+ * Cost. One response with no subrequest and no allocation beyond the headers. The
+ * stream closes immediately rather than being held open, because a Snippet has a
+ * 5 ms budget and this endpoint has no server-initiated messages to deliver, so
+ * an open stream would occupy an invocation to send nothing.
+ *
+ * Ceiling. This satisfies a client that probes and checks the status. A client
+ * that requires a *long-lived* stream and sends on it is not supported; that
+ * would need the retired transport rebuilt properly, in a budget that cannot
+ * hold an open connection.
+ */
+function sseProbe() {
+  return new Response(':ok\n\n', {
+    status: 200,
+    headers: headers({
+      'content-type': 'text/event-stream; charset=utf-8',
+      'cache-control': 'no-store',
+      'x-accel-buffering': 'no',
+    }),
+  });
 }
 
 /** Uppercase hex to colon-separated octets. Mirrors src/ui/format.mjs. */
@@ -503,11 +549,27 @@ export default {
       return new Response(null, { status: 204, headers: headers() });
     }
     // The zone rule already filters on POST. This guard is what stops a
-    // same-zone subrequest from re-entering the handler.
+    // same-zone subrequest from re-entering the handler, and what answers DELETE
+    // and every other method.
+    //
+    // GET is the one exception: see `sseProbe()` for why it is served rather
+    // than refused. It is gated on the Accept header so that only a real
+    // streaming probe gets the stream. A bare GET with no Accept, and the
+    // shard fetch below, keep getting 405 -- which is what stops a subrequest
+    // from re-entering the handler.
+    if (request.method === 'GET') {
+      const accept = headerValue(request, 'accept') || '';
+      return /text\/event-stream/i.test(accept)
+        ? sseProbe()
+        : new Response(
+          JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'This endpoint accepts POST only.' } }),
+          { status: 405, headers: headers({ allow: 'POST, GET, OPTIONS' }) },
+        );
+    }
     if (request.method !== 'POST') {
       return new Response(
         JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'This endpoint accepts POST only.' } }),
-        { status: 405, headers: headers({ allow: 'POST, OPTIONS' }) },
+        { status: 405, headers: headers({ allow: 'POST, GET, OPTIONS' }) },
       );
     }
 

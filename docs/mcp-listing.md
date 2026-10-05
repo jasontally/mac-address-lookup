@@ -545,7 +545,7 @@ debugged.
 
 | Behaviour | Why it is correct | What to do if a checker objects |
 | --- | --- | --- |
-| `GET /mcp` returns 405 | The 2026-07-28 specification removes the standalone GET stream, and a server with none must answer GET with 405. The 405 also stops a same-zone subrequest from re-entering the handler | Ignore it. Do not remove the guard |
+| `GET /mcp` returns 405 | A GET that does not ask for `text/event-stream` is not a stream request, and the 405 is what stops a same-zone subrequest from re-entering the handler. A GET that *does* ask for a stream is served one, as a compatibility shim: the specification says a single-revision server SHOULD answer 405, and `SHOULD` is not `MUST`. See [mcp-endpoint.md](mcp-endpoint.md#get-is-served-as-a-stream-for-old-transport-probes) | Do not remove the 405. It is the re-entry guard |
 | `resources/list` and `prompts/list` return `-32601` | The server exposes tools only, and method-not-found is the correct answer | Change the endpoint on purpose if a client cannot cope. Do not work around it per directory |
 | No `MCP-Protocol-Version` response header | The header is optional, and this snippet does not send one. The name appears only inside `access-control-expose-headers` | Read the body instead. A JSON-RPC result carrying the tool is something no fallback produces |
 | `initialize` creates no session | Statelessness is the design. No session, no `Mcp-Session-Id`, one subrequest per call | None |

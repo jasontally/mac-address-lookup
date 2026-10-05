@@ -195,12 +195,18 @@ describe('2026-07-28 base protocol', () => {
     assert.equal(res.json.error.code, JSON_RPC.PARSE_ERROR);
   });
 
-  test('a non-POST method gets 405 with an Allow header', async () => {
-    // 2026-07-28 lets a server refuse the optional GET SSE stream. Refusing it
-    // with 405 is conformant; what matters is that the refusal is explicit.
-    const res = await h.client.raw('GET');
-    assert.equal(res.status, 405);
-    assert.match(String(res.headers.get('allow')), /POST/);
+  test('a non-POST, non-SSE method gets 405 with an Allow header', async () => {
+    // 2026-07-28 removed the GET stream, and a server serving only this revision
+    // SHOULD answer a GET with 405. That is the default here, and it is what
+    // stops a same-zone subrequest from re-entering the handler. A GET that
+    // actually asks for a stream is the one exception; see the SSE group below.
+    for (const method of ['PUT', 'DELETE', 'PATCH']) {
+      const res = await h.client.raw(method);
+      assert.equal(res.status, 405, `${method} should be a 405, got ${res.status}`);
+      assert.match(String(res.headers.get('allow')), /POST/);
+    }
+    const get = await h.client.raw('GET');
+    assert.equal(get.status, 405, 'a GET with no Accept is not a stream request');
   });
 
   test('bad tool arguments get INVALID_PARAMS, not a wrong answer', async () => {
@@ -466,6 +472,131 @@ describe('header and body agreement', () => {
     );
     assert.equal(res.status, 200, 'a legacy client must still be served');
     assert.ok(Array.isArray(res.json.result.tools));
+  });
+});
+
+describe('the GET stream compatibility shim', () => {
+  let h;
+  before(async () => { h = await harness(); });
+  after(() => h.restore());
+
+  // 2026-07-28 removed the standalone GET stream, and a server serving only that
+  // revision SHOULD answer such a request with 405. SHOULD is not MUST (RFC 2119
+  // section 3), and no MUST forbids the stream, so it is served here for one
+  // reason: a connector that probes the old transport reads a 405 as a fatal
+  // error instead of as an era signal. One such client discovered the tool list
+  // over POST and then failed at call time on "MCP SSE probe returned 405".
+  //
+  // The hazard these tests exist for: the specification's detection algorithm
+  // says a client that receives an `endpoint` event concludes the server runs the
+  // OLD transport and uses it for all later communication. The old transport
+  // POSTs without the modern routing headers, which this server refuses. So
+  // sending `endpoint` would convert a probe failure into a total failure.
+
+  const sseProbe = () => h.mod.default.fetch(
+    new Request(`https://${HOST}${MCP_ROUTE}`, {
+      method: 'GET',
+      headers: { accept: 'text/event-stream' },
+    }),
+  );
+
+  test('a GET that asks for a stream gets 200 text/event-stream', async () => {
+    const res = await sseProbe();
+    assert.equal(res.status, 200);
+    assert.match(String(res.headers.get('content-type')), /^text\/event-stream/i);
+    // The specification asks for this on an SSE response: it tells reverse
+    // proxies not to buffer, which would defeat streaming entirely.
+    assert.equal(res.headers.get('x-accel-buffering'), 'no');
+  });
+
+  test('the stream carries no endpoint event, so no client downgrades to the old transport', async () => {
+    // The load-bearing assertion. A body of `:ok\n\n` is an SSE comment, which
+    // per the SSE specification carries no event data. If this ever became
+    // `event: endpoint`, every dual-era client would switch transports and then
+    // fail on every POST with -32602.
+    const text = await (await sseProbe()).text();
+    assert.doesNotMatch(text, /event:\s*endpoint/i, 'an endpoint event would make clients use the old transport');
+    assert.doesNotMatch(text, /^data:/m, 'no event data may be sent; there are no server-initiated messages');
+    // It is a well-formed comment: a colon, then a blank line to end the frame.
+    assert.match(text, /^:/m);
+    assert.match(text, /\n\n$/);
+  });
+
+  test('a client sending both Accept types is served the stream', async () => {
+    // The client helper and real probes send this combination. Matching only a
+    // bare text/event-stream would leave the common case on the 405 path.
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}`, {
+      method: 'GET',
+      headers: { accept: 'application/json, text/event-stream' },
+    }));
+    assert.equal(res.status, 200);
+    assert.match(String(res.headers.get('content-type')), /^text\/event-stream/i);
+  });
+
+  test('a GET that does not ask for a stream is still refused', async () => {
+    // The 405 is what stops a same-zone subrequest from re-entering the handler,
+    // so it must survive for every request that is not a real stream probe.
+    for (const accept of [undefined, 'application/json', 'text/plain', '*/*']) {
+      const headers = accept === undefined ? {} : { accept };
+      const res = await h.mod.default.fetch(
+        new Request(`https://${HOST}${MCP_ROUTE}`, { method: 'GET', headers }),
+      );
+      assert.equal(res.status, 405, `Accept: ${accept ?? '(none)'} must stay refused`);
+      assert.match(String(res.headers.get('allow')), /POST/);
+    }
+  });
+
+  test('the shard fetch still cannot re-enter the handler', async () => {
+    // The shard fetch is a GET to /data/mcp/... with Accept: application/json,
+    // text/plain. It is not a stream request, so the rule never sends it here —
+    // and if it somehow did, it would get a 405 rather than a second invocation.
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}/data/mcp/8c1f.txt`, {
+      method: 'GET',
+      headers: { accept: 'application/json, text/plain' },
+    }));
+    assert.equal(res.status, 405);
+  });
+
+  test('serving the stream did not weaken the POST guards', async () => {
+    // The regression this shim could plausibly cause: a change near the method
+    // dispatch that also loosened POST. These are the refusals that apply on a
+    // dual-era endpoint, and they must all still hold.
+    //
+    // A POST with no version header is deliberately NOT asserted here. That
+    // request is served: this endpoint is lenient for 2025-era clients, which
+    // send no version header. Single-revision strictness was built and rolled
+    // back; asserting it here would guard a behaviour we do not have.
+    const mismatch = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'prompts/list' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    }));
+    assert.equal(mismatch.status, 400);
+    assert.equal((await mismatch.json()).error.code, -32020);
+
+    const unknown = await h.client.request('tools/list', undefined, 1, { 'MCP-Protocol-Version': '1999-01-01' });
+    assert.equal(unknown.status, 400);
+    assert.equal(unknown.json.error.code, -32022);
+
+    const unknownMethod = await h.client.request('resources/list', undefined, 1);
+    assert.equal(unknownMethod.status, 404);
+    assert.equal(unknownMethod.json.error.code, JSON_RPC.METHOD_NOT_FOUND);
+  });
+
+  test('CORS advertises GET, or a browser probe is blocked before the stream', async () => {
+    // A preflight for a cross-origin GET checks the allowed methods. Without GET
+    // here the shim would work for curl and fail for a browser-based connector,
+    // which is exactly the kind of fault that looks like a server bug.
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}`, { method: 'OPTIONS' }));
+    const methods = String(res.headers.get('access-control-allow-methods') || '');
+    assert.match(methods, /GET/);
+    assert.match(methods, /POST/);
+  });
+
+  test('the stream costs no subrequest', async () => {
+    const before = h.fetched.length;
+    await sseProbe();
+    assert.equal(h.fetched.length - before, 0, 'the stream must not fetch anything');
   });
 });
 

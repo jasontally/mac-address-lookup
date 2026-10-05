@@ -496,14 +496,64 @@ A connector UI probes the endpoint with `initialize` before it can classify the
 server. Two failures are worth knowing, because both look like configuration
 problems and are not:
 
-- **`405` then "couldn't check the server"** — correct behaviour. 2026-07-28
-  removed the standalone GET stream, and a server with none MUST answer GET with
-  405. Continue past it.
+- **`405` then "couldn't check the server"** — this no longer happens. A GET that
+  asks for a stream is now served one; see
+  [`GET` is served as a stream](#get-is-served-as-a-stream-for-old-transport-probes).
+  A GET that does not ask for a stream still gets 405, and that is correct.
 - **"set up as not requiring sign-in, but the server asked for sign-in (status
   400)"** — a `400` during the auth check being read as an auth challenge. It
   was caused by refusing `initialize`. See the handshake note below.
 
-### The handshake is answered, statelessly
+### `GET` is served as a stream, for old-transport probes
+
+2026-07-28 removed the standalone GET stream, and the specification says a server
+serving only that revision **SHOULD** answer such a request with `405`. It is
+served anyway, and the reason is a client.
+
+`SHOULD` is not `MUST` (RFC 2119 section 3), and no `MUST` in the revision
+forbids the stream — the sixty `MUST`s are about POST response streams,
+header validation, and cancellation. So serving it is permitted. It is served
+because at least one connector treats the 405 as a **fatal error** rather than
+as the era signal the specification intends. ChatGPT added the server,
+discovered the tool over POST, then failed at call time with:
+
+```
+Failed to call MCP tool lookup: MCP SSE probe returned 405 from ...
+```
+
+**This was never caused by the single-revision change.** The 405 guard is in the
+initial commit, and the pre-refactor snippet returns the identical 405 on GET.
+The two problems were independent: the refactor tightened POST, the probe was
+always failing.
+
+**The stream carries no `endpoint` event, and that is the whole design.** The
+specification's own detection algorithm says:
+
+> When the `endpoint` event arrives, the client can assume this is a server
+> running the old HTTP+SSE transport, and should use that transport for all
+> subsequent communication.
+
+The old transport POSTs without the modern routing headers, which this server
+refuses with `-32602`. So sending `endpoint` would convert a probe failure into a
+total failure — strictly worse than the 405 it replaces. The stream therefore
+carries one SSE comment, `":ok\n\n"`. Per the SSE specification a line beginning
+with a colon carries no event data and clients must ignore it, so a conforming
+client waits for `endpoint`, never receives it, and stays on the modern path.
+One test asserts the body contains no `endpoint` and no `data:` line, because
+that is the failure mode this shim could cause.
+
+A GET that does **not** send `Accept: text/event-stream` still gets 405. That is
+load-bearing: it is what stops a same-zone subrequest from re-entering the
+handler, and the shard fetch is a GET.
+
+**Cost and ceiling.** One response, no subrequest, no allocation beyond headers.
+The stream closes immediately rather than being held open, because a Snippet has
+a 5 ms budget and this endpoint has no server-initiated messages to deliver, so
+an open stream would occupy an invocation to send nothing. The ceiling: this
+satisfies a client that probes and checks the status. A client that requires a
+*long-lived* stream and sends messages on it is not supported — that would need
+the retired transport rebuilt properly, in a budget that cannot hold a connection
+open. If such a client appears, this shim is what to revisit.
 
 `initialize` is answered, and `2025-06-18`, `2025-11-25` and `2026-07-28` are
 all served. This is `legacy: "stateless"` — the reference SDK's mode, and
