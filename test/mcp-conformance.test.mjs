@@ -536,6 +536,38 @@ describe('lookup tool behaviour', () => {
     }
   });
 
+  test('every declared outputSchema property is present on the hit path', async () => {
+    // A real defect, found while triaging a connector report of "An unknown
+    // error occurred while executing the tool" on an address the endpoint
+    // answered correctly. `locallyAdministered` and `multicast` were declared as
+    // plain booleans but returned only on the miss path, so on a hit they were
+    // absent. Absent is not the same as false, and the specification says a
+    // client SHOULD validate structuredContent against the tool's own
+    // outputSchema, so a strict client can reject the whole result over it.
+    //
+    // This predates the single-revision work and is independent of it: the miss
+    // branch grew two fields the hit branch never learned about.
+    const { tools } = await h.client.listTools();
+    const declared = Object.keys(tools[0].outputSchema.properties);
+    const hit = await h.client.callTool('lookup', { mac: '8C:1F:64:AF:A4:B2' });
+    const payload = hit.json.result.structuredContent;
+    const missing = declared.filter((key) => !(key in payload));
+    assert.deepEqual(missing, [], `hit path omits declared properties: ${missing.join(', ')}`);
+    assert.equal(typeof payload.locallyAdministered, 'boolean');
+    assert.equal(typeof payload.multicast, 'boolean');
+  });
+
+  test('the hit and miss paths return the same key set', async () => {
+    // The check that would have caught the drift above.
+    const hit = await h.client.callTool('lookup', { mac: '8C:1F:64:AF:A4:B2' });
+    const miss = await h.client.callTool('lookup', { mac: '02:00:00:00:00:01' });
+    assert.deepEqual(
+      Object.keys(miss.json.result.structuredContent).sort(),
+      Object.keys(hit.json.result.structuredContent).sort(),
+      'the hit and miss paths must return the same fields',
+    );
+  });
+
   test('an unregistered address reports no match and hands back no page URL', async () => {
     const res = await h.client.callTool('lookup', { mac: '02:00:00:00:00:01' });
     const s = res.json.result.structuredContent;

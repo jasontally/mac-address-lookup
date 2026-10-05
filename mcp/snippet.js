@@ -228,7 +228,7 @@ async function lookup(request, payload, id) {
           '. Full record, including the organization address: ' + page,
       },
     ],
-    structuredContent: { query, prefix, blockType, addressCount, orgName, country, url: page },
+    structuredContent: { query, prefix, blockType, addressCount, orgName, country, locallyAdministered: local, multicast, url: page },
   });
 }
 
