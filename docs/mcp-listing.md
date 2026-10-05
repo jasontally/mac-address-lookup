@@ -545,6 +545,7 @@ debugged.
 
 | Behaviour | Why it is correct | What to do if a checker objects |
 | --- | --- | --- |
+| A POST with an `Origin` header from another site returns `403` | The specification requires servers to validate `Origin` to prevent DNS rebinding, and nothing upstream does it for us — Cloudflare implements that inside its `agents` SDK wrapper, which this endpoint does not use. A request with **no** `Origin` is served normally, so curl and non-browser clients are unaffected | Do not strip the check. If a checker objects, it is a browser-origin policy question, not a bug |
 | `GET /mcp` returns 405 | A GET that does not ask for `text/event-stream` is not a stream request, and the 405 is what stops a same-zone subrequest from re-entering the handler. A GET that *does* ask for a stream is served one, as a compatibility shim: the specification says a single-revision server SHOULD answer 405, and `SHOULD` is not `MUST`. See [mcp-endpoint.md](mcp-endpoint.md#get-is-served-as-a-stream-for-old-transport-probes) | Do not remove the 405. It is the re-entry guard |
 | `resources/list` and `prompts/list` return `-32601` | The server exposes tools only, and method-not-found is the correct answer | Change the endpoint on purpose if a client cannot cope. Do not work around it per directory |
 | No `MCP-Protocol-Version` response header | The header is optional, and this snippet does not send one. The name appears only inside `access-control-expose-headers` | Read the body instead. A JSON-RPC result carrying the tool is something no fallback produces |

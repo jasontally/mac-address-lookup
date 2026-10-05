@@ -475,6 +475,137 @@ describe('header and body agreement', () => {
   });
 });
 
+describe('Origin validation (DNS rebinding)', () => {
+  let h;
+  before(async () => { h = await harness(); });
+  after(() => h.restore());
+
+  // MUST: "Servers MUST validate the Origin header on all incoming connections
+  // to prevent DNS rebinding attacks. If the Origin header is present and
+  // invalid, servers MUST respond with HTTP 403 Forbidden."
+  //
+  // Nothing upstream does this. Cloudflare implements Origin validation inside
+  // `createMcpHandler`, the `agents` SDK wrapper, which this endpoint does not
+  // use: it is a raw Snippet. Verified before the check existed -- a POST
+  // carrying `Origin: http://evil.example` returned 200 with a cf-ray header and
+  // a real tool list, so the request reached our code and our code answered it.
+  const post = (origin, body) => h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'tools/list', ...(origin === undefined ? {} : { origin }) },
+    body: JSON.stringify(body ?? { jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+  }));
+
+  test('an origin from another host is refused with 403', async () => {
+    // The attack: a page on a rebound or foreign domain opening the endpoint.
+    for (const origin of ['http://evil.example', 'https://evil.example', 'https://jasontally.com', 'https://www.jasontally.com']) {
+      const res = await post(origin);
+      assert.equal(res.status, 403, `${origin} must be refused`);
+    }
+  });
+
+  test('an opaque or non-HTTP origin is refused with 403', async () => {
+    // `null` is what a sandboxed iframe and some opaque contexts send. A
+    // rebound attacker cannot produce this site's origin, so it is refused too.
+    for (const origin of ['null', 'file://', 'ftp://evil.example', 'not a url', '']) {
+      const res = await post(origin);
+      assert.equal(res.status, 403, `Origin "${origin}" must be refused`);
+    }
+  });
+
+  test('this site own origin is allowed', async () => {
+    // A browser page served from this site must still work, or the check has
+    // broken the legitimate case it exists to permit.
+    for (const origin of [`https://${HOST}`, `http://${HOST}`, `https://${HOST}/some/page`]) {
+      const res = await post(origin);
+      assert.equal(res.status, 200, `${origin} must be allowed`);
+    }
+  });
+
+  test('a request with no Origin is allowed, so non-browser clients keep working', async () => {
+    // The rule is conditional on the header being PRESENT. curl, the load
+    // tester, and every MCP client that is not a browser send no Origin, and
+    // refusing them would break every one for a hole that does not apply.
+    const res = await post(undefined);
+    assert.equal(res.status, 200);
+    const json = await res.json();
+    assert.equal(json.result.tools[0].name, 'lookup');
+  });
+
+  test('the 403 applies to the GET stream too, not just POST', async () => {
+    // The Origin check runs first, before the method dispatch, so it cannot be
+    // side-stepped by choosing a different verb.
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}`, {
+      method: 'GET',
+      headers: { accept: 'text/event-stream', origin: 'http://evil.example' },
+    }));
+    assert.equal(res.status, 403, 'the SSE probe must not bypass the Origin check');
+  });
+
+  test('a wrong host is still refused with 404, not masked by the Origin check', async () => {
+    // Ordering matters: both guards exist, and a request that is wrong in both
+    // ways must still be distinguishable. A 403 here would mean the Origin check
+    // had shadowed the host guard, or the other way round.
+    const res = await h.clientFor('evil.example').request('tools/list', undefined, 1, {
+      'MCP-Protocol-Version': '2026-07-28',
+      'Mcp-Method': 'tools/list',
+      origin: `https://${HOST}`,
+    });
+    assert.equal(res.status, 404, 'the host guard must still be the one that refuses');
+    assert.match(res.json.error.message, /served on/);
+  });
+});
+
+describe('the request id', () => {
+  let h;
+  before(async () => { h = await harness(); });
+  after(() => h.restore());
+
+  // All three revisions served here carry the same rule: "Requests MUST include
+  // a string or integer ID. Unlike base JSON-RPC, the ID MUST NOT be null."
+  // Verified on the 2026-07-28, 2025-11-25 and 2025-06-18 pages.
+  test('an explicit id of null is refused, not answered with id null', async () => {
+    const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'tools/list' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: null, method: 'tools/list' }),
+    }));
+    assert.equal(res.status, 400);
+    const json = await res.json();
+    assert.equal(json.error.code, JSON_RPC.INVALID_REQUEST);
+    // The error's own id is null, which is correct: JSON-RPC 2.0 requires null
+    // when the id cannot be determined. What is refused is answering 200 to it.
+    assert.equal(json.id, null);
+  });
+
+  test('an id of the wrong type is refused', async () => {
+    for (const id of [true, {}, [1], { a: 1 }]) {
+      const res = await h.mod.default.fetch(new Request(`https://${HOST}${MCP_ROUTE}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'tools/list' },
+        body: JSON.stringify({ jsonrpc: '2.0', id, method: 'tools/list' }),
+      }));
+      assert.equal(res.status, 400, `id ${JSON.stringify(id)} must be refused`);
+    }
+  });
+
+  test('string and integer ids are still accepted and echoed exactly', async () => {
+    for (const id of [1, 0, -7, 'abc-123', '']) {
+      const res = await h.client.request('tools/list', undefined, id);
+      assert.equal(res.status, 200, `id ${JSON.stringify(id)} must be served`);
+      assert.equal(res.json.id, id);
+      assert.equal(typeof res.json.id, typeof id, `id ${JSON.stringify(id)} changed type`);
+    }
+  });
+
+  test('an absent id is still a notification: 202 and no body', async () => {
+    // Absent is not the same as null. A notification has no id at all, and must
+    // not be answered with a body.
+    const res = await h.client.notify('tools/list', undefined);
+    assert.equal(res.status, 202);
+    assert.equal(res.text, '');
+  });
+});
+
 describe('the GET stream compatibility shim', () => {
   let h;
   before(async () => { h = await harness(); });

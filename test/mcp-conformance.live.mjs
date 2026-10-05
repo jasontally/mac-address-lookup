@@ -140,6 +140,41 @@ await check('a notification gets 202 and no body', async () => {
   equal(res.text, '', 'body');
 });
 
+await check('an Origin from another host is refused with 403', async () => {
+  // MUST: "Servers MUST validate the Origin header on all incoming connections
+  // to prevent DNS rebinding attacks. If the Origin header is present and
+  // invalid, servers MUST respond with HTTP 403 Forbidden."
+  //
+  // Cloudflare does not do this at the edge. It is implemented inside
+  // `createMcpHandler`, the `agents` SDK wrapper, which this endpoint does not
+  // use: it is a raw Snippet with a hand-rolled fetch. Verified before the check
+  // existed -- the request reached our code and returned a real tool list.
+  const post = (origin) => fetch(`${SITE}${MCP_ROUTE}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'tools/list', ...(origin === undefined ? {} : { origin }) },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+  });
+  for (const origin of ['http://evil.example', 'https://jasontally.com', 'null', 'file://']) {
+    const res = await post(origin);
+    equal(res.status, 403, `Origin ${origin}`);
+  }
+  // Absent is allowed: curl and every non-browser client send none.
+  equal((await post(undefined)).status, 200, 'no Origin must be allowed');
+});
+
+await check('an explicit id of null is refused', async () => {
+  // "Requests MUST include a string or integer ID. Unlike base JSON-RPC, the ID
+  // MUST NOT be null." Same wording in all three revisions served here. The
+  // response path echoes the id, so this used to answer 200 with "id": null.
+  const res = await fetch(`${SITE}${MCP_ROUTE}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'tools/list' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: null, method: 'tools/list' }),
+  });
+  equal(res.status, 400, 'status');
+  equal((await res.json()).error.code, -32600, 'error code');
+});
+
 await check('a GET that asks for a stream gets it, for old-transport probes', async () => {
   // 2026-07-28 removed the GET stream and says a single-revision server SHOULD
   // answer with 405. SHOULD is not MUST (RFC 2119 section 3) and no MUST forbids

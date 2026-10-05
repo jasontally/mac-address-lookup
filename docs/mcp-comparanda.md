@@ -18,13 +18,15 @@ on the raw generated source at `build/build.mjs:450`.
 
 | Measurement | Bytes |
 | --- | --- |
-| Committed and deployed source, comments included | 29,374 |
-| Same file with comments stripped | 14,188 |
-| Minified (esbuild, ES2022) | **8,150** |
-| Minified and gzipped | 3,151 |
+| Committed and deployed source, comments included | 31,763 |
+| Same file with comments stripped | 14,984 |
+| Minified (esbuild, ES2022) | **8,606** |
+| Minified and gzipped | 3,275 |
 
-So the deployed artifact is **8.2 KB minified**, zero dependencies, and the
-source file is **90% of the 32 KB ceiling**. The 32 KB budget is what forces the
+So the deployed artifact is **8.6 KB minified**, zero dependencies, and the
+source file is **97% of the 32 KB ceiling**, with about 1 KB of headroom. The
+build guard trips on raw source, so that headroom is the real budget for
+anything added next. The 32 KB budget is what forces the
 design: it is not possible to fit an SDK here.
 
 **Both compatibility costs are now paid, and both are measured.** Serving
@@ -127,16 +129,21 @@ spoofed `Host`, an unbounded body, and an HTML body parsed as shard data.
 - **The architecture is validated, not novel.** A second project reached the same
   conclusion independently, on the same platform, with the same transport. That
   is the strongest available evidence short of a benchmark.
-- **The size claim to defend is the minified one**, 8,150 bytes. Quote that, not
-  the 29,374-byte source file, when comparing against a 32 KB ceiling.
+- **The size claim to defend is the minified one**, 8,606 bytes. Quote that, not
+  the 31,763-byte source file, when comparing against a 32 KB ceiling. The source
+  file is at 97% of that ceiling, so the two numbers have to be quoted together:
+  the minified one is smaller than the peer, the source one is much larger.
 - **The peer is now the smaller number.** 7,194 bytes of protocol layer while also
   serving 73 tools, against 8,150 here for one tool. The honest reading is that
   this endpoint is not smaller than the peer; it is smaller than an SDK would
   be, which is the claim worth making. The comment density is what makes the
   source file look large, but that does not move the minified number.
-- **Two compatibility decisions are paid for in that figure.** Roughly 1 KB is the
-  2025-era versions, a few hundred bytes the GET stream shim. Both are real and
-  both are recorded above; neither is free.
+- **What that figure buys.** Roughly 1 KB is dual-era version support, a few
+  hundred bytes the GET stream shim, and some of it `Origin` validation, which
+  the specification makes a MUST and which nothing upstream was doing. All three
+  are recorded in mcp-endpoint.md. None is free, and the last one is not optional.
+- **The source file is at 97% of the ceiling.** Any further comment-heavy edit
+  trips the build guard. Measure before adding, not after.
 - **Re-check the SDK floor if the 32 KB Snippet limit ever changes.** A worker
   route has no 32 KB limit and no subrequest cap of 2, and the SDK becomes
   affordable the moment either moves. See the fallback note in

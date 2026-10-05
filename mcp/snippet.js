@@ -530,6 +530,39 @@ function routingError(request, payload, id) {
 
 export default {
   async fetch(request) {
+    // Origin validation, first thing. MUST: "Servers MUST validate the Origin
+    // header on all incoming connections to prevent DNS rebinding attacks. If
+    // the Origin header is present and invalid, servers MUST respond with HTTP
+    // 403 Forbidden."
+    //
+    // Nothing upstream does this. It is not edge behaviour: Cloudflare implements
+    // it inside `createMcpHandler`, the `agents` SDK wrapper, which this
+    // endpoint does not use. Verified -- before this, `Origin:
+    // http://evil.example` returned 200 with a cf-ray and a real tool list, so
+    // the request reached this code.
+    //
+    // Conditional on the header being PRESENT. No Origin means no browser, and
+    // curl and every non-browser MCP client send none; refusing those would
+    // break them for a hole that does not apply. A present Origin must be http
+    // or https on this host, which admits this site's own pages and refuses a
+    // rebound one. That also refuses `null`, which a sandboxed iframe sends.
+    const origin = headerValue(request, 'origin');
+    if (origin !== null) {
+      let allowed = false;
+      try {
+        const parsed = new URL(origin);
+        allowed = (parsed.protocol === 'https:' || parsed.protocol === 'http:') && parsed.host === HOST;
+      } catch {
+        allowed = false;
+      }
+      if (!allowed) {
+        return new Response(
+          JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Forbidden: this Origin is not allowed on ' + HOST + '.' } }),
+          { status: 403, headers: headers() },
+        );
+      }
+    }
+
     // Second line of defence behind the rule expression. A Snippet rule is
     // zone-wide, so a path-only rule reaches every subdomain. Refusing here
     // turns that misconfiguration into a loud 404 instead of a lookup that
@@ -607,6 +640,19 @@ export default {
       return new Response(null, { status: 202, headers: headers() });
     }
     const id = payload.id;
+
+    // An id of null is not a request, and all three revisions served here say so
+    // in the same words: "Requests MUST include a string or integer ID. Unlike
+    // base JSON-RPC, the ID MUST NOT be null." Checked on 2026-07-28,
+    // 2025-11-25 and 2025-06-18, so this is not a newer rule.
+    //
+    // It matters because the response echoes the id: an explicit null used to
+    // return 200 with `"id": null`, a success response to a message that cannot
+    // exist. The *error* below also carries `id: null`, which is correct --
+    // JSON-RPC 2.0 requires null when the id cannot be determined.
+    if (id === null || (typeof id !== 'string' && typeof id !== 'number')) {
+      return rpcError(null, -32600, 'Invalid request: the id must be a string or an integer, not null.');
+    }
 
     // Reject only a version we genuinely cannot serve. Anything in the
     // supported set is served statelessly, so a 2025-era client is not turned

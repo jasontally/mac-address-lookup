@@ -110,6 +110,11 @@ statelessly â€” no session is created and no \`Mcp-Session-Id\` is ever issued â
 a 2025-era client can connect too, and a request naming an unsupported protocol
 version is refused with \`-32022\` and the list of versions served.
 
+A request \`id\` must be a string or an integer; \`id: null\` is refused. A GET
+that sends \`Accept: text/event-stream\` is answered with an SSE stream, for
+clients that still probe the old transport; that stream carries no events, and
+any other GET gets \`405\`.
+
 A GET that sends \`Accept: text/event-stream\` is answered with an SSE stream, for
 clients that still probe the old transport; that stream carries no events, and
 any other GET gets \`405\`.

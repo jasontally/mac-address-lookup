@@ -521,6 +521,24 @@ discovered the tool over POST, then failed at call time with:
 Failed to call MCP tool lookup: MCP SSE probe returned 405 from ...
 ```
 
+**This was the whole fault, and it was never the strict endpoint's fault.** With
+the shim in place, ChatGPT works — verified 2026-10-05 with both direct and
+programmatic tool use, and Glama's recurring failure alert stopped. The single
+GET stream fixed it.
+
+The 500 seen mid-investigation was this same client failing further along, not a
+second fault. What made it diagnosable in the end was that the connector quotes
+the server's own error text verbatim:
+
+| Reported | Whose message |
+|---|---|
+| `{'code': 405, 'message': 'This endpoint accepts POST only.'}` | ours — the GET probe |
+| `{'code': 500, 'message': 'An unknown error occurred while executing the tool.'}` | the connector's, not ours |
+
+So a message that echoes our JSON-RPC body identifies the failing step, and one
+that does not identify a failure on the client's side of a correct response.
+Read which of the two you have before changing anything.
+
 **This was never caused by the single-revision change.** The 405 guard is in the
 initial commit, and the pre-refactor snippet returns the identical 405 on GET.
 The two problems were independent: the refactor tightened POST, the probe was
@@ -742,11 +760,59 @@ is left as-is on purpose: requiring `_meta` on every request would break the
 either way, not an oversight, and it is recorded here so the decision is
 visible rather than assumed.
 
-**`dns-rebinding-protection` cannot be measured against this endpoint.** Both its
-checks report `non-localhost-url`. The scenario requires `localhost`,
-`127.0.0.1` or `[::1]`, so it never exercised anything here. The specification
-does require servers to validate `Origin`, and this snippet does not, so the
-gap is real. It is simply not something that scenario can find.
+**`Origin` is validated, and not by the edge.** The specification is a MUST:
+servers MUST validate the `Origin` header on all incoming connections, and MUST
+answer 403 when a present `Origin` is invalid. This snippet now does it, first
+thing, before the method dispatch.
+
+Cloudflare does not do this for us, and it is worth being precise about why.
+The validation lives in `createMcpHandler`, the `agents` SDK wrapper. Their docs
+say so: *"The Workers wrapper validates every present browser Origin… Set
+`allowedOriginHostnames: "*"` only when trusted middleware validates Origins
+before calling the handler."* That is application code inside a Worker. This
+endpoint is a raw Snippet with a hand-rolled `fetch`, which is exactly the case
+their SDK docs describe as needing the guard put in front by hand. It was
+verified rather than assumed: before this check, a POST carrying `Origin:
+http://evil.example` returned `200` with a `cf-ray` header and a real tool list,
+so the request reached this code and this code answered it.
+
+The rule is conditional on the header being **present**. No `Origin` means no
+browser, so `curl`, the load tester, and every MCP client that is not a browser
+pass through untouched — refusing them would break all of them for a hole that
+does not apply to them. A present `Origin` must be `http` or `https` on this
+endpoint's own host, which admits a page served from this site and refuses a
+rebound one. That also refuses `null`, which is what a sandboxed iframe sends,
+and any non-HTTP scheme.
+
+The `405` in the conformance report for `dns-rebinding-protection` is not a
+defect. Both of its checks report `non-localhost-url` because the scenario
+requires `localhost`, `127.0.0.1` or `[::1]`, so it never exercises a public
+host. The check it wanted is now satisfied directly.
+
+**A request id of `null` is refused.** All three revisions served here carry the
+same rule: "Requests MUST include a string or integer ID. Unlike base JSON-RPC,
+the ID MUST NOT be `null`." Verified on the 2026-07-28, 2025-11-25, and
+2025-06-18 pages — this is not a newer requirement we could have been following
+by accident. Because the response path echoes the id, an explicit `id: null`
+used to be answered with `200` and `"id": null`, a success response to a message
+the specification says cannot exist. It is now `-32600`. An **absent** id is
+unchanged and is still a notification: `202`, no body. The error response still
+carries `id: null`, which is correct, because JSON-RPC 2.0 requires null when the
+id cannot be determined.
+
+### Two MUST-level deviations, kept on purpose
+
+Both were found by reading the specification against the deployed endpoint, not
+by a client failing. They are recorded here so they are not mistaken for
+oversights.
+
+| Requirement | Our behaviour | Why |
+|---|---|---|
+| "Every POST request **MUST** include an `MCP-Protocol-Version` header… A server that does not support such clients **MUST** reject a request without the header" | a POST with no version header is **served** | The endpoint serves 2025-11-25 and 2025-06-18, which is the dual-era lane. ChatGPT and Glama depend on it. |
+| "fields marked as required **MUST** be included on every request… the server **MUST** reject it with `-32602`" (`clientCapabilities`) | a request missing `clientCapabilities` is **served** | This server never calls back into the client, so it has no capability to check and `-32021` would have nothing to report. |
+
+Both are trades with a cost, not settled correctness. The version-header one is
+the price of dual-era support, which is the price of ChatGPT working at all.
 
 **How to read the report.** Every `tools-call-*` scenario calls a fixture tool by
 name — `test_simple_text`, `test_image_content`, `test_error_handling` and so on.
