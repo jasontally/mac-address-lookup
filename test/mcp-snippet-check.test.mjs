@@ -56,7 +56,15 @@ test('the committed copy is a real ES module, not a template', async () => {
   assert.match(onDisk, /export default \{/);
   assert.match(onDisk, /^const DEPTH = \{.*\};$/m);
   assert.doesNotMatch(onDisk, /\$\{/, 'no unresolved template interpolation');
-  assert.ok(Buffer.byteLength(onDisk) < 32 * 1024);
+  // The 32 KB limit is on the bytes uploaded, and `npm run mcp:deploy` minifies
+  // before sending, so the minified size is what has to fit. Cloudflare counts
+  // uploaded bytes, verified by upload.
+  const { transform } = await import('esbuild');
+  const minified = await transform(onDisk, { loader: 'js', minify: true, target: 'es2022' });
+  assert.ok(
+    Buffer.byteLength(minified.code) < 32 * 1024,
+    `minified snippet must fit 32 KB, got ${Buffer.byteLength(minified.code)} bytes`,
+  );
 });
 
 test('the real route table matches the real plan', async () => {

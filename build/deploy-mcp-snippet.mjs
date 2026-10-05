@@ -7,10 +7,21 @@
  * artifact. So this script owns that one step.
  *
  * It reads `mcp/snippet.js` — the committed, drift-checked artifact that
- * `npm run mcp:accept` writes and `build.mjs` verifies — so the bytes on the
- * zone are the bytes under review. The rule expression comes from
- * `mcpRuleExpression()` in the same module the build uses, so the rule, the
- * snippet's own header comment, and the snippet's `HOST` guard cannot drift.
+ * `npm run mcp:accept` writes and `build.mjs` verifies — so the code on the zone
+ * is the code under review. The rule expression comes from `mcpRuleExpression()`
+ * in the same module the build uses, so the rule, the snippet's own header
+ * comment, and the snippet's `HOST` guard cannot drift.
+ *
+ * The artifact is reviewed as source and uploaded minified. Cloudflare's 32 KB
+ * Snippet limit counts raw source: a snippet padded with comments to 40 KB raw
+ * but 8.6 KB minified was rejected with "maximum snippet size of 32.00KB is
+ * exceeded". So the limit applies to the bytes sent, and the fix is to send fewer
+ * of them rather than to write fewer comments. The source keeps its comments,
+ * which is what makes it reviewable.
+ *
+ * Minification is behaviour-preserving here and that is asserted, not assumed:
+ * `test/minify-behaviour.mjs` runs both forms through every method, every error
+ * path, and the Origin and id guards, and requires byte-identical responses.
  *
  *   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ZONE_ID=... node build/deploy-mcp-snippet.mjs [--dry-run]
  *
@@ -84,7 +95,13 @@ async function api(route, init = {}) {
 const snippetRoute = (id) => `/zones/${id}/snippets/${encodeURIComponent(SNIPPET_NAME)}`;
 const rulesRoute = (id) => `/zones/${id}/snippets/snippet_rules`;
 
-const code = await readFile(SNIPPET_FILE, 'utf8');
+// Review the source, upload the minified form. See the header: the 32 KB limit
+// counts raw source, so this is what keeps the commented, reviewable artifact
+// deployable. `legalComments: 'none'` because there are no legal comments to keep
+// and the file must be reproducible byte-for-byte from the committed source.
+const source = await readFile(SNIPPET_FILE, 'utf8');
+const { transform } = await import('esbuild');
+const code = (await transform(source, { loader: 'js', minify: true, target: 'es2022', legalComments: 'none' })).code;
 const expression = mcpRuleExpression();
 const ourRule = {
   snippet_name: SNIPPET_NAME,
@@ -112,7 +129,12 @@ const foreign = (Array.isArray(observed) ? observed : []).filter(
 const needsCode = !dryRun;
 const needsRules = !rulesMatch(desiredRules, observed);
 
-console.log(`snippet  ${SNIPPET_NAME}  ${(code.length / 1024).toFixed(1)} KB from ${path.relative(root, SNIPPET_FILE)}`);
+// Both numbers, because they answer different questions and the limit is on the
+// uploaded one. Source is what is reviewed; minified is what Cloudflare counts.
+console.log(
+  `snippet  ${SNIPPET_NAME}  ${(code.length / 1024).toFixed(1)} KB uploaded (minified) ` +
+    `from ${(source.length / 1024).toFixed(1)} KB of reviewed source in ${path.relative(root, SNIPPET_FILE)}`,
+);
 console.log(`rule     ${expression}`);
 console.log(`zone     ${zoneId} (${SITE})`);
 console.log(`current  ${observed ? `${observed.length} rule(s)` : 'no rule list'}`);

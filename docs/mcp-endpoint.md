@@ -17,7 +17,7 @@ directories and registries it can appear in, see
 | Piece | Built by | Published by | Cost |
 |---|---|---|---|
 | `dist/data/mcp/**` — 13,816 shard files | `build/mcp-shards.mjs` | **automatic** — `wrangler deploy` in Workers Builds | Free, unlimited |
-| `mcp/snippet.js` — the edge handler, committed | `build/mcp-shards.mjs` | **manual** — `npm run mcp:deploy` | Included in the plan |
+| `mcp/snippet.js` — the edge handler, committed and reviewed as source | `build/mcp-shards.mjs` | **manual** — `npm run mcp:deploy`, which minifies before uploading | Included in the plan |
 | The zone Snippet rule | same script | **manual** — same command | Included in the plan |
 
 ## What the pipeline does and does not do
@@ -915,7 +915,7 @@ budget.
 |---|---|---|
 | Snippet execution | 5 ms | Worst measured scan is 0.42 ms, on the largest carve shard. Comfortable |
 | Snippet memory | 2 MB | The snippet holds one response body at a time; the largest shard is a fraction of this |
-| Snippet package | 32 KB | About half used. It grew roughly 2x when version negotiation was fixed, so treat the remainder as spendable and re-check after any snippet change |
+| Snippet package | 32 KB | **26% used** — 8,591 bytes uploaded, minified. The reviewed source is 31,763 and does not fit, by design; see below |
 | Snippet subrequests | **2 on Pro, 3 Business, 5 Enterprise** | **One used per request.** The catalog fetch (`tools/list`) and the shard fetch (`tools/call`) are on mutually exclusive paths, so they never add up |
 | Snippets per zone | 0 Free / 25 Pro / 50 Business / 300 Enterprise | One used |
 | Static asset files | 100,000 hard limit | Roughly three-quarters used, shared with the whole site. The build asserts against it |
@@ -925,6 +925,25 @@ The 32 KB package limit is why this endpoint is hand-rolled. No MCP SDK fits in
 it, and the smallest public zero-dependency MCP servers on the same platform sit
 around 7 KB of protocol layer. Measured sizes, the SDK floor, and the patterns
 worth copying: [mcp-comparanda.md](mcp-comparanda.md).
+
+**The limit is on uploaded bytes, so the deploy minifies.** Measured by upload,
+not read: a snippet padded with comments to 40 KB of source but 8.6 KB minified
+was rejected with `maximum snippet size of 32.00KB is exceeded`. So
+`npm run mcp:deploy` sends the minified form and the build guards the minified
+size, which is what makes a heavily commented artifact deployable. `mcp/snippet.js`
+is 31,763 bytes and does not fit; it is the reviewed artifact, not the uploaded
+one. Comments are effectively free now, so the reason to keep them is
+reviewability, not size.
+
+Minification is not compression, and the two must not be confused when quoting a
+number: of roughly 23 KB removed from the source, about 15 KB is comments and
+whitespace and about 2.8 KB is identifier renaming. Gzipped-minified is a
+separate 3,265 bytes and is not what the limit measures.
+
+`test/minify-behaviour.test.mjs` is what makes shipping minified code safe here.
+It runs both forms through every method, every error path, and the `Origin` and
+`id` guards, and requires identical responses. It has been checked to fail when
+the minified form is perturbed, so it is not a check that passes by construction.
 
 ### The plan cliff, which is the one that matters
 

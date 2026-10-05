@@ -1113,8 +1113,36 @@ export async function writeMcpShards({ distDir, records, site = SITE, route = MC
   return {
     ...shardStats(plan),
     catalogBytes: (await stat(path.join(shardDir, 'catalog.json'))).size,
+    // Raw source is the number that matters: Cloudflare's 32 KB Snippet limit
+    // counts it directly, verified by uploading a comment-padded snippet that
+    // was under the limit minified and over it raw. Minified is reported beside
+    // it because it is the honest measure of the logic, and because it is what
+    // the docs call "the size claim to defend". Neither one gates the build.
     snippetBytes: Buffer.byteLength(snippet),
+    snippetMinifiedBytes: await minifiedBytes(snippet),
     snippetPath: 'mcp-snippet.js',
     table: plan.table,
   };
+}
+
+/**
+ * Minified size of the snippet, for reporting only.
+ *
+ * Never throws and never gates anything. esbuild is a devDependency, so the
+ * measurement is skipped rather than fatal when it is unavailable — a build that
+ * cannot print a number is not a build that should fail.
+ *
+ * Uses `transform`, not `minify`: esbuild 0.28.1 exports no `minify` function,
+ * only `transform` and `build`. Calling the wrong one throws a TypeError, and a
+ * catch-all here would quietly turn that into a permanent "unavailable" reading
+ * instead of a visible fault.
+ */
+async function minifiedBytes(source) {
+  try {
+    const { transform } = await import('esbuild');
+    const result = await transform(source, { loader: 'js', minify: true, target: 'es2022' });
+    return result.code.length;
+  } catch {
+    return null;
+  }
 }

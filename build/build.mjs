@@ -428,7 +428,7 @@ console.log(
     `(${formatBytes(mcpShards.totalBytes)}, median ${(mcpShards.medianBytes / 1024).toFixed(2)} KB, ` +
     `p99 ${(mcpShards.p99Bytes / 1024).toFixed(2)} KB, max ${(mcpShards.maxBytes / 1024).toFixed(0)} KB), ` +
     `depth table ${mcpShards.overrides} entries (${mcpShards.tableBytes} B), ` +
-    `snippet ${formatBytes(mcpShards.snippetBytes)} -> ${mcpShards.snippetPath}`,
+    `snippet ${formatBytes(mcpShards.snippetBytes)} source -> ${mcpShards.snippetPath}`,
 );
 // The dense IAB and MA-S clusters share one 6-character prefix, so no prefix key
 // splits them. A small fixed count of oversize files is expected; growth is not.
@@ -447,9 +447,31 @@ if (mcpShards.maxBytes > SHARD_HARD_MAX_BYTES) {
 if (mcpShards.files > 100_000) {
   throw new Error(`${mcpShards.files} MCP shards exceed the 100,000 static asset limit`);
 }
-if (mcpShards.snippetBytes > 32 * 1024) {
-  throw new Error(`generated snippet is ${mcpShards.snippetBytes} bytes, over the 32 KB limit`);
+// The 32 KB Snippet limit counts the bytes UPLOADED, not the source reviewed.
+// Measured, not assumed: a snippet padded with comments to 40 KB source but
+// 8.6 KB minified was rejected by the API with "maximum snippet size of 32.00KB
+// is exceeded" — so the limit applies to raw bytes as sent.
+//
+// `build/deploy-mcp-snippet.mjs` therefore minifies before uploading, which is
+// what makes a heavily commented artifact deployable. So the guard belongs on the
+// minified size, the size that is actually sent. Guarding the source instead would
+// push the constraint onto the comments, which is exactly backwards: the source is
+// the part meant to be readable.
+//
+// `test/minify-behaviour.mjs` requires the two forms to be behaviourally
+// identical, so uploading the minified form cannot change what the endpoint does.
+const uploadedBytes = mcpShards.snippetMinifiedBytes ?? mcpShards.snippetBytes;
+if (uploadedBytes > 32 * 1024) {
+  throw new Error(
+    `snippet uploads as ${uploadedBytes} bytes, over the 32 KB limit ` +
+      `(Cloudflare measures uploaded bytes; verified by upload). Reduce the logic, not the comments.`,
+  );
 }
+console.log(
+  `  mcp snippet budget: ${formatBytes(uploadedBytes)} of 32 KB uploaded (minified), ` +
+    `from ${formatBytes(mcpShards.snippetBytes)} of reviewed source ` +
+    `${mcpShards.snippetMinifiedBytes === null ? '(minified size unavailable)' : ''}`,
+);
 if (mcpShards.overrides > 0) {
   console.log(
     `  note: ${mcpShards.overTarget} shard(s) over 30 KB, carved to depth 6 from base ${SHARD_BASE_DEPTH}: ` +

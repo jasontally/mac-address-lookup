@@ -43,6 +43,7 @@ import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { mkdtempSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { transform } from 'esbuild';
 
 import {
   Mcp2026Client,
@@ -903,7 +904,31 @@ describe('endpoint scoping', () => {
     assert.ok(expression.includes('http.host eq'), 'host term missing');
   });
 
-  test('the snippet serves the trailing-slash path too', async () => {
+  test('the size limit applies to the minified upload, not the reviewed source', async () => {
+  // Cloudflare's 32 KB limit counts uploaded bytes: a comment-padded snippet at
+  // 40 KB source but 8.6 KB minified was rejected with "maximum snippet size of
+  // 32.00KB is exceeded". So `npm run mcp:deploy` minifies before uploading, and
+  // this is the size that must fit.
+  //
+  // The padded case is asserted rather than described, so the distinction cannot
+  // be quietly inverted later: source over 32 KB, minified well under it. A guard
+  // on the source would fail here, which is the point — the source is the part
+  // meant to carry comments.
+  const dist = await mkdtemp(path.join(os.tmpdir(), 'mcp-size-'));
+  const { snippetBytes, snippetMinifiedBytes } = await writeMcpShards({ distDir: dist, records: RECORDS });
+  assert.ok(snippetBytes > snippetMinifiedBytes, 'minified must be the smaller number');
+
+  const source = await readFile(path.join(dist, 'mcp-snippet.js'), 'utf8');
+  const padded = source + '\n' + '/* padding comment to push the raw source over the limit */\n'.repeat(2000);
+  assert.ok(Buffer.byteLength(padded) > 32 * 1024, 'the padded source must exceed 32 KB');
+  const minified = await transform(padded, { loader: 'js', minify: true, target: 'es2022' });
+  assert.ok(
+    minified.code.length < 32 * 1024,
+    'and it must still minify under 32 KB, which is what makes the two measures differ',
+  );
+});
+
+test('the snippet serves the trailing-slash path too', async () => {
     // The handler takes no path branch, so the rule expression is the only
     // thing that decides whether /mcp/ reaches it. Guard the property the rule
     // now depends on, so a future path check in the handler cannot drift.

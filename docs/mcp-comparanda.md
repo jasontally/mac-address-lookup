@@ -18,16 +18,16 @@ on the raw generated source at `build/build.mjs:450`.
 
 | Measurement | Bytes |
 | --- | --- |
-| Committed and deployed source, comments included | 31,763 |
+| Committed, reviewed source (not uploaded as-is) | 31,763 |
 | Same file with comments stripped | 14,984 |
-| Minified (esbuild, ES2022) | **8,606** |
-| Minified and gzipped | 3,275 |
+| Uploaded form: minified (esbuild, ES2022) | **8,591** |
+| Minified and gzipped (a separate measure) | 3,265 |
 
-So the deployed artifact is **8.6 KB minified**, zero dependencies, and the
-source file is **97% of the 32 KB ceiling**, with about 1 KB of headroom. The
-build guard trips on raw source, so that headroom is the real budget for
-anything added next. The 32 KB budget is what forces the
-design: it is not possible to fit an SDK here.
+So the deployed artifact is **8.6 KB**, zero dependencies, at **26% of the 32 KB
+ceiling**. The source it is built from is 31,763 bytes and does not fit, by
+design: it is reviewed, not uploaded. The 32 KB budget is what forces the
+design — it is not possible to fit an SDK here — and it is now measured on the
+bytes actually sent.
 
 **Both compatibility costs are now paid, and both are measured.** Serving
 `2025-06-18` and `2025-11-25` alongside `2026-07-28` costs about 1 KB over a
@@ -129,10 +129,40 @@ spoofed `Host`, an unbounded body, and an HTML body parsed as shard data.
 - **The architecture is validated, not novel.** A second project reached the same
   conclusion independently, on the same platform, with the same transport. That
   is the strongest available evidence short of a benchmark.
-- **The size claim to defend is the minified one**, 8,606 bytes. Quote that, not
-  the 31,763-byte source file, when comparing against a 32 KB ceiling. The source
-  file is at 97% of that ceiling, so the two numbers have to be quoted together:
-  the minified one is smaller than the peer, the source one is much larger.
+- **The size claim to defend is the minified one**, 8,591 bytes, when comparing
+  this endpoint against another *implementation* — measured the same way on both
+  sides. The 32 KB limit applies to the uploaded, minified form, which is the
+  same number.
+
+  | Question | Measure | Now |
+  |---|---|---|
+  | Is the snippet deployable? | uploaded, minified | 8,591 of 32,768 — 26% |
+  | Is this smaller than a peer implementation? | minified vs minified | not yet measured |
+
+  **The limit is on uploaded bytes, and the deploy minifies.** Verified by upload
+  rather than read: a snippet padded with comments to 40 KB source but 8.6 KB
+  minified was rejected with `maximum snippet size of 32.00KB is exceeded`. So
+  `npm run mcp:deploy` sends the minified form, the build guards the minified
+  size, and the commented source — 31,763 bytes, which does **not** fit — stays
+  the reviewable artifact. That is the right way round: the source is the part
+  meant to carry comments.
+
+  Minification is not compression. Of the ~23 KB removed from the source, about
+  15 KB is comments and whitespace, ~2.8 KB is identifier renaming, and the
+  remaining ~5 KB is syntax folding. Gzipping the minified result is a separate
+  measurement, 3,265 bytes, and is not what the limit uses.
+
+  Uploading minified code is only safe if minification is behaviour-preserving,
+  so `test/minify-behaviour.test.mjs` asserts it: every method, every error path,
+  and both the `Origin` and `id` guards, run through both forms, with responses
+  required to be identical. It has been verified to fail when the minified form
+  is perturbed.
+
+  **Still missing: the peer measured the same way.** The 7,194-byte figure for
+  `five9-mcp` is its raw source from `wc -c`, not a minified build. Comparing
+  8,591 minified against 7,194 unminified is not like-for-like, and on raw source
+  this endpoint is several times larger. Measure the peer minified before making
+  any size claim in a comparison.
 - **The peer is now the smaller number.** 7,194 bytes of protocol layer while also
   serving 73 tools, against 8,150 here for one tool. The honest reading is that
   this endpoint is not smaller than the peer; it is smaller than an SDK would
@@ -142,8 +172,10 @@ spoofed `Host`, an unbounded body, and an HTML body parsed as shard data.
   hundred bytes the GET stream shim, and some of it `Origin` validation, which
   the specification makes a MUST and which nothing upstream was doing. All three
   are recorded in mcp-endpoint.md. None is free, and the last one is not optional.
-- **The source file is at 97% of the ceiling.** Any further comment-heavy edit
-  trips the build guard. Measure before adding, not after.
+- **The source file does not fit the limit and is not meant to.** It is 31,763
+  bytes against a 32,768 ceiling; the deploy sends 8,591. Comments are free now,
+  so do not trim them to satisfy the build. Write the reasoning down instead —
+  that is the part being reviewed.
 - **Re-check the SDK floor if the 32 KB Snippet limit ever changes.** A worker
   route has no 32 KB limit and no subrequest cap of 2, and the SDK becomes
   affordable the moment either moves. See the fallback note in
