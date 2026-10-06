@@ -58,10 +58,23 @@ const SNIPPET_FILE = path.join(root, 'mcp', 'snippet.js');
 const MODULE_FILE = 'snippet.js';
 const API = 'https://api.cloudflare.com/client/v4';
 
-const args = new Set(process.argv.slice(2));
-const dryRun = args.has('--dry-run');
+const argv = process.argv.slice(2);
+const dryRun = argv.includes('--dry-run');
+/**
+ * Read `--name value` from argv.
+ *
+ * This was `args.value('--zone')` on a `Set`, which has no such method, so every
+ * invocation without `CLOUDFLARE_ZONE_ID` died on a TypeError before printing its
+ * own "not set" message. Found while testing that a bad token fails loudly: the
+ * missing-token path never reached its own error. A `Set` only answers `has`, so
+ * the lookup is written out here.
+ */
+function flagValue(name) {
+  const at = argv.indexOf(name);
+  return at === -1 || at === argv.length - 1 ? null : argv[at + 1];
+}
 const token = process.env.CLOUDFLARE_API_TOKEN;
-const zoneId = process.env.CLOUDFLARE_ZONE_ID ?? args.value('--zone') ?? null;
+const zoneId = process.env.CLOUDFLARE_ZONE_ID ?? flagValue('--zone');
 
 if (!token) {
   console.error('CLOUDFLARE_API_TOKEN is not set.');
@@ -103,10 +116,26 @@ const source = await readFile(SNIPPET_FILE, 'utf8');
 const { transform } = await import('esbuild');
 const code = (await transform(source, { loader: 'js', minify: true, target: 'es2022', legalComments: 'none' })).code;
 const expression = mcpRuleExpression();
+
+// The rule DESCRIPTION is the only place we can record which build is installed,
+// because the API will not hand back snippet code to compare against. Without it
+// there is no way to tell a zone running last week's snippet from one running
+// this week's, short of uploading. That matters if this script is wired into
+// Workers Builds, where it would run on every push: a stale zone would otherwise
+// look identical to a current one.
+//
+// Workers Builds injects `WORKERS_CI_BUILD_UUID` into every build; see the "Default
+// variables" table in its configuration docs. `CF_BUILD_ID` is not a thing, and
+// an invented name would have silently fallen back to the timestamp in CI, which
+// is the one place a real identifier was wanted. Locally there is no build, so
+// the timestamp stands in, which is still enough to tell two manual deploys apart.
+const buildId = process.env.WORKERS_CI_BUILD_UUID || new Date().toISOString().slice(0, 19) + 'Z';
+const description = `Serve the stateless MCP lookup endpoint at /mcp and /mcp/ (${buildId})`;
+
 const ourRule = {
   snippet_name: SNIPPET_NAME,
   expression,
-  description: 'Serve the stateless MCP lookup endpoint at /mcp and /mcp/',
+  description,
   enabled: true,
 };
 
@@ -139,6 +168,10 @@ console.log(`rule     ${expression}`);
 console.log(`zone     ${zoneId} (${SITE})`);
 console.log(`current  ${observed ? `${observed.length} rule(s)` : 'no rule list'}`);
 console.log(`keeping  ${foreign.length} rule(s) owned by others: ${foreign.map((r) => r.snippet_name).join(', ') || 'none'}`);
+// What is installed, so a stale zone is visible in the log rather than silent.
+const installed = (observed || []).find((rule) => rule.snippet_name === SNIPPET_NAME);
+console.log(`stamp    ${installed ? installed.description : '(no rule for this snippet)'}`);
+console.log(`build    ${buildId}`);
 console.log(`plan     upload code: ${dryRun ? 'skipped (--dry-run)' : 'yes'} | rules: ${needsRules ? 'update' : 'already current'}`);
 
 if (dryRun) {

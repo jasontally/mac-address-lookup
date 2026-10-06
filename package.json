@@ -17,6 +17,7 @@
     "mcp:deploy": "node build/deploy-mcp-snippet.mjs",
     "mcp:conformance": "node test/mcp-conformance.live.mjs",
     "deploy": "wrangler deploy && node build/indexnow.mjs",
+    "deploy:all": "npm run deploy && npm run mcp:deploy",
     "mcp:load": "node test/mcp-load.mjs"
   },
   "dependencies": {
@@ -30,5 +31,9 @@
     "@playwright/test": "^1.48.0",
     "esbuild": "^0.28.1",
     "wrangler": "^4.34.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260911.1": true
   }
 }

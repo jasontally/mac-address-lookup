@@ -36,8 +36,10 @@ else. Nothing to do.
 the Worker; the Snippets product has no wrangler command. The Snippet is a
 separate, hand-installed file on the zone.
 
-That asymmetry is the one real operational risk in this design, and the build
-guards it. The Snippet carries the shard route table inlined (`const DEPTH`),
+That asymmetry can be closed — see
+[Automating it from Workers Builds](#automating-it-from-workers-builds) — but it is
+the one real operational risk in this design until you do, and the build guards it
+either way. The Snippet carries the shard route table inlined (`const DEPTH`),
 so a registry change that moves a cluster in or out of the table would publish
 fresh shards against a Snippet that routes to the wrong file. Every lookup in
 the moved range would report no vendor — a silent wrong answer, with no error
@@ -181,10 +183,10 @@ npm run mcp:deploy -- --dry-run   # show the plan
 npm run mcp:deploy
 ```
 
-`build/deploy-mcp-snippet.mjs` does it with Node's built-in `fetch`, no
-dependencies. It reads the committed `mcp/snippet.js` and imports
-`mcpRuleExpression()`, so the rule, the snippet's header comment, and the
-snippet's `HOST` guard cannot drift. It is idempotent: it uploads the code,
+`build/deploy-mcp-snippet.mjs` does it with Node's built-in `fetch`, plus
+esbuild for the minify step. It reads the committed `mcp/snippet.js`, minifies it,
+and imports `mcpRuleExpression()`, so the rule, the snippet's header comment, and
+the snippet's `HOST` guard cannot drift. It is idempotent: it uploads the code,
 and only replaces the rule list when the live one differs.
 
 ### The token
@@ -200,6 +202,58 @@ GET /zones/{id}/snippets
 The Snippets API accepts only `Snippets Write` and `Snippets Read`. Create a
 token at <https://dash.cloudflare.com/profile/api-tokens> with those two
 permissions, scoped to the `jasontally.com` zone. Nothing more.
+
+### Automating it from Workers Builds
+
+Yes, this can run in CI, and it is the one asymmetry left in the design.
+
+**Set the deploy command to exactly `npm run deploy:all`.** Not the wrangler
+command followed by it — `deploy:all` already *is* `wrangler deploy && node
+build/indexnow.mjs && node build/deploy-mcp-snippet.mjs`, so anything prepended
+runs the first two twice.
+
+**The token question, which cost a build.** Workers Builds injects system
+environment variables into every build, and its documentation states they are
+"injected by default (but can be overridden)". Adding a build secret named
+`CLOUDFLARE_API_TOKEN` shadows the platform's own value for that name, and the
+build then fails before any command runs:
+
+```
+Failed: The build token selected for this build has been deleted or rolled and
+cannot be used for this build.
+```
+
+That message names a token that was never touched, which is what makes it
+confusing: the override is invisible in the log. So do **not** add a build secret
+called `CLOUDFLARE_API_TOKEN`. Either grant the platform API token the Snippets
+scopes, or keep the two separate and never shadow that name.
+
+`CLOUDFLARE_ZONE_ID` is a build variable and is fine — it shadows nothing.
+
+Three properties make this safe, and one is a real limitation:
+
+- **It fails loudly.** A missing or rejected token exits non-zero with the API's
+  error, so a failed snippet upload fails the build rather than passing quietly.
+  Verified with an invalid token: exit 1, `code 10000`.
+- **It never drops another project's rules.** The rule list is merged, not
+  replaced, and the result is read back and checked. `icanhazip` covers 69
+  subdomains of `jasontally.com` and a single-rule PUT would delete it.
+- **It records which build is installed.** The API does not return snippet code,
+  so there is no way to diff live against committed. The rule's
+  `description` therefore carries `WORKERS_CI_BUILD_UUID`, which Workers Builds
+  injects by default, and every run prints the stamp it
+  found against the one it is installing. A stale zone is visible in the log.
+- **Limitation: it uploads on every push.** Because the code cannot be read back,
+  there is no byte comparison and no skip-when-unchanged. Each run rewrites the
+  snippet, bumping `modified_on` and churning the stamp even when the source is
+  identical. That is harmless but it means the stamp answers "which build last
+  ran", not "is the zone current". The build's own drift check
+  (`mcp/snippet.js` against the generated file) is what actually guarantees the
+  committed snippet matches the data being deployed.
+
+I have not wired this up. It is a change to the Cloudflare dashboard, not to the
+repository, and it puts a zone-scoped write token in CI — worth doing deliberately
+rather than as a side effect of a build fix.
 
 ### Two API details the docs do not mention
 
