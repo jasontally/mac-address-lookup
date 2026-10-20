@@ -1,6 +1,6 @@
 /** Sitemap rendering and writing. Pure renderers are exported for tests. */
 
-import { writeFile } from 'node:fs/promises';
+import { stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 export const SITEMAP_URL_LIMIT = 50_000;
@@ -45,6 +45,35 @@ export function maxLastmod(entries) {
     if (item.lastmod && (!latest || item.lastmod > latest)) latest = item.lastmod;
   }
   return latest;
+}
+
+/**
+ * The chunk paths a sitemap index references, or [] for a plain urlset.
+ */
+export function sitemapIndexChunks(xml) {
+  if (!xml.includes('<sitemapindex')) return [];
+  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]).pathname);
+}
+
+/**
+ * Fail when the sitemap index references a file that was not written.
+ *
+ * A missing chunk is served as the SPA shell with a 200, and a crawler reads
+ * that as an HTML sitemap (docs/architecture.md -> "Sitemap indexing"). The
+ * cache rule keeps that from sticking, but the build must not ship it.
+ */
+export async function assertSitemapChunks({ outDir, xml, statFile = stat }) {
+  for (const chunk of sitemapIndexChunks(xml)) {
+    const chunkPath = path.join(outDir, chunk.replace(/^\//, ''));
+    try {
+      await statFile(chunkPath);
+    } catch {
+      throw new Error(
+        `the sitemap index references ${chunk}, which the build did not write. ` +
+          'A crawler would read the SPA shell there as an HTML sitemap.',
+      );
+    }
+  }
 }
 
 /**

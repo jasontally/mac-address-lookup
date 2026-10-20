@@ -25,15 +25,32 @@
 /terms.html
   Cache-Control: public, max-age=86400
 
-# Crawler-facing files change rarely; keep them cached for a week.
-/favicon.svg
-  Cache-Control: public, max-age=604800
-
+# Crawler-facing files: robots.txt and the favicon change rarely, so they are
+# cached for a week.
+#
+# The sitemap is NOT one of them. Its bytes change on every data refresh, since
+# each URL carries its own lastmod, and a stale sitemap is a sitemap that says
+# the wrong thing. It must be no-cache for two reasons.
+#
+# The first is freshness: Google has to see the current lastmod values, not the
+# ones from a week ago.
+#
+# The second is the SPA fallback. not_found_handling is
+# "single-page-application", so a path that does not exist answers with the
+# shell as text/html and a 200. A crawler cannot tell that from a real page.
+# The shell for a missing sitemap path used to be cached here for a week, so a
+# crawler that fetched a chunk path before the build wrote it kept reading
+# "Sitemap is HTML" long after the file was there. With no-cache the edge
+# revalidates on every read, so a missing path is picked up as soon as the
+# file exists, and a bad response cannot stick.
 /robots.txt
   Cache-Control: public, max-age=604800
 
-/sitemap*
+/favicon.svg
   Cache-Control: public, max-age=604800
+
+/sitemap*
+  Cache-Control: no-cache
 
 # Agent-facing documentation and downloads: stable names, refreshed weekly
 # with the data, so revalidate daily rather than caching long.

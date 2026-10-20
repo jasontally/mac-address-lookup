@@ -92,7 +92,7 @@ mac-address-lookup/
 6. **Emit manifest** (`dist/data/manifest.json`): content-hashed filenames, `generatedAt`, counts by block type, schema version, and lineage source attribution (name, homepage, license, retrieval time).
 7. **Budget checks** (`build/budget.mjs`): file-count and file-size assertions — see [Capacity & page budget](#capacity--page-budget).
 
-Caching: `data/manifest.json` and `data/sources-index.json` → `no-cache` (they map to content-hashed files that are replaced every deploy, so a stale copy could reference removed files); `data/*.parquet`, `data/sources/*`, and `assets/*` → `public, max-age=31536000, immutable` (all content-hashed); `favicon.svg`, `robots.txt`, and `sitemap*.xml` → `public, max-age=604800` (a week); generated HTML pages keep `max-age=0, must-revalidate` + ETag so deploys and new prefixes are visible immediately — they reference hashed assets, which makes a longer HTML cache unsafe.
+Caching: `data/manifest.json` and `data/sources-index.json` → `no-cache` (they map to content-hashed files that are replaced every deploy, so a stale copy could reference removed files); `data/*.parquet`, `data/sources/*`, and `assets/*` → `public, max-age=31536000, immutable` (all content-hashed); `favicon.svg` and `robots.txt` → `public, max-age=604800` (a week); `sitemap*.xml` → `no-cache` (see "Sitemap indexing" for why the sitemap cannot be cached for a week); generated HTML pages keep `max-age=0, must-revalidate` + ETag so deploys and new prefixes are visible immediately — they reference hashed assets, which makes a longer HTML cache unsafe.
 
 ## Source resilience & data refresh
 
@@ -667,6 +667,31 @@ URLs, so the sitemap is a index over chunks: `sitemap.xml` is a
 the index, so the chunk names never reach a crawler by hand. Each chunk entry
 in the index carries that chunk's date, the latest `<lastmod>` among its URLs,
 and not the deploy date. Google reads the index and then the chunks.
+
+**The chunk paths, and the shell that answers a path that is not there.** The
+chunk count changes only when the URL count crosses a multiple of 50,000, so
+the chunk paths are stable between deploys and a crawler does not meet a path
+that has never existed. It met one on 2026-10-20, and the result was the
+error "Sitemap is HTML" in Search Console. `not_found_handling` is
+`single-page-application`, so a path that does not exist answers with the SPA
+shell as `text/html` and a 200. A crawler cannot tell that from a real page.
+The `/sitemap*` cache rule then held that shell at the edge for a week, so the
+error outlived the deploy that caused it.
+
+Three things keep it from happening again. The sitemap is `no-cache`, so the
+edge revalidates on every read and a path picks up its file as soon as the
+file exists. The build fails if the sitemap index references a file it did not
+write (`sitemapIndexChunks` in `build/generate-sitemaps.mjs`, checked in
+`build/build.mjs`), so a broken index never ships. And the chunk paths are
+stable, so there is no first day for a chunk.
+
+What is left is the platform's behaviour, not the build's: a missing sitemap
+path still answers with the shell and a 200. Making that a 404 needs a Worker
+script, because Workers Static Assets has no 404 rewrite in `_redirects` and
+`not_found_handling` is one site-wide setting. The site has no Worker script
+on purpose (an assets-only deployment has no billed invocations), so the
+content type is the mitigation, the same one the MCP Snippet uses for its
+shards.
 
 **The order inside the scope.** The home page, the rollups, the hubs and the
 dimension pages come first, and the prefix pages come last. A crawler that

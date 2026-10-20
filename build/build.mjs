@@ -12,6 +12,7 @@ import { checkBudget, formatBytes, walkDir } from './budget.mjs';
 import { checkSnippet, acceptSnippet } from './mcp-snippet-check.mjs';
 import { buildStatic } from './copy-static.mjs';
 import { generatePages } from './generate-pages.mjs';
+import { assertSitemapChunks } from './generate-sitemaps.mjs';
 import { computeHubs, computeFormerHubs, writeHubPages } from './hubs.mjs';
 import { selectPages } from './select-pages.mjs';
 import { writeAgentFiles, SITE as DOCS_SITE } from './agent-files.mjs';
@@ -402,6 +403,13 @@ if (!flags.has('--no-pages')) {
         .join(', ')})`,
   );
   console.log(`  sitemap: ${pages.sitemap.files.join(', ')} (${pages.sitemap.urls} URLs)`);
+  // The sitemap index must only reference files this build wrote. A missing
+  // chunk is served as the SPA shell with a 200, and a crawler reads that as
+  // an HTML sitemap (docs/architecture.md -> "Sitemap indexing").
+  await assertSitemapChunks({
+    outDir: distDir,
+    xml: await readFile(path.join(distDir, 'sitemap.xml'), 'utf8'),
+  });
   sitemapUrlSet = pages.sitemapUrlSet;
 }
 

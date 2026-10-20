@@ -7,8 +7,14 @@ import {
   sha1Hex,
   urlToDistPath,
 } from '../build/page-hashes.mjs';
-import { renderSitemapIndex, renderUrlSet, writeSitemaps } from '../build/generate-sitemaps.mjs';
-import { mkdirSync, rmSync } from 'node:fs';
+import {
+  assertSitemapChunks,
+  renderSitemapIndex,
+  renderUrlSet,
+  sitemapIndexChunks,
+  writeSitemaps,
+} from '../build/generate-sitemaps.mjs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 test('distPathToUrl maps every deployed layout to its canonical URL', () => {
@@ -138,4 +144,35 @@ test('the sitemap index carries each chunk date, not the deploy date', () => {
   assert.match(xml, /<loc>https:\/\/example\.test\/sitemap-1\.xml<\/loc>\n    <lastmod>2026-09-18<\/lastmod>/);
   // An entry without a date falls back to the deploy date.
   assert.match(xml, /<loc>https:\/\/example\.test\/sitemap-2\.xml<\/loc>\n    <lastmod>2026-10-20<\/lastmod>/);
+});
+
+test('sitemapIndexChunks lists the chunk paths, and nothing for a plain urlset', () => {
+  const index = renderSitemapIndex(
+    [
+      { loc: 'https://example.test/sitemap-1.xml', lastmod: '2026-09-18' },
+      { loc: 'https://example.test/sitemap-2.xml', lastmod: '2026-09-18' },
+    ],
+    { lastmod: '2026-10-20' },
+  );
+  assert.deepEqual(sitemapIndexChunks(index), ['/sitemap-1.xml', '/sitemap-2.xml']);
+  // A plain urlset has no chunks: the build must not look for any.
+  assert.deepEqual(sitemapIndexChunks(renderUrlSet(['https://example.test/'], {})), []);
+});
+
+test('the build fails when the sitemap index references a file it did not write', async () => {
+  const outDir = path.join('.tmp-sitemap-chunks');
+  mkdirSync(outDir, { recursive: true });
+  const index = renderSitemapIndex(
+    [{ loc: 'https://example.test/sitemap-1.xml', lastmod: '2026-10-20' }],
+    { lastmod: '2026-10-20' },
+  );
+  // The chunk is missing: the platform would answer that path with the SPA
+  // shell, and a crawler would read it as an HTML sitemap.
+  await assert.rejects(
+    () => assertSitemapChunks({ outDir, xml: index }),
+    /sitemap-1\.xml/,
+  );
+  writeFileSync(path.join(outDir, 'sitemap-1.xml'), '<urlset/>');
+  await assertSitemapChunks({ outDir, xml: index });
+  rmSync(outDir, { recursive: true, force: true });
 });
