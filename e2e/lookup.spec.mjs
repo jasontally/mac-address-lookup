@@ -54,11 +54,14 @@ test.describe('Static pre-rendered pages', () => {
     // MCP lookup shards: one small text/plain file per 4-character hex bucket,
     // with a few carved deeper. Every candidate prefix for a query lives in the
     // single file the snippet fetches, so the shard key is never a puzzle.
-    const shard = await request.get('/data/mcp/8c1f.txt');
+    // The 8C1F range is one of the carved ones, so its file is 8c1f64.txt and
+    // not 8c1f.txt. A name that does not exist returns the SPA shell with a
+    // 200, so the content type is also the check that the path is right.
+    const shard = await request.get('/data/mcp/8c1f64.txt');
     expect(shard.status()).toBe(200);
     expect(shard.headers()['content-type']).toContain('text/plain');
-    // One file carries the whole 8C1F range: the MA-L block, the MA-M block
-    // inside it, and the MA-S block inside that. The snippet takes the longest.
+    // One file carries the whole 8C1F64 range: the MA-L block and the MA-S
+    // block inside it. The snippet takes the longest match.
     const shardText = await shard.text();
     expect(shardText).toContain('8C1F64|MA-L|');
     expect(shardText).toContain('8C1F64AFA|MA-S|4096|US|DATA ELECTRONIC DEVICES, INC');
@@ -69,7 +72,10 @@ test.describe('Static pre-rendered pages', () => {
     expect((await catalog.json()).tools.map((t) => t.name)).toEqual(['lookup']);
 
     // The retired .txt shard surface must be gone, not silently still served.
-    expect((await request.get('/data/registry/index.txt')).status()).toBe(404);
+    // The SPA fallback answers every unmatched path with the shell and a 200,
+    // so the check is the content type: a retired shard was text/plain.
+    const retired = await request.get('/data/registry/index.txt');
+    expect(retired.headers()['content-type']).not.toContain('text/plain');
 
     const registry = await request.get('/data/registry.ndjson');
     expect(registry.status()).toBe(200);
@@ -87,7 +93,10 @@ test.describe('Static pre-rendered pages', () => {
       expect(catalog.headers()['content-type']).toContain('json');
       const body = await catalog.json();
       expect(body.specVersion).toBe('1.0');
-      expect(body.entries).toEqual([]);
+      // One entry: the MCP server card. The site is listed as an MCP server.
+      expect(body.entries).toHaveLength(1);
+      expect(body.entries[0].type).toBe('application/mcp-server-card+json');
+      expect(body.entries[0].url).toBe('https://mac.jasontally.com/mcp');
     }
 
     const robots = await request.get('/robots.txt');

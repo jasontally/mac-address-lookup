@@ -162,13 +162,18 @@ npx wrangler deploy
 This uploads `dist/` including the 13,816 shard files. Check one:
 
 ```sh
-curl -sS https://mac.jasontally.com/data/mcp/8c1f.txt
+curl -sS https://mac.jasontally.com/data/mcp/8c1f64.txt
 ```
 
-Expect the whole `8C1F` range in one file: `8C1F64|MA-L|16777216|US|DATA
-ELECTRONIC DEVICES, INC`, the MA-M block inside it, and the MA-S block inside
-that. The snippet takes the longest match, which is why `8C1F64AFA4B2` resolves
-to `8C1F64AFA` and not to its parent `8C1F64`.
+Expect the whole `8C1F64` range in one file: the `8C1F64|MA-L|...` line and the
+MA-S blocks inside it, one per line. The snippet takes the longest match, which
+is why `8C1F64AFA4B2` resolves to `8C1F64AFA` and not to its parent `8C1F64`.
+
+The file name follows the shard layout, not the range name. `8C1F` is carved to
+depth 6, so its file is `8c1f64.txt`; a 4-character range keeps its name. The
+build prints the carve table on every run, and the same table is inlined in the
+Snippet as `DEPTH`. A name that does not exist returns the SPA shell with a
+200, so check the content type, not the status.
 
 ## Step 3: install the Snippet
 
@@ -764,6 +769,18 @@ Cloudflare answers **any** unmatched path with HTTP 200 and the SPA shell as
 `text/html`. A missing shard therefore looks like a successful response. The
 snippet checks the content type before reading a shard, so the shell is never
 scanned as data.
+
+That check is also what pins the shards to `text/plain`. A shard served as
+`text/html` is indistinguishable from the shell, so it reads as empty. The
+endpoint would then answer every lookup with "no registered prefix" and still
+return HTTP 200, with nothing in the protocol trace to show why. The shards are
+therefore `text/plain` by contract, not by accident, and `public/_headers` says
+so next to the rule that caches them.
+
+There is no way to make a missing shard answer 404. Workers Static Assets
+`_redirects` supports the redirect statuses and a 200 rewrite, but not a 404
+rewrite, and `not_found_handling` is a single site-wide setting. The content
+type check in the snippet is the mitigation.
 
 It does *not* treat a missing shard as an error, because 79.3% of the 65,536
 possible 4-character buckets have no records, so an empty shard and a missing

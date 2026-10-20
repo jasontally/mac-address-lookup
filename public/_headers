@@ -96,6 +96,14 @@
 # That is what made the endpoint disagree with itself between locations, and why
 # a fix could look live in one test and broken in another. catalog.json falls
 # through to the platform default, public, max-age=0, must-revalidate.
+#
+# The shards must stay text/plain. The zone Snippet reads a shard only when the
+# content type is text/plain (mcp/snippet.js, readShard), because the SPA
+# fallback answers any unmatched path with the shell as text/html. Serving the
+# shards as text/html would make every shard unreadable, so every lookup would
+# report "no registered prefix" while the endpoint still answered with HTTP 200.
+# No Content-Type is set here on purpose: the platform already serves .txt as
+# text/plain, and naming it here would only freeze the value.
 /data/mcp/*.txt
   Cache-Control: public, max-age=86400
 
