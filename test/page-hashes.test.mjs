@@ -7,7 +7,7 @@ import {
   sha1Hex,
   urlToDistPath,
 } from '../build/page-hashes.mjs';
-import { renderUrlSet, writeSitemaps } from '../build/generate-sitemaps.mjs';
+import { renderSitemapIndex, renderUrlSet, writeSitemaps } from '../build/generate-sitemaps.mjs';
 import { mkdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
@@ -125,4 +125,17 @@ test('writeSitemaps resolves per-URL lastmod through lastmodFor tracker resoluti
   assert.match(xml, /<loc>https:\/\/example\.test\/<\/loc>\n    <lastmod>2026-08-01<\/lastmod>/);
   assert.match(xml, /<loc>https:\/\/example\.test\/recent<\/loc>\n    <lastmod>2026-09-18<\/lastmod>/);
   rmSync(outDir, { recursive: true, force: true });
+});
+
+test('the sitemap index carries each chunk date, not the deploy date', () => {
+  const xml = renderSitemapIndex(
+    [
+      { loc: 'https://example.test/sitemap-1.xml', lastmod: '2026-09-18' },
+      { loc: 'https://example.test/sitemap-2.xml' },
+    ],
+    { lastmod: '2026-10-20' },
+  );
+  assert.match(xml, /<loc>https:\/\/example\.test\/sitemap-1\.xml<\/loc>\n    <lastmod>2026-09-18<\/lastmod>/);
+  // An entry without a date falls back to the deploy date.
+  assert.match(xml, /<loc>https:\/\/example\.test\/sitemap-2\.xml<\/loc>\n    <lastmod>2026-10-20<\/lastmod>/);
 });

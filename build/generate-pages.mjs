@@ -21,6 +21,15 @@ async function mapConcurrent(items, limit, fn) {
 }
 
 /**
+ * The result holds no duplicates: a URL that two groups share appears once.
+ */
+
+/** Keep the first occurrence of each URL. A sitemap must not list a URL twice. */
+function uniqueUrls(urls) {
+  return [...new Set(urls)];
+}
+
+/**
  * Sitemap scoping for the phased index plan (docs/architecture.md →
  * "Sitemap indexing plan"). Scopes compose cumulatively:
  *   `core`    → home, /help, /recent + the localized homes
@@ -41,14 +50,14 @@ export function sitemapUrlSelection({
   dimensionUrls = [],
   prefixUrls = [],
 } = {}) {
-  const base = [...coreUrls, ...langUrls];
+  const base = uniqueUrls([...coreUrls, ...langUrls]);
   if (scope === 'core') return base;
   // The /country and /vendor rollup indexes lead every hub-carrying scope, and
   // the new dimension hubs ride with the country phase so their detail pages
   // are discoverable immediately.
-  if (scope === 'country') return [...base, ...rollupUrls, ...countryUrls, ...dimensionUrls];
-  if (scope === 'hubs') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...dimensionUrls];
-  if (scope === 'all') return [...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...dimensionUrls, ...prefixUrls];
+  if (scope === 'country') return uniqueUrls([...base, ...rollupUrls, ...countryUrls, ...dimensionUrls]);
+  if (scope === 'hubs') return uniqueUrls([...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...dimensionUrls]);
+  if (scope === 'all') return uniqueUrls([...base, ...rollupUrls, ...hubUrls, ...countryUrls, ...dimensionUrls, ...prefixUrls]);
   throw new Error(`Unknown sitemap scope: ${scope}`);
 }
 

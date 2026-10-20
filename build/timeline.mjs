@@ -3,11 +3,16 @@
  *
  * A continuous line over exact first-observed dates. Line height is address
  * space on a linear scale, with the maximum sized independently per chart so
- * big and small vendors both fill the plot. Every chart uses the same
- * dataset-wide date range, so sparse vendors still occupy the full timeline.
+ * big and small vendors both fill the plot. Every chart uses its own date
+ * window, so sparse vendors still occupy the full timeline.
+ *
+ * The window comes from the page's own records (see `chartDateRange`), never
+ * from the whole dataset. A dataset-wide window sits in the page bytes, so
+ * one new record would change every chart on the site and re-date every hub
+ * page in the sitemap (docs/architecture.md -> "Per-page change dates").
  */
 
-import { formatDate } from '../src/ui/format.mjs';
+import { formatCount, formatDate } from '../src/ui/format.mjs';
 
 function escapeSvg(value) {
   return String(value ?? '').replace(
@@ -139,7 +144,7 @@ function tickLabel(value) {
   if (value >= 1e9) return `${trimValue(value / 1e9)} billion`;
   if (value >= 1e6) return `${trimValue(value / 1e6)} million`;
   if (value >= 1e3) return `${trimValue(value / 1e3)} thousand`;
-  return formatNumber(value);
+  return formatCount(value);
 }
 
 function trimValue(scaled) {
@@ -300,16 +305,30 @@ ${xTickLabels}
       </figure>`;
 }
 
-/** Earliest and latest first-observed dates across the whole registry. */
-export function datasetDateRange(records) {
-  let startDate = null;
-  let endDate = null;
+/**
+ * The chart's own date window, quantised to calendar years.
+ *
+ * The window covers only the records on the page. A dataset-wide window
+ * changes whenever any record changes, and it lands in the page bytes, so it
+ * re-dates every hub page on the site. A per-page window changes only when
+ * that page's own data changes.
+ *
+ * The years keep the window wide enough to plot: a page whose records share
+ * one date still gets a full year, so the chart never has a zero-width axis.
+ */
+export function chartDateRange(records) {
+  let firstYear = null;
+  let lastYear = null;
   for (const record of records ?? []) {
     const timestamp = parseIsoDate(record?.firstSeen);
     if (timestamp === null) continue;
-    const date = isoDateFromTimestamp(timestamp);
-    if (startDate === null || date < startDate) startDate = date;
-    if (endDate === null || date > endDate) endDate = date;
+    const year = new Date(timestamp).getUTCFullYear();
+    if (firstYear === null || year < firstYear) firstYear = year;
+    if (lastYear === null || year > lastYear) lastYear = year;
   }
-  return startDate === null ? { startDate: null, endDate: null } : { startDate, endDate };
+  if (firstYear === null) return { startDate: null, endDate: null };
+  return {
+    startDate: `${firstYear}-01-01`,
+    endDate: `${lastYear}-12-31`,
+  };
 }

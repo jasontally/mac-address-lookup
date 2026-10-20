@@ -47,14 +47,21 @@ export function maxLastmod(entries) {
   return latest;
 }
 
+/**
+ * Sitemap index. Each entry carries its own lastmod (the latest lastmod of
+ * the URLs in that chunk); the deploy-level `lastmod` is the fallback for an
+ * entry without one.
+ */
 export function renderSitemapIndex(entries, { lastmod } = {}) {
   const body = entries
-    .map(
-      ({ loc }) =>
+    .map(({ loc, lastmod: entryLastmod }) => {
+      const effectiveLastmod = entryLastmod ?? lastmod;
+      return (
         `  <sitemap>\n    <loc>${escapeXml(loc)}</loc>` +
-        (lastmod ? `\n    <lastmod>${escapeXml(lastmod)}</lastmod>` : '') +
-        `\n  </sitemap>`,
-    )
+        (effectiveLastmod ? `\n    <lastmod>${escapeXml(effectiveLastmod)}</lastmod>` : '') +
+        `\n  </sitemap>`
+      );
+    })
     .join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</sitemapindex>\n`;
 }

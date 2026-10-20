@@ -141,13 +141,16 @@ test.describe('Vendor index', () => {
     // The first row links a real vendor page.
     const firstHref = await page.locator('.data-table tbody tr td.org a').first().getAttribute('href');
     expect(firstHref.startsWith('/vendor/')).toBe(true);
-    // The index is in the sitemap now; vendor hub detail pages stay out of it
-    // until the `hubs` scope ships.
+    // The index is in the sitemap, and the `hubs` scope (the default in
+    // build.mjs) promotes the vendor hub detail pages too.
     const sitemap = await request.get('/sitemap.xml');
     expect(sitemap.status()).toBe(200);
     const xml = await sitemap.text();
     expect(xml).toContain('<loc>https://mac.jasontally.com/vendor</loc>');
-    expect(xml).not.toContain('/vendor/apple-inc');
+    expect(xml).toContain(`<loc>https://mac.jasontally.com${firstHref}</loc>`);
+    // The sitemap lists each URL once.
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+    expect(new Set(locs).size).toBe(locs.length);
     // The home page carries a Vendors link (hub nav since 0455415).
     await page.goto('/');
     await expect(page.locator('a[href="/vendor"]').first()).toBeVisible();

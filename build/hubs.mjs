@@ -18,7 +18,7 @@ import { escapeHtml, SITE } from './page-template.mjs';
 import { slugifyOrg } from '../src/engine/slugs.mjs';
 import { countryName } from '../src/engine/countries.mjs';
 import { colonize, formatAddresses, formatDate, formatCount } from '../src/ui/format.mjs';
-import { renderAllocationTimeline } from './timeline.mjs';
+import { chartDateRange, renderAllocationTimeline } from './timeline.mjs';
 
 const BOOT = `(function () {
         try {
@@ -516,7 +516,7 @@ ${rows}
 function ownerWeight(owner) {
   return [...owner.nameCounts.values()].reduce((sum, count) => sum + count, 0);
 }
-export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], dataUpdated = null, timelineRange = null }) {
+export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], dataUpdated = null }) {
   const canonical = `${site}${hub.url}`;
   const title = `${hub.displayName} MAC address blocks | MAC Address Lookup`;
   const suffix =
@@ -560,9 +560,11 @@ export function renderOrgHubPage({ hub, assets, site = SITE, absorbed = [], data
     .join('\n');
 
   const searchHref = `/${encodeURIComponent(hub.displayName)}`;
+  // The chart's window comes from this vendor's own records, so the page
+  // changes (and re-dates) only when this vendor's data changes.
   const timeline = renderAllocationTimeline(hub.records, {
     label: `${hub.displayName} allocations`,
-    ...(timelineRange ?? {}),
+    ...chartDateRange(hub.records),
   });
   const body = `        ${timeline}
         <div class="table-wrap">
@@ -610,7 +612,7 @@ ${rows}
   });
 }
 
-export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = null, selectedPrefixes = null, timelineRange = null }) {
+export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = null, selectedPrefixes = null }) {
   const canonical = `${site}/country/${hub.code.toLowerCase()}`;
   const name = displayNameForCountry(hub.code);
   const title = `${name} MAC address blocks | MAC Address Lookup`;
@@ -643,9 +645,11 @@ export function renderCountryHubPage({ hub, assets, site = SITE, dataUpdated = n
     )
     .join('\n');
 
+  // The chart's window comes from this country's own records, so the page
+  // changes (and re-dates) only when this country's data changes.
   const timeline = renderAllocationTimeline(hub.records ?? [], {
     label: `${name} allocations`,
-    ...(timelineRange ?? {}),
+    ...chartDateRange(hub.records ?? []),
   });
   const body = `        ${timeline}
         <div class="table-wrap">
@@ -925,7 +929,6 @@ export async function writeHubPages({
   site = SITE,
   refreshDate = null,
   selectedPrefixes = null,
-  timelineRange = null,
 }) {
   const renderTracked = async (file, url, render) => {
     const priorDate = pageTracker?.priorLastmod(url) ?? refreshDate;
@@ -953,7 +956,7 @@ export async function writeHubPages({
     await renderTracked(
       path.join(vendorDir, `${hub.slug}.html`),
       url,
-      (dataUpdated) => renderOrgHubPage({ hub, assets, site, absorbed, dataUpdated, timelineRange }),
+      (dataUpdated) => renderOrgHubPage({ hub, assets, site, absorbed, dataUpdated }),
     );
     vendorUrls.push(hub.url);
   }
@@ -966,7 +969,7 @@ export async function writeHubPages({
       path.join(countryDir, file),
       url,
       (dataUpdated) =>
-        renderCountryHubPage({ hub, assets, site, dataUpdated, selectedPrefixes, timelineRange }),
+        renderCountryHubPage({ hub, assets, site, dataUpdated, selectedPrefixes }),
     );
     countryUrls.push(`/country/${hub.code.toLowerCase()}`);
   }

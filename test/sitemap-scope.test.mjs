@@ -49,6 +49,18 @@ test('unknown scopes throw instead of silently shipping an empty sitemap', () =>
   assert.throws(() => sitemapUrlSelection({ scope: 'everything' }), /Unknown sitemap scope/);
 });
 
+test('a URL shared by two groups appears once', () => {
+  const shared = 'https://example.test/registry/ma-l';
+  const urls = sitemapUrlSelection({
+    scope: 'hubs',
+    coreUrls: core,
+    hubUrls: [shared],
+    dimensionUrls: [shared],
+  });
+  assert.equal(urls.filter((url) => url === shared).length, 1);
+  assert.equal(new Set(urls).size, urls.length, 'the sitemap holds no duplicates');
+});
+
 test('empty inputs stay valid for every scope', () => {
   assert.deepEqual(sitemapUrlSelection({ scope: 'all' }), []);
   assert.deepEqual(sitemapUrlSelection({ scope: 'core', coreUrls: core }), core);

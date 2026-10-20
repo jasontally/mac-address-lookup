@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { renderAllocationTimeline, allocationDates, datasetDateRange } from '../build/timeline.mjs';
+import { renderAllocationTimeline, allocationDates, chartDateRange } from '../build/timeline.mjs';
 import {
   computeRegistryDimensions,
   computeYearDimensions,
@@ -35,7 +35,7 @@ const record = (prefix, extras = {}) => ({
   ...extras,
 });
 
-test('allocation timelines use exact dates and the full dataset range', () => {
+test('allocation timelines use exact dates and the given window', () => {
   const dates = allocationDates(
     [
       record('000001', { firstSeen: '1998-01-01' }),
@@ -64,12 +64,30 @@ test('timeline chart is a continuous date line with hover data', () => {
   assert.match(html, /hover for date and total/);
 });
 
-test('datasetDateRange ignores missing dates and bounds the range', () => {
-  assert.deepEqual(datasetDateRange([{ firstSeen: null }, { firstSeen: '2020-01-01' }]), {
+test('chartDateRange uses the page records only, quantised to years', () => {
+  assert.deepEqual(chartDateRange([{ firstSeen: null }, { firstSeen: '2020-05-06' }]), {
     startDate: '2020-01-01',
-    endDate: '2020-01-01',
+    endDate: '2020-12-31',
   });
-  assert.deepEqual(datasetDateRange([{ firstSeen: null }]), { startDate: null, endDate: null });
+  assert.deepEqual(chartDateRange([{ firstSeen: '2015-03-04' }, { firstSeen: '2021-07-08' }]), {
+    startDate: '2015-01-01',
+    endDate: '2021-12-31',
+  });
+  assert.deepEqual(chartDateRange([{ firstSeen: null }]), { startDate: null, endDate: null });
+  // The window must never be zero-width: a page with one dated record still
+  // gets a full year, so the chart axis cannot divide by zero.
+  const single = chartDateRange([{ firstSeen: '2015-03-04' }]);
+  assert.ok(single.startDate < single.endDate);
+});
+
+test('a chart window follows only its own records, so a page keeps its bytes', () => {
+  const records = [record('000001', { firstSeen: '2010-01-01' })];
+  const first = renderAllocationTimeline(records, chartDateRange(records));
+  // Another page's newer record must not move this chart's window.
+  const other = [{ firstSeen: '2026-01-01' }];
+  const second = renderAllocationTimeline(records, chartDateRange(records));
+  assert.equal(first, second);
+  assert.notEqual(chartDateRange(records).endDate, chartDateRange(other).endDate);
 });
 
 test('dimension computations group registry, year, region, history, and successors', () => {
@@ -126,7 +144,6 @@ test('successor pages use the existing current-owner rollup', () => {
 });
 
 test('dimension pages render canonical URLs, breadcrumbs, stats, and tables', () => {
-  const timelineRange = { startDate: '1998-01-01', endDate: '2026-12-31' };
   const registry = computeRegistryDimensions([record('000001', { blockType: 'MA-L' })])[0];
   const year = computeYearDimensions([record('000001', { firstSeen: '2020-01-01' })])[0];
   const region = computeRegionDimensions([record('000001', { country: 'US' })])[0];
@@ -146,9 +163,9 @@ test('dimension pages render canonical URLs, breadcrumbs, stats, and tables', ()
   const historyCountry = computeHistoryCountryDimensions(lineage, new Map([[registry.prefix, registry]]))[0];
 
   const pages = [
-    renderRegistryPage({ dimension: registry, timelineRange, assets: ASSETS, site: 'https://example.test' }),
-    renderYearPage({ dimension: year, timelineRange, assets: ASSETS, site: 'https://example.test' }),
-    renderRegionPage({ dimension: region, timelineRange, assets: ASSETS, site: 'https://example.test' }),
+    renderRegistryPage({ dimension: registry, assets: ASSETS, site: 'https://example.test' }),
+    renderYearPage({ dimension: year, assets: ASSETS, site: 'https://example.test' }),
+    renderRegionPage({ dimension: region, assets: ASSETS, site: 'https://example.test' }),
     renderHistoryYearPage({ dimension: historyYear, assets: ASSETS, site: 'https://example.test' }),
     renderHistoryCountryPage({ dimension: historyCountry, assets: ASSETS, site: 'https://example.test' }),
     renderSuccessorPage({ dimension: computeSuccessorDimensions({

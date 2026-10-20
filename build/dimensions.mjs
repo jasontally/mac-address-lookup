@@ -13,7 +13,7 @@ import { regionForCountry, regionName, regionSlug } from '../src/engine/regions.
 import { normalizeOrgName } from './lineage.mjs';
 import { escapeHtml, SITE } from './page-template.mjs';
 import { renderPage, paramsAttr } from './hubs.mjs';
-import { renderAllocationTimeline } from './timeline.mjs';
+import { chartDateRange, renderAllocationTimeline } from './timeline.mjs';
 import {
   colonize,
   formatAddresses,
@@ -350,7 +350,7 @@ export function renderRegistryIndexPage({ dimensions, assets, site = SITE, dataU
   });
 }
 
-export function renderRegistryPage({ dimension, timelineRange, assets, site = SITE, dataUpdated = null }) {
+export function renderRegistryPage({ dimension, assets, site = SITE, dataUpdated = null }) {
   const title = `${dimension.type} MAC address blocks | MAC Address Lookup`;
   const description = `${dimension.blocks} ${dimension.type} blocks covering ${formatAddresses(dimension.addresses, 'en')} addresses across ${dimension.orgs} organizations.`;
   const rows = dimension.records.map((record) =>
@@ -362,7 +362,7 @@ export function renderRegistryPage({ dimension, timelineRange, assets, site = SI
     ['Organizations', formatCount(dimension.orgs, 'en')],
     ['Countries', formatCount(dimension.countries.length, 'en')],
     ['First observed', formatDate(dimension.first, 'en') || '-'],
-  ])}\n${renderAllocationTimeline(dimension.records, { label: `${dimension.type} allocations`, ...timelineRange })}\n${table(
+  ])}\n${renderAllocationTimeline(dimension.records, { label: `${dimension.type} allocations`, ...chartDateRange(dimension.records) })}\n${table(
     [
       { label: 'Prefix', key: 'table.prefix' },
       { label: 'Organization', key: 'table.org' },
@@ -425,7 +425,7 @@ export function renderYearIndexPage({ dimensions, assets, site = SITE, dataUpdat
   });
 }
 
-export function renderYearPage({ dimension, timelineRange, assets, site = SITE, dataUpdated = null }) {
+export function renderYearPage({ dimension, assets, site = SITE, dataUpdated = null }) {
   const title = `MAC address blocks first observed in ${dimension.year} | MAC Address Lookup`;
   const description = `${dimension.blocks} IEEE blocks first observed in ${dimension.year}, covering ${formatAddresses(dimension.addresses, 'en')} addresses.`;
   const rows = dimension.records.map((record) =>
@@ -498,7 +498,7 @@ export function renderRegionIndexPage({ dimensions, assets, site = SITE, dataUpd
   });
 }
 
-export function renderRegionPage({ dimension, timelineRange, assets, site = SITE, dataUpdated = null }) {
+export function renderRegionPage({ dimension, assets, site = SITE, dataUpdated = null }) {
   const title = `${dimension.name} MAC address blocks | MAC Address Lookup`;
   const description = `${dimension.blocks} MAC address blocks registered in ${dimension.name}, covering ${formatAddresses(dimension.addresses, 'en')} addresses.`;
   const countryGroups = new Map();
@@ -521,7 +521,7 @@ export function renderRegionPage({ dimension, timelineRange, assets, site = SITE
     ['Addresses', formatAddresses(dimension.addresses, 'en')],
     ['Organizations', formatCount(dimension.orgs, 'en')],
     ['Countries', formatCount(dimension.countryCodes.length, 'en')],
-  ])}\n${renderAllocationTimeline(dimension.records, { label: `${dimension.name} allocations`, ...timelineRange })}\n<h2>Countries</h2>\n${table(
+  ])}\n${renderAllocationTimeline(dimension.records, { label: `${dimension.name} allocations`, ...chartDateRange(dimension.records) })}\n<h2>Countries</h2>\n${table(
     [
       { label: 'Country', key: 'detail.country' },
       { label: 'Blocks', key: 'table.blocks' },
@@ -778,7 +778,6 @@ export async function writeDimensionPages({
   records,
   lineageEntries = [],
   formerData = null,
-  timelineRange = {},
   outDir,
   assets,
   pageTracker = null,
@@ -831,21 +830,21 @@ export async function writeDimensionPages({
   await renderTracked(path.join(outDir, 'registry.html'), `${site}/registry`, (date) => renderRegistryIndexPage({ dimensions: registries, assets, site, dataUpdated: date }));
   urls.registryIndexUrls.push('/registry');
   for (const dimension of registries) {
-    await renderTracked(path.join(outDir, 'registry', `${dimension.slug}.html`), `${site}${dimension.url}`, (date) => renderRegistryPage({ dimension, timelineRange, assets, site, dataUpdated: date }));
+    await renderTracked(path.join(outDir, 'registry', `${dimension.slug}.html`), `${site}${dimension.url}`, (date) => renderRegistryPage({ dimension, assets, site, dataUpdated: date }));
     urls.registryUrls.push(dimension.url);
   }
 
   await renderTracked(path.join(outDir, 'year.html'), `${site}/year`, (date) => renderYearIndexPage({ dimensions: years, assets, site, dataUpdated: date, unknownCount: records.filter((record) => !record.firstSeen).length }));
   urls.yearIndexUrls.push('/year');
   for (const dimension of years) {
-    await renderTracked(path.join(outDir, 'year', `${dimension.year}.html`), `${site}${dimension.url}`, (date) => renderYearPage({ dimension, timelineRange, assets, site, dataUpdated: date }));
+    await renderTracked(path.join(outDir, 'year', `${dimension.year}.html`), `${site}${dimension.url}`, (date) => renderYearPage({ dimension, assets, site, dataUpdated: date }));
     urls.yearUrls.push(dimension.url);
   }
 
   await renderTracked(path.join(outDir, 'region.html'), `${site}/region`, (date) => renderRegionIndexPage({ dimensions: regions, assets, site, dataUpdated: date }));
   urls.regionIndexUrls.push('/region');
   for (const dimension of regions) {
-    await renderTracked(path.join(outDir, 'region', `${dimension.slug}.html`), `${site}${dimension.url}`, (date) => renderRegionPage({ dimension, timelineRange, assets, site, dataUpdated: date }));
+    await renderTracked(path.join(outDir, 'region', `${dimension.slug}.html`), `${site}${dimension.url}`, (date) => renderRegionPage({ dimension, assets, site, dataUpdated: date }));
     urls.regionUrls.push(dimension.url);
   }
 
