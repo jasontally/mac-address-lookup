@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sitemapLocs } from './sitemap.mjs';
 
 /** Row totals drift a few rows per registry refresh; the lede states them. */
 const totalFromLede = async (page, pattern) => {
@@ -141,15 +142,13 @@ test.describe('Vendor index', () => {
     // The first row links a real vendor page.
     const firstHref = await page.locator('.data-table tbody tr td.org a').first().getAttribute('href');
     expect(firstHref.startsWith('/vendor/')).toBe(true);
-    // The index is in the sitemap, and the `hubs` scope (the default in
-    // build.mjs) promotes the vendor hub detail pages too.
-    const sitemap = await request.get('/sitemap.xml');
-    expect(sitemap.status()).toBe(200);
-    const xml = await sitemap.text();
-    expect(xml).toContain('<loc>https://mac.jasontally.com/vendor</loc>');
-    expect(xml).toContain(`<loc>https://mac.jasontally.com${firstHref}</loc>`);
+    // The index is in the sitemap, and the `all` scope (the default in
+    // build.mjs) promotes every pre-rendered page, the vendor hub detail
+    // pages among them.
+    const locs = await sitemapLocs(request);
+    expect(locs).toContain('https://mac.jasontally.com/vendor');
+    expect(locs).toContain(`https://mac.jasontally.com${firstHref}`);
     // The sitemap lists each URL once.
-    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     expect(new Set(locs).size).toBe(locs.length);
     // The home page carries a Vendors link (hub nav since 0455415).
     await page.goto('/');

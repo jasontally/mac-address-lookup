@@ -345,16 +345,22 @@ if (!flags.has('--no-pages')) {
 
   console.log(`Generating up to ${pageBudget.toLocaleString('en-US')} prefix pages...`);
   const pagesStartedAt = Date.now();
-  // Phased sitemap (docs/architecture.md → "Sitemap indexing plan"): the
-  // 62,760-URL index diluted discovery against the handful of pages we most
-  // want indexed (home, help, hubs). Scopes compose:
+  // Sitemap scope (docs/architecture.md → "Sitemap indexing plan"). Scopes
+  // compose:
   //   core (home/help/recent + localized homes)
   //   country (+ the 127 /country/ hubs)
-  //   hubs (phase 3, the default: + vendor and former-owner hubs)
+  //   hubs (+ vendor and former-owner hubs)
   //   all (+ every prefix page)
-  // Expand with SITEMAP_SCOPE once Search Console shows the current phase
-  // indexed. Pages stay live and internally linked in every scope.
-  const sitemapScope = process.env.SITEMAP_SCOPE ?? 'hubs';
+  //
+  // `all` is the default since 2026-10-20. The phases were cut to test the
+  // idea that a trimmed index would steer crawl priority at the pages that
+  // matter most. Search Console said the opposite: the static OUI pages
+  // carried most of the traffic, and the trimmed index left them indexed
+  // late or not at all. So the index now lists every pre-rendered page, with
+  // the home, the hubs and the dimension pages first and the prefix pages
+  // after them. Pages stay live and internally linked in every scope, so the
+  // scope only changes what the sitemap advertises.
+  const sitemapScope = process.env.SITEMAP_SCOPE ?? 'all';
   console.log(`Sitemap scope: ${sitemapScope}`);
   const pages = await generatePages({
     records,

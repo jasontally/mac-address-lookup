@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sitemapText } from './sitemap.mjs';
 
 test.describe('Localized home pages (/lang/{locale}/)', () => {
   test('Spanish variant: lang attr, authored title, canonical, hreflang cluster', async ({ page }) => {
@@ -78,9 +79,7 @@ test.describe('Localized home pages (/lang/{locale}/)', () => {
   });
 
   test('sitemap.xml lists the lang set with xhtml alternates', async ({ request }) => {
-    const sitemap = await request.get('/sitemap.xml');
-    expect(sitemap.status()).toBe(200);
-    const text = await sitemap.text();
+    const text = await sitemapText(request);
     expect(text).toContain('xmlns:xhtml');
     expect(text).toContain('https://mac.jasontally.com/lang/ja/');
     expect(text).toContain('<xhtml:link rel="alternate" hreflang="es"');

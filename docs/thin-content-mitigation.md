@@ -300,8 +300,9 @@ existing `formatCount`), template integration.
 
 ## Monitoring gates (after each step)
 
-1. Deploy the step; wait for a recrawl cycle (sitemap `lastmod` already updates with
-   the refresh date).
+1. Deploy the step; wait for a recrawl cycle. A page that changed carries the
+   new refresh date in its `<lastmod>`; a page that did not keep its old one, so
+   a recrawl cycle on its own may not pick it up.
 2. Search Console: index coverage for (a) prefix pages, (b) new hub pages;
    watch "Crawled — currently not indexed" as the thin-content signal.
 3. Decision points:

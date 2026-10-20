@@ -34,7 +34,7 @@ Build (Workers Builds)                          Runtime (Cloudflare edge)
 | Hosting | Cloudflare Workers Static Assets, assets-only (no Worker script), paid plan |
 | Fallback | `not_found_handling: "single-page-application"` → `200` + shell for unmatched paths |
 | Data | Apache Parquet files (registry + lean search index + lineage), read in-browser with Hyparquet; Apache Arrow JS not used |
-| Indexing | Pre-rendered priority tiers, flat `<prefix>.html` pages, canonical uppercase URLs, sitemap covers the pre-rendered pages selected by the active `SITEMAP_SCOPE` (currently `country`: core + rollups + country hubs + dimension pages; still provisional — see the sitemap indexing plan) |
+| Indexing | Pre-rendered priority tiers, flat `<prefix>.html` pages, canonical uppercase URLs, sitemap covers every pre-rendered page (scope `all`: core + rollups + hubs + dimension pages + every prefix page, in 50,000-URL chunks under a sitemap index; see the sitemap indexing plan) |
 | Design | Kumo-inspired semantic tokens, monochrome + status colors, system font stack, system-aware dark mode + toggle |
 | Deep links | Every single-segment path: `/001A2B`, `/apple`, `/001A2B,005056` (comma-separated batch, cap 250); legacy `?q=` still accepted and canonicalized to the path form |
 | Partials | < 6 hex lists matching prefixes, capped at 500 with total count |
@@ -618,17 +618,24 @@ legal pages, so a placeholder that looked real cannot be committed later.
 
 ## Sitemap indexing
 
-**Why the sitemap is trimmed.** Google indexed only a subset of the prefix
-pages and none of the home or hub pages early on. A sitemap holding every page
-is dominated by one homogeneous template, which steers crawl prioritization
-toward the prefix-page flood and starves the pages that matter most for
-discovery.
+**Why the sitemap was trimmed, and why it is not any more.** Google indexed only a
+subset of the prefix pages and none of the home or hub pages early on. A sitemap
+holding every page is dominated by one homogeneous template, which was read as
+steering crawl prioritization toward the prefix-page flood and starving the
+pages that matter most for discovery. The scope was cut back in phases to test
+that reading.
+
+Search Console said the opposite. The static OUI pages carried most of the
+site's traffic, and the trimmed index left them indexed late or not at all. So
+the sitemap lists every pre-rendered page again since 2026-10-20. The trim was
+the thing that cost traffic, not the flood.
 
 **Principle:** the sitemap is a discovery hint, not a directive. Pages stay live
 and internally linked regardless, so trimming rows cannot deindex anything
-already indexed. Internal linking is what actually carries hub discovery — every
-prefix page links its vendor, country, and former-owner hubs plus related
-prefixes, and every hub breadcrumbs up to its rollup index.
+already indexed, and widening it cannot deindex anything either. Internal
+linking carries hub discovery — every prefix page links its vendor, country,
+and former-owner hubs plus related prefixes, and every hub breadcrumbs up to
+its rollup index.
 
 `SITEMAP_SCOPE` composes cumulatively:
 
@@ -636,29 +643,41 @@ prefixes, and every hub breadcrumbs up to its rollup index.
 | --- | --- | --- |
 | `core` | `/`, `/help`, `/recent`, `/privacy`, `/terms`, and the localized homes | The pages that must be indexed first |
 | `country` | the country rollups and `/country/<code>` hubs | Country-level discovery |
-| `hubs` **(current)** | vendor and former-owner hubs | **The default, and expected to stay** |
-| `all` | every prefix page | The long tail; dilutes the above |
+| `hubs` | vendor and former-owner hubs | Hubs only; the scope used from 2026-09 to 2026-10 |
+| `all` **(current)** | every prefix page | The default since 2026-10-20 |
 
 The owner monitors Search Console directly and treats the scope as settled
 unless that data says otherwise.
 
-Expand by editing the `?? 'hubs'` default in `build/build.mjs` (Workers
-Builds runs plain `npm run build`, so the constant is the only carrier) or by
-setting `SITEMAP_SCOPE` in the build environment. `sitemapUrlSelection`
-(`build/generate-pages.mjs`, unit-tested in `test/sitemap-scope.test.mjs`)
-implements the scopes — `core` ⊂ `country` ⊂ `hubs` ⊂ `all`; unknown values
-fail the build instead of shipping an empty sitemap. The selection drops a URL
-that two groups share, so the sitemap never lists one URL twice (the dimension
-detail pages were in both the hub group and the dimension group until
-2026-10-20). Each URL carries its own `<lastmod>` from the page-hash tracker.
-The sitemap index (`sitemap.xml` when the set exceeds 50,000 URLs) carries each
-chunk's date, the latest `<lastmod>` in that chunk, and not the deploy date.
+Expand or contract by editing the `?? 'all'` default in `build/build.mjs`
+(Workers Builds runs plain `npm run build`, so the constant is the only
+carrier) or by setting `SITEMAP_SCOPE` in the build environment.
+`sitemapUrlSelection` (`build/generate-pages.mjs`, unit-tested in
+`test/sitemap-scope.test.mjs`) implements the scopes — `core` ⊂ `country` ⊂
+`hubs` ⊂ `all`; unknown values fail the build instead of shipping an empty
+sitemap. The selection drops a URL that two groups share, so the sitemap never
+lists one URL twice (the dimension detail pages were in both the hub group and
+the dimension group until 2026-10-20). Each URL carries its own `<lastmod>`
+from the page-hash tracker.
+
+**The shape of the shipped sitemap.** At scope `all` the set is over 50,000
+URLs, so the sitemap is a index over chunks: `sitemap.xml` is a
+`<sitemapindex>` and the pages live in `sitemap-1.xml` and `sitemap-2.xml`
+(50,000 URLs and the remainder). `robots.txt` points at `sitemap.xml`, which is
+the index, so the chunk names never reach a crawler by hand. Each chunk entry
+in the index carries that chunk's date, the latest `<lastmod>` among its URLs,
+and not the deploy date. Google reads the index and then the chunks.
+
+**The order inside the scope.** The home page, the rollups, the hubs and the
+dimension pages come first, and the prefix pages come last. A crawler that
+reads the list in order meets the distinctive pages before the long tail.
 
 **If a scope ever stalls:** hold the next one and strengthen internal links
 before retrying expansion — for example a home-page module linking top vendor
 hubs, or `/recent` rows linking hubs. The IndexNow manifest intersects changed
 URLs with the same scope, so newly-added pages ride along in post-deploy pings
-rather than needing a separate signal.
+rather than needing a separate signal. At scope `all` the prefix pages are in
+that scope, so a changed prefix page is pinged as well.
 
 ## IndexNow is refused by Bing, and it is not a bug in the build
 
@@ -780,7 +799,7 @@ other languages. The former `src/i18n/seo.mjs` / `seoFor` are now
 
 - **Pipeline:** the GitHub repo is connected to the Worker via Workers Builds. A push to `main` triggers build + deploy. Build command: `npm run build` (fetch IEEE registries → normalize → Parquet → pre-render pages → sitemap/robots → budget checks). Dependencies install automatically. Deploy command: `npx wrangler deploy && node build/indexnow.mjs` (deploy, then the post-deploy IndexNow ping — see below; the deploy command is configured in the Cloudflare dashboard, Workers & Pages → project → Settings → Build). No GitHub Actions required for deploys; the daily data-refresh workflow only commits the refresh bump, and Cloudflare's build does the rest.
 - **Node version:** build image defaults to Node 24.18.0; pin with `.nvmrc` (`24`).
-- **Deterministic builds & per-URL lastmod:** every data-without-code-change build renders byte-identical HTML. Two ties were cut for this: all build-time "now" stamps (`generatedAt`, `retrievedAt`, sitemap lastmod) come from `data/refresh.txt` instead of the wall clock, and per-page content hashes live in `dist/data/page-hashes.json` (`build/page-hashes.mjs`). Each build hashes every pre-rendered page; the **next** build fetches that manifest from production, so a URL keeps its previous `<lastmod>` when its bytes are unchanged and only re-dates (to the current refresh date) when its content actually changed. The sitemap resolves per-URL lastmod through this map (`writeSitemaps({ ..., lastmodFor })`) — for the entire core scope today and ready to cover every page when the sitemap expands. Byte-stable output also means Cloudflare's content-hash dedupe uploads only files that really changed on data-refresh deploys, keeping edge caches warm for unchanged pages. `data/page-hashes.json` currently tracks 62,762 URLs at ~6.2 MB; if that grows unwieldy as the sitemap expands, the manifest can move behind a build env fallback without changing the contract.
+- **Deterministic builds & per-URL lastmod:** every data-without-code-change build renders byte-identical HTML. Two ties were cut for this: all build-time "now" stamps (`generatedAt`, `retrievedAt`, sitemap lastmod) come from `data/refresh.txt` instead of the wall clock, and per-page content hashes live in `dist/data/page-hashes.json` (`build/page-hashes.mjs`). Each build hashes every pre-rendered page; the **next** build fetches that manifest from production, so a URL keeps its previous `<lastmod>` when its bytes are unchanged and only re-dates (to the current refresh date) when its content actually changed. The sitemap resolves per-URL lastmod through this map (`writeSitemaps({ ..., lastmodFor })`) — for every URL in the sitemap, which since 2026-10-20 is every pre-rendered page. Byte-stable output also means Cloudflare's content-hash dedupe uploads only files that really changed on data-refresh deploys, keeping edge caches warm for unchanged pages. `data/page-hashes.json` currently tracks 63,404 URLs at ~6.3 MB; if that grows unwieldy as the sitemap expands, the manifest can move behind a build env fallback without changing the contract.
 - **Per-page change dates (2026-09-21):** the same hash manifest is the single source of truth for page freshness off the sitemap too. Prefix pages, hubs, and `/recent` embed each page's own last-change date twice — a footer `<time>` line ("Data refreshed <date>") and JSON-LD `dateModified` (prefix pages as `Dataset`, hubs as `CollectionPage`) — and always the same date as that URL's sitemap `<lastmod>`. Renderers use a two-pass contract (`render → record → re-render with the refresh date only if the bytes differ from the deployed page`), so an unchanged page keeps byte-identical output (and its old date), while a changed page converges to `dateModified = lastmod = refreshDate`. No wall-clock stamps, no per-refresh footers (a changed footer date on an otherwise unchanged page would re-date everything and teach Google the dates are meaningless), and the IEEE registration dates on a page are never reused as `dateModified` or `datePublished` (they describe the data, not the page). The home/help shells carry no static dates; their client-filled date (`manifest.refreshDate`) describes the dataset refresh, not the page.
 - **No global value in page bytes (2026-10-20):** a page's bytes must depend only on its own data. A dataset-wide value in the markup breaks that rule: it changes when any record changes, so every page holding it changes bytes, and the two-pass contract then re-dates all of them. The allocation charts on the hub, country, registry and region pages were the last such value (they used one dataset-wide first-observed range). They now use their own records' range, quantised to calendar years (`chartDateRange` in `build/timeline.mjs`), so one new record changes only the pages that mention it. Measured on one synthetic record with a later first-observed date: 3,619 pages changed before, 7 pages after (the vendor hub, the country hub, the region and registry pages, the year index and year page, and `/recent`).
 - **IndexNow (post-deploy, Cloudflare-side):** `build/indexnow.mjs` runs after `wrangler deploy` (much of the deployed set is chunked ≤10,000 URLs per POST to `api.indexnow.org`; the key/ownership file lives at `/{key}.txt` from `public/`). The build emits `dist/data/indexnow.json` = the URLs whose bytes changed this build, intersected with the current sitemap scope (finalizePageHashes) — so the ping covers exactly changed pages the sitemap already promotes, and sends an empty manifest when nothing changed (Bing, Yandex, Seznam, Yep consume IndexNow; Google does not). Ping failures never fail the deploy. Regenerate the og-card (og:image/twitter:card on every page) with `node build/make-og-card.mjs` when the site copy changes.
