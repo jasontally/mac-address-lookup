@@ -30,7 +30,7 @@ import { writeRecentPage } from './recent.mjs';
 import { writeDimensionPages } from './dimensions.mjs';
 import { createPageTracker, finalizePageHashes, loadPreviousPageHashes, recordDistFile, urlToDistPath } from './page-hashes.mjs';
 import { REGISTRIES } from './registries.mjs';
-
+import { runAnalyticsPhase, loadPreviousRegistry } from './analytics.mjs';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distDir = path.join(root, 'dist');
 const dataDir = path.join(distDir, 'data');
@@ -136,6 +136,40 @@ for (const record of records) {
   record.lineageCount = lineageCounts.get(record.prefix) ?? 0;
 }
 
+// Analytics phase: compare this build's registry against the deployed one and
+// notify on notable new prefixes. Advisory only: never fail the build.
+let analyticsResult = { newPrefixes: [], findings: [], email: { sent: false, reason: 'not-run' } };
+try {
+  console.log('Loading previous registry for analytics...');
+  const { records: previousAnalyticsRecords, warning: analyticsWarning } = await loadPreviousRegistry({
+    site: 'https://mac.jasontally.com',
+  });
+  if (analyticsWarning) console.log(`  analytics: ${analyticsWarning}`);
+  console.log('Running analytics phase...');
+  analyticsResult = await runAnalyticsPhase({
+    records,
+    previousRecords: previousAnalyticsRecords ?? [],
+    refreshDate,
+  });
+  if (analyticsResult.findings.length > 0) {
+    await mkdir(dataDir, { recursive: true });
+    await writeFile(
+      path.join(dataDir, 'analytics.json'),
+      `${JSON.stringify(
+        {
+          generatedAt: refreshDate,
+          newPrefixes: analyticsResult.newPrefixes.length,
+          findings: analyticsResult.findings,
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    console.log(`  analytics: wrote data/analytics.json (${analyticsResult.findings.length} findings)`);
+  }
+} catch (error) {
+  console.warn(`  analytics: skipped (${error.message})`);
+}
 // Hub populations (docs/thin-content-mitigation.md step 2): org-grouping and
 // slug assignment run before Parquet writes so every row can carry its
 // vendor hub slug (`vendor_hub` column) for dynamic deep links. Hub *files*
