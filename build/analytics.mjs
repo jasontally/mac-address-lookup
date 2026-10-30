@@ -396,10 +396,21 @@ export async function sendAnalyticsEmail(options = {}) {
 /** Orchestrate detection + notification for one build. */
 export async function runAnalyticsPhase(options = {}) {
   const records = options.records ?? options.currentRecords ?? [];
-  const previousRecords = options.previousRecords ?? options.previous ?? [];
+  const previousRecords = options.previousRecords ?? options.previous ?? null;
   const refreshDate = options.refreshDate ?? null;
   const log = options.log ?? console.log;
   const fetchImpl = options.fetchImpl ?? fetch;
+
+  if (!Array.isArray(previousRecords)) {
+    log('analytics: no previous-registry baseline available, skipping');
+    return {
+      newPrefixes: [],
+      findings: [],
+      notable: [],
+      notablePrefixes: [],
+      email: { sent: false, reason: 'no-baseline' },
+    };
+  }
 
   const newPrefixes = options.newPrefixes ?? detectNewPrefixes(records, previousRecords);
   const findings = options.findings ?? analyzeNewPrefixes(newPrefixes, {

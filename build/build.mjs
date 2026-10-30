@@ -148,7 +148,7 @@ try {
   console.log('Running analytics phase...');
   analyticsResult = await runAnalyticsPhase({
     records,
-    previousRecords: previousAnalyticsRecords ?? [],
+    previousRecords: previousAnalyticsRecords,
     refreshDate,
   });
   if (analyticsResult.findings.length > 0) {
