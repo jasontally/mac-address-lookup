@@ -1,0 +1,9 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://mac.jasontally.com/mcp",
+      "service-desc": [{ "href": "https://mac.jasontally.com/.well-known/openapi.json" }],
+      "service-doc": [{ "href": "https://mac.jasontally.com/help#mcp" }]
+    }
+  ]
+}

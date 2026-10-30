@@ -1,0 +1,16 @@
+{
+  "name": "MAC Address Lookup",
+  "version": "1.0.0",
+  "description": "Resolve a MAC address or OUI prefix to its registered organization via the IEEE registries. Read-only, public, unauthenticated.",
+  "supportedInterfaces": [
+    { "url": "https://mac.jasontally.com/mcp", "protocolBinding": "JSONRPC", "protocolVersion": "2026-07-28" }
+  ],
+  "capabilities": { "streaming": false, "pushNotifications": false },
+  "skills": [
+    {
+      "id": "lookup",
+      "name": "lookup",
+      "description": "Resolve a MAC address or OUI prefix to its registered organization by longest-prefix match across MA-L, MA-M, MA-S, IAB, and CID."
+    }
+  ]
+}

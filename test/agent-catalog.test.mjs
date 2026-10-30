@@ -107,6 +107,10 @@ test('robots.txt uses only directives the search parser accepts', async () => {
   const robots = await readFile(path.join(root, 'public', 'robots.txt'), 'utf8');
 
   // Google's documented set. Anything outside it is reported as an error.
+  // content-signal is an emerging Cloudflare/IETF directive (contentsignals.org).
+  // It is not in Google's documented set and Google has stated it has no effect,
+  // but it is added here as an experiment to measure Google PSI's actual
+  // behaviour. Revert if PSI starts flagging it.
   const KNOWN = new Set([
     'user-agent',
     'allow',
@@ -116,6 +120,7 @@ test('robots.txt uses only directives the search parser accepts', async () => {
     'clean-param',
     'host',
     'noindex',
+    'content-signal',
   ]);
 
   const directives = [];

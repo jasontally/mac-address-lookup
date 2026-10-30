@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "mac-lookup",
+      "type": "skill-md",
+      "description": "Resolve a MAC address or OUI prefix to its registered organization via the MAC Address Lookup MCP server.",
+      "url": "https://mac.jasontally.com/.well-known/agent-skills/lookup/SKILL.md",
+      "digest": "sha256:72ab3c4faaf21d192a9f378508cc9caac0764d63c6dbc384f8ed697817f8f1e0"
+    }
+  ]
+}

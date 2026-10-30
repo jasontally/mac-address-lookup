@@ -90,9 +90,41 @@
   Content-Type: application/json
   Cache-Control: public, max-age=86400
 
+# Additional discovery documents.
+/.well-known/api-catalog
+  Content-Type: application/linkset+json
+  Cache-Control: public, max-age=86400
+
+/.well-known/agent-card.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
+/.well-known/poppy.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
+/.well-known/openapi.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
+# Agent Skills discovery index and artifacts.
+/.well-known/agent-skills/index.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=86400
+
+/.well-known/agent-skills/lookup/SKILL.md
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=86400
+
 # help.md carries Markdown source; some tools refuse the text/markdown media
 # type, so present it as plain text (the content reads fine either way).
 /help.md
+  Cache-Control: public, max-age=86400
+  Content-Type: text/plain; charset=utf-8
+
+# auth.md: agent registration discovery (Auth.md standard). No auth is required
+# for this site or its MCP endpoint, so the document says so explicitly.
+/auth.md
   Cache-Control: public, max-age=86400
   Content-Type: text/plain; charset=utf-8
 
@@ -123,6 +155,10 @@
 # text/plain, and naming it here would only freeze the value.
 /data/mcp/*.txt
   Cache-Control: public, max-age=86400
+
+# Agent discovery: Link response headers on the homepage (RFC 8288).
+/
+  Link: </llms.txt>; rel="describedby", </help>; rel="service-doc", </.well-known/ai-catalog.json>; rel="ai-catalog"
 
 # Security headers (catch-all last so specific cache rules apply first).
 /*

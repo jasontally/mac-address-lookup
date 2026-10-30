@@ -191,7 +191,7 @@
     <main id="main">
       <div class="container">
         <section class="hero">
-          <form class="lookup-form" id="lookup-form" novalidate>
+          <form class="lookup-form" id="lookup-form" novalidate toolname="lookup" tooldescription="Resolve a MAC address or OUI prefix to its registered organization.">
             <label class="visually-hidden" for="lookup-input" data-i18n="lookup.label">MAC address or OUI prefix</label>
             <input
               class="lookup-input"
@@ -202,6 +202,7 @@
               autocomplete="off"
               autocapitalize="characters"
               spellcheck="false"
+              toolparamdescription="MAC address or OUI prefix to look up (6-12 hex characters, any separator)"
               placeholder="MAC address, prefix, vendor, or paste text"
               data-i18n-placeholder="lookup.placeholder"
             />

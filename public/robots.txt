@@ -7,6 +7,7 @@
 
 User-agent: *
 Allow: /
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
 
 # Explicit AI-crawler policy: allowed (same as the default above, stated
 # so the intent is documented and easy to flip per-bot if it ever changes).

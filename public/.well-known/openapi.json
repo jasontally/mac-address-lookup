@@ -1,0 +1,22 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MAC Address Lookup",
+    "version": "1.0.0",
+    "description": "Lookup a MAC address or OUI prefix against the IEEE registries. The primary interface is the MCP endpoint at /mcp (JSON-RPC over HTTP)."
+  },
+  "servers": [{ "url": "https://mac.jasontally.com" }],
+  "paths": {
+    "/mcp": {
+      "post": {
+        "summary": "MCP lookup tool",
+        "description": "Send a JSON-RPC request. Method tools/call with name=lookup and arguments.mac.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object" } } }
+        },
+        "responses": { "200": { "description": "JSON-RPC response" } }
+      }
+    }
+  }
+}
